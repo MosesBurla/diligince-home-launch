@@ -10,21 +10,19 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 627216615313.dkr.ecr.us-east-1.amazonaws.com
 
-      - echo "=== Source directory before creating Dockerfile ==="
-      - ls -la
-
-      - echo "Creating Dockerfile..."
+      - echo "=== Creating Dockerfile ==="
       - |
         cat > Dockerfile <<'EOF'
         FROM public.ecr.aws/docker/library/hello-world:latest
-
-        LABEL maintainer="you@example.com"
-
-        CMD ["echo", "Hello from CodeBuild!"]
+        LABEL org.opencontainers.image.source="https://github.com/your-repo"
+        CMD ["/hello"]
         EOF
 
-      - echo "Dockerfile created. Contents:"
+      - echo "Dockerfile created:"
       - cat Dockerfile
+
+      - echo "Listing files to confirm:"
+      - ls -la
 
   build:
     commands:
@@ -39,4 +37,4 @@ phases:
       - echo "Pushing to ECR..."
       - docker push 627216615313.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
 
-      - echo "Build and push complete!"
+      - echo "SUCCESS: Image pushed to ECR!"
