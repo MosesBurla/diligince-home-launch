@@ -2,80 +2,41 @@ version: 0.2
 
 env:
   variables:
-    # Change only these two values
-    IMAGE_NAME: "simple-docker-service"
-    ECR_REPO:   "627216615313.dkr.ecr.us-east-1.amazonaws.com"
+    ImageName: "simple-docker-service-127881f06b41"
 
 phases:
   pre_build:
     commands:
-      # ------------------------------------------------------------------
-      # 1. ECR login
-      # ------------------------------------------------------------------
       - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region us-east-1 |
-          docker login --username AWS --password-stdin $ECR_REPO
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 627216615313.dkr.ecr.us-east-1.amazonaws.com
 
-      # ------------------------------------------------------------------
-      # 2. DEBUG: show what we have in the source folder
-      # ------------------------------------------------------------------
-      - echo "=== Source directory contents ==="
+      - echo "=== Source directory before creating Dockerfile ==="
       - ls -la
 
-      # ------------------------------------------------------------------
-      # 3. CREATE Dockerfile (exactly what you need)
-      # ------------------------------------------------------------------
       - echo "Creating Dockerfile..."
       - |
         cat > Dockerfile <<'EOF'
-        # ---- Choose your base image ------------------------------------------------
-        FROM public.ecr.aws/docker/library/python:3.11-slim
+        FROM public.ecr.aws/docker/library/hello-world:latest
 
-        # ---- Install OS packages ---------------------------------------------------
-        RUN apt-get update && apt-get install -y --no-install-recommends \
-                ca-certificates \
-            && rm -rf /var/lib/apt/lists/*
+        LABEL maintainer="you@example.com"
 
-        # ---- Create app user -------------------------------------------------------
-        RUN useradd -m appuser
-        WORKDIR /home/appuser
-
-        # ---- Copy application code -------------------------------------------------
-        COPY . .
-
-        # ---- Install Python dependencies (if you have requirements.txt) -----------
-        # RUN pip install --no-cache-dir -r requirements.txt
-
-        # ---- Switch to non-root user -----------------------------------------------
-        USER appuser
-
-        # ---- Default command -------------------------------------------------------
-        CMD ["python", "-c", "print('Hello from Docker!')"]
+        CMD ["echo", "Hello from CodeBuild!"]
         EOF
 
-      # ------------------------------------------------------------------
-      # 4. Verify Dockerfile was created
-      # ------------------------------------------------------------------
-      - echo "=== Dockerfile contents ==="
+      - echo "Dockerfile created. Contents:"
       - cat Dockerfile
 
   build:
     commands:
-      # ------------------------------------------------------------------
-      # Build the image (Dockerfile is now guaranteed to exist)
-      # ------------------------------------------------------------------
       - echo "Building Docker image..."
-      - docker build -t $IMAGE_NAME:latest -f Dockerfile .
+      - docker build -t $ImageName:latest -f Dockerfile .
 
   post_build:
     commands:
-      # ------------------------------------------------------------------
-      # Tag & push to ECR
-      # ------------------------------------------------------------------
       - echo "Tagging image..."
-      - docker tag $IMAGE_NAME:latest $ECR_REPO/$IMAGE_NAME:latest
+      - docker tag $ImageName:latest 627216615313.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
 
       - echo "Pushing to ECR..."
-      - docker push $ECR_REPO/$IMAGE_NAME:latest
+      - docker push 627216615313.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
 
-      - echo "Build completed successfully!"
+      - echo "Build and push complete!"
