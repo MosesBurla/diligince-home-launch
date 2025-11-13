@@ -85,7 +85,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           // Load verification status
           try {
             // TODO: Replace with real API call when available
-            setVerificationStatus(VerificationStatus.APPROVED); // Default for now
+            setVerificationStatus(VerificationStatus.INCOMPLETE); // Default for now
           } catch (error) {
             console.error('Error loading verification status:', error);
             setVerificationStatus(VerificationStatus.INCOMPLETE);
