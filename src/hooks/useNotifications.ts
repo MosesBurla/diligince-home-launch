@@ -1,10 +1,9 @@
-
 import { useCallback } from 'react';
-import { toast } from 'sonner';
+import toast from '@/utils/toast.utils';
 
 interface NotificationOptions {
   duration?: number;
-  position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  description?: string;
 }
 
 interface UseNotificationsReturn {
@@ -19,31 +18,19 @@ interface UseNotificationsReturn {
 
 export const useNotifications = (): UseNotificationsReturn => {
   const showSuccess = useCallback((message: string, options?: NotificationOptions) => {
-    toast.success(message, {
-      duration: options?.duration,
-      position: options?.position,
-    });
+    toast.success(message, options);
   }, []);
 
   const showError = useCallback((message: string, options?: NotificationOptions) => {
-    toast.error(message, {
-      duration: options?.duration,
-      position: options?.position,
-    });
+    toast.error(message, options);
   }, []);
 
   const showWarning = useCallback((message: string, options?: NotificationOptions) => {
-    toast.warning(message, {
-      duration: options?.duration,
-      position: options?.position,
-    });
+    toast.warning(message, options);
   }, []);
 
   const showInfo = useCallback((message: string, options?: NotificationOptions) => {
-    toast.info(message, {
-      duration: options?.duration,
-      position: options?.position,
-    });
+    toast.info(message, options);
   }, []);
 
   const showLoading = useCallback((message: string) => {
@@ -55,7 +42,7 @@ export const useNotifications = (): UseNotificationsReturn => {
   }, []);
 
   const dismissAll = useCallback(() => {
-    toast.dismiss();
+    toast.dismissAll();
   }, []);
 
   return {

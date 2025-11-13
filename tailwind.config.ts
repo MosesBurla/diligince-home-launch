@@ -25,6 +25,13 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				// Brand color - Dashboard Navy
+				brand: {
+					DEFAULT: '#153b60',
+					primary: '#153b60',
+					light: '#1e4976',
+					dark: '#0f2840'
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
@@ -299,7 +306,13 @@ export default {
 				'pulse-subtle': 'pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'slide-in-from-top': 'slide-in-from-top 0.3s ease-out',
 				'slide-in-from-bottom': 'slide-in-from-bottom 0.3s ease-out',
-				'scale-in': 'scale-in 0.2s ease-out'
+				'scale-in': 'scale-in 0.2s ease-out',
+				'flow-1': 'flow-dots-1 4s ease-in-out infinite',
+				'flow-2': 'flow-dots-2 4s ease-in-out infinite',
+				'flow-3': 'flow-dots-3 4s ease-in-out infinite',
+				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+				'pulse-flow-down': 'pulse-flow-down 3s ease-in-out infinite',
+				'float': 'float 3s ease-in-out infinite'
 			}
 		}
 	},

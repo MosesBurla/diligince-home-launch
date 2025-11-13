@@ -244,7 +244,7 @@ export const menuConfig: MenuConfig = {
         {
           icon: Building,
           label: "Company Profile",
-          path: "/dashboard/industry-profile",
+          path: "/dashboard/industry-settings",
         },
         {
           icon: Users,

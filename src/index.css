@@ -3,6 +3,68 @@
 @tailwind utilities;
 @import 'sonner/dist/sonner.css';
 
+/* Custom Toast Styling */
+.toaster {
+  --normal-bg: hsl(var(--background)) !important;
+  --normal-border: hsl(var(--border)) !important;
+  --normal-text: hsl(var(--foreground)) !important;
+  
+  --success-bg: hsl(134 61% 96%) !important;
+  --success-border: hsl(134 61% 41%) !important;
+  --success-text: hsl(134 61% 20%) !important;
+  
+  --error-bg: hsl(354 70% 96%) !important;
+  --error-border: hsl(354 70% 54%) !important;
+  --error-text: hsl(354 70% 25%) !important;
+  
+  --warning-bg: hsl(45 100% 96%) !important;
+  --warning-border: hsl(45 100% 51%) !important;
+  --warning-text: hsl(45 100% 20%) !important;
+  
+  --info-bg: hsl(211 100% 96%) !important;
+  --info-border: hsl(211 100% 50%) !important;
+  --info-text: hsl(211 100% 20%) !important;
+}
+
+/* Dark mode toast overrides */
+.dark .toaster {
+  --normal-bg: hsl(var(--card)) !important;
+  --normal-border: hsl(var(--border)) !important;
+  --normal-text: hsl(var(--card-foreground)) !important;
+  
+  --success-bg: hsl(134 61% 8% / 0.3) !important;
+  --success-border: hsl(134 61% 41%) !important;
+  --success-text: hsl(134 61% 85%) !important;
+  
+  --error-bg: hsl(354 70% 8% / 0.3) !important;
+  --error-border: hsl(354 70% 54%) !important;
+  --error-text: hsl(354 70% 85%) !important;
+  
+  --warning-bg: hsl(45 100% 8% / 0.3) !important;
+  --warning-border: hsl(45 100% 51%) !important;
+  --warning-text: hsl(45 100% 85%) !important;
+  
+  --info-bg: hsl(211 100% 8% / 0.3) !important;
+  --info-border: hsl(211 100% 50%) !important;
+  --info-text: hsl(211 100% 85%) !important;
+}
+
+/* Toast animations */
+.toaster [data-sonner-toast] {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%) translateX(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
 /* Custom Scrollbars - Thin and Transparent */
 * {
   scrollbar-width: thin;
@@ -30,6 +92,102 @@
 
 *::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* How It Works Section Animations */
+@keyframes flow-dots-1 {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(150px) scale(1.2);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(300px) scale(1);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translateX(150px) scale(0.8);
+    opacity: 0.8;
+  }
+}
+
+@keyframes flow-dots-2 {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(-150px) scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(0) scale(1.2);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(150px) scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes flow-dots-3 {
+  0%, 100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: translateX(-300px) scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(-150px) scale(1);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateX(0) scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-flow-down {
+  0% {
+    top: 15%;
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    top: 50%;
+    opacity: 0.6;
+    transform: translateX(-50%) scale(1.3);
+  }
+  100% {
+    top: 85%;
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @layer base {
@@ -397,6 +555,38 @@
   @apply transition-all duration-300;
 }
 
+/* Hero Section Styles - Modern Split Layout with Navy Theme */
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(21, 59, 96, 0.03) 0%, rgba(21, 59, 96, 0.08) 100%);
+}
+
+.hero-decoration-circle {
+  background: linear-gradient(135deg, rgba(21, 59, 96, 0.1) 0%, rgba(30, 73, 118, 0.15) 100%);
+}
+
+.hero-decoration-square {
+  background: linear-gradient(135deg, rgba(21, 59, 96, 0.15) 0%, rgba(30, 73, 118, 0.2) 100%);
+}
+
+/* Floating Animations */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-20px); 
+  }
+}
+
 /* Advanced animations */
 @keyframes fadeInUp {
   from {
@@ -461,100 +651,38 @@
   transform: translateY(-2px);
 }
 
-/* Corporate Services Styles */
-.corporate-service-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 8px 32px rgba(26, 42, 79, 0.08),
-    0 4px 16px rgba(26, 42, 79, 0.04);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.corporate-service-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 
-    0 20px 64px rgba(26, 42, 79, 0.15),
-    0 8px 32px rgba(47, 128, 237, 0.1);
-}
-
-.corporate-icon-wrapper {
-  background: linear-gradient(135deg, #1A2A4F, #2F80ED);
-  box-shadow: 0 8px 24px rgba(47, 128, 237, 0.3);
+/* Enterprise Solutions - Minimalistic Corporate Styles */
+.enterprise-card {
+  box-shadow: 0 1px 3px hsl(var(--primary) / 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.corporate-icon-wrapper:hover {
-  transform: scale(1.1) rotate(3deg);
-  box-shadow: 0 12px 32px rgba(47, 128, 237, 0.4);
+.enterprise-card:hover {
+  box-shadow: 0 12px 24px hsl(var(--primary) / 0.08);
 }
 
-.corporate-feature-item {
-  opacity: 0;
-  transform: translateX(-20px);
-  animation: corporate-slide-right 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+.enterprise-card:hover .enterprise-icon {
+  transform: scale(1.1);
 }
 
-.corporate-cta-button {
-  background: linear-gradient(135deg, #1A2A4F, #2F80ED, #27AE60);
-  background-size: 200% 200%;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.corporate-cta-button:hover {
-  background-position: right center;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(47, 128, 237, 0.4);
-}
-
-/* Corporate animation keyframes */
-@keyframes corporate-fade-up {
-  0% { 
-    opacity: 0; 
-    transform: translateY(40px); 
+/* Responsive adjustments for enterprise cards */
+@media (max-width: 767px) {
+  .enterprise-card {
+    padding: 1.5rem !important;
   }
-  100% { 
-    opacity: 1; 
-    transform: translateY(0); 
+  
+  .enterprise-icon {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+  
+  .enterprise-card h3 {
+    font-size: 1.25rem !important;
   }
 }
 
-@keyframes corporate-scale-in {
-  0% { 
-    opacity: 0; 
-    transform: scale(0.9); 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .enterprise-card {
+    padding: 2rem !important;
   }
-  100% { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-}
-
-@keyframes corporate-slide-right {
-  0% { 
-    opacity: 0; 
-    transform: translateX(-30px); 
-  }
-  100% { 
-    opacity: 1; 
-    transform: translateX(0); 
-  }
-}
-
-@keyframes corporate-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-.animate-corporate-fade-up {
-  animation: corporate-fade-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-corporate-scale-in {
-  animation: corporate-scale-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-corporate-float {
-  animation: corporate-float 3s ease-in-out infinite;
 }

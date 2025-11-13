@@ -2,8 +2,9 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, File, X, CheckCircle2, Eye, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import toast from '@/utils/toast.utils';
 import { VerificationDocument } from '@/types/verification';
 
 interface DocumentUploadFieldProps {
@@ -32,16 +33,34 @@ export const DocumentUploadField: React.FC<DocumentUploadFieldProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`File size exceeds ${maxSizeMB}MB limit`);
+      toast.warning(`File size exceeds ${maxSizeMB}MB limit`, {
+        description: 'Please select a smaller file.',
+      });
       return;
     }
 
+    // If there's already a document, show warning
+    if (currentDocument) {
+      setPendingFile(file);
+      setShowWarning(true);
+      return;
+    }
+
+    // No existing document, upload directly
+    await performUpload(file);
+  };
+
+  const performUpload = async (file: File) => {
+    const loadingToast = toast.loading(`Uploading ${label}...`);
+    
     try {
       setIsUploading(true);
       setUploadProgress(20);
@@ -55,26 +74,49 @@ export const DocumentUploadField: React.FC<DocumentUploadFieldProps> = ({
       clearInterval(progressInterval);
       setUploadProgress(100);
       
-      toast.success(`${label} uploaded successfully`);
+      toast.dismiss(loadingToast);
+      toast.success(`${label} uploaded successfully`, {
+        description: 'Document has been uploaded and is pending verification.',
+      });
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload document');
+      toast.dismiss(loadingToast);
+      // Error already handled by service layer
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setPendingFile(null);
+      setShowWarning(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
+  const handleConfirmUpload = async () => {
+    if (pendingFile) {
+      await performUpload(pendingFile);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setPendingFile(null);
+    setShowWarning(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleDelete = async () => {
     if (!currentDocument) return;
     
+    const loadingToast = toast.loading('Removing document...');
     try {
       await onDelete(currentDocument.id);
-      toast.success('Document removed');
+      toast.dismiss(loadingToast);
+      toast.success('Document removed successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to remove document');
+      toast.dismiss(loadingToast);
+      // Error already handled by service layer
     }
   };
 
@@ -99,6 +141,39 @@ export const DocumentUploadField: React.FC<DocumentUploadFieldProps> = ({
 
       {helperText && (
         <p className="text-xs text-muted-foreground">{helperText}</p>
+      )}
+
+      {/* Warning Alert - shown when replacing existing document */}
+      {showWarning && currentDocument && (
+        <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-sm">
+            <p className="font-semibold text-amber-800 dark:text-amber-400 mb-2">
+              Replace existing document?
+            </p>
+            <p className="text-amber-700 dark:text-amber-500 mb-3">
+              This will permanently replace{' '}
+              <span className="font-medium">{currentDocument.name}</span>{' '}
+              with the newly selected file. This action cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={handleConfirmUpload}
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                Yes, Replace Document
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancelUpload}
+              >
+                Cancel
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       {currentDocument ? (
@@ -150,7 +225,11 @@ export const DocumentUploadField: React.FC<DocumentUploadFieldProps> = ({
             className={`w-full ${required && !currentDocument ? 'border-red-300' : ''}`}
           >
             <Upload className="w-4 h-4 mr-2" />
-            {isUploading ? 'Uploading...' : 'Upload Document'}
+            {isUploading 
+              ? 'Uploading...' 
+              : currentDocument 
+              ? 'Replace Document' 
+              : 'Upload Document'}
           </Button>
 
           {isUploading && (

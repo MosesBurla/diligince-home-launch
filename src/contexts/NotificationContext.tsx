@@ -25,28 +25,28 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const showSuccess = (message: string, options?: Partial<BaseNotification>) => {
     notifications.showSuccess(message, {
       duration: options?.duration,
-      position: options?.position,
+      description: options?.message,
     });
   };
 
   const showError = (message: string, options?: Partial<BaseNotification>) => {
     notifications.showError(message, {
       duration: options?.duration,
-      position: options?.position,
+      description: options?.message,
     });
   };
 
   const showWarning = (message: string, options?: Partial<BaseNotification>) => {
     notifications.showWarning(message, {
       duration: options?.duration,
-      position: options?.position,
+      description: options?.message,
     });
   };
 
   const showInfo = (message: string, options?: Partial<BaseNotification>) => {
     notifications.showInfo(message, {
       duration: options?.duration,
-      position: options?.position,
+      description: options?.message,
     });
   };
 

@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle2, XCircle, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
-import { toast } from 'sonner';
+import toast from '@/utils/toast.utils';
+import errorHandler from '@/utils/errorHandler.utils';
 import { CompanyProfile, VerificationStatus, Address, VerificationDocument } from '@/types/verification';
 import { MOCK_COMPLETE_PROFILE } from '@/services/verification.mock';
 import { calculateProfileCompletion, getMissingFields, canSubmitForVerification } from '@/utils/profileValidation';
@@ -125,28 +126,33 @@ const IndustrySettings = () => {
   
   const handleSave = async () => {
     if (isProfileLocked) {
-      toast.error('Profile is locked for verification and cannot be edited');
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification and cannot be edited.',
+      });
       return;
     }
 
     setIsSubmitting(true);
+    const loadingToast = errorHandler.showLoading('Saving profile...');
+    
     try {
-      const loadingToast = toast.loading('Saving profile...');
       const response = await companyProfileService.saveProfile(profile);
       setProfile(response.data);
-      toast.dismiss(loadingToast);
-      toast.success('✅ Profile saved successfully!');
-    } catch (error: any) {
-      console.error('Save profile error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save profile';
       
-      if (error.response?.status === 403 || error.response?.data?.error?.code === 'PROFILE_LOCKED') {
-        toast.error('Profile is locked for verification and cannot be edited');
-      } else if (error.response?.status === 400) {
-        toast.error(`Validation error: ${errorMessage}`);
-      } else {
-        toast.error(`❌ ${errorMessage}`);
+      errorHandler.updateSuccess(loadingToast, 'Profile saved successfully');
+      
+      // Show info about missing documents if any
+      if (response.data.documents && response.data.documents.length < 3) {
+        setTimeout(() => {
+          toast.info('Documents needed', {
+            description: 'Please upload all required documents to complete your profile.',
+            duration: 6000,
+          });
+        }, 500);
       }
+    } catch (error) {
+      // Error already handled by service layer
+      errorHandler.updateError(loadingToast, 'Failed to save profile');
     } finally {
       setIsSubmitting(false);
     }
@@ -154,43 +160,49 @@ const IndustrySettings = () => {
   
   const handleSubmitForVerification = async () => {
     if (!canSubmit) {
-      toast.error(`Please complete: ${missingFields.join(', ')}`);
+      toast.warning('Incomplete Profile', {
+        description: `Please complete: ${missingFields.join(', ')}`,
+        duration: 5000,
+      });
       return;
     }
 
     if (isProfileLocked) {
-      toast.error('Profile has already been submitted for verification');
+      toast.info('Already Submitted', {
+        description: 'Profile has already been submitted for verification.',
+      });
       return;
     }
     
     setIsSubmitting(true);
+    const loadingToast = errorHandler.showLoading('Submitting for verification...');
+    
     try {
-      const loadingToast = toast.loading('Submitting for verification...');
       const result = await companyProfileService.submitForVerification();
       setProfile(result.data.profile);
-      toast.dismiss(loadingToast);
-      toast.success('✅ Profile submitted for verification!');
-      toast.info(`📋 Verification ID: ${result.data.verificationId}`, { duration: 5000 });
+      
+      errorHandler.updateSuccess(
+        loadingToast, 
+        'Profile submitted successfully',
+        `Verification ID: ${result.data.verificationId}`
+      );
       
       const estimatedTime = new Date(result.data.estimatedCompletionAt).toLocaleString();
-      toast.info(`⏰ Estimated completion: ${estimatedTime}`, { duration: 5000 });
+      setTimeout(() => {
+        toast.info('Verification timeline', {
+          description: `Estimated completion: ${estimatedTime}`,
+          duration: 6000,
+        });
+      }, 500);
       
       await refreshVerificationStatus();
       
       setTimeout(() => {
         navigate('/verification-pending');
-      }, 1500);
-    } catch (error: any) {
-      console.error('Submit verification error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to submit for verification';
-      
-      if (error.response?.status === 422) {
-        toast.error('Profile is incomplete. Please fill all required fields and upload documents.');
-      } else if (error.response?.status === 409) {
-        toast.error('Profile has already been submitted for verification');
-      } else {
-        toast.error(`❌ ${errorMessage}`);
-      }
+      }, 2000);
+    } catch (error) {
+      // Error already handled by service layer
+      errorHandler.updateError(loadingToast, 'Failed to submit for verification');
     } finally {
       setIsSubmitting(false);
     }
@@ -203,7 +215,9 @@ const IndustrySettings = () => {
   // Document handlers
   const handleDocumentUpload = async (file: File, documentType: string) => {
     if (isProfileLocked) {
-      toast.error('Profile is locked for verification. Documents cannot be modified.');
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification. Documents cannot be modified.',
+      });
       throw new Error('Profile locked');
     }
 
@@ -224,24 +238,17 @@ const IndustrySettings = () => {
       });
       
       return uploadedDoc;
-    } catch (error: any) {
-      console.error('Document upload error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to upload document';
-      
-      if (error.response?.status === 413) {
-        toast.error('File size exceeds limit');
-      } else if (error.response?.status === 403) {
-        toast.error('Profile is locked for verification');
-      } else {
-        toast.error(errorMessage);
-      }
+    } catch (error) {
+      // Error already handled by service layer
       throw error;
     }
   };
 
   const handleDocumentDelete = async (documentId: string) => {
     if (isProfileLocked) {
-      toast.error('Profile is locked for verification. Documents cannot be deleted.');
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification. Documents cannot be deleted.',
+      });
       return;
     }
 
@@ -252,12 +259,8 @@ const IndustrySettings = () => {
         ...prev,
         documents: (prev.documents || []).filter(doc => doc.id !== documentId)
       }));
-      
-      toast.success('Document deleted successfully');
-    } catch (error: any) {
-      console.error('Document delete error:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete document';
-      toast.error(errorMessage);
+    } catch (error) {
+      // Error already handled by service layer
     }
   };
 
