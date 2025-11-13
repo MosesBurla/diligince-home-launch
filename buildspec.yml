@@ -2,39 +2,31 @@ version: 0.2
 
 env:
   variables:
-    ImageName: "simple-docker-service-127881f06b41"
+    ImageName: "react-frontend"
 
 phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 627216615313.dkr.ecr.us-east-1.amazonaws.com
-
-      - echo "=== Creating Dockerfile ==="
-      - |
-        cat > Dockerfile <<'EOF'
-        FROM public.ecr.aws/docker/library/hello-world:latest
-        LABEL org.opencontainers.image.source="https://github.com/your-repo"
-        CMD ["/hello"]
-        EOF
-
-      - echo "Dockerfile created:"
-      - cat Dockerfile
-
-      - echo "Listing files to confirm:"
+      - echo "Listing files..."
       - ls -la
 
   build:
     commands:
       - echo "Building Docker image..."
-      - docker build -t $ImageName:latest -f Dockerfile .
+      - docker build -t $ImageName:latest .
 
   post_build:
     commands:
       - echo "Tagging image..."
       - docker tag $ImageName:latest 627216615313.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
-
       - echo "Pushing to ECR..."
       - docker push 627216615313.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
+      - echo "Build and push complete!"
 
-      - echo "SUCCESS: Image pushed to ECR!"
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: yes
+  base-directory: build
