@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
-            <h3 className="text-xl font-bold mb-4">Diligence.ai</h3>
+            <h3 className="text-xl font-bold mb-4">Diligince.ai</h3>
             <p className="text-gray-400 text-sm">
               Connecting industrial ecosystems with artificial intelligence.
             </p>
@@ -27,7 +27,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About</Link></li>
               <li><Link to="/careers" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
-              <li><a href="mailto:careers@Diligence.ai" className="text-gray-400 hover:text-white transition-colors">Join us!</a></li>
+              <li><a href="mailto:careers@Diligince.ai" className="text-gray-400 hover:text-white transition-colors">Join us!</a></li>
             </ul>
           </div>
           
@@ -53,14 +53,14 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <Mail size={18} className="text-gray-400 flex-shrink-0" />
-                <a href="mailto:support@Diligence.ai" className="text-gray-400 hover:text-white transition-colors">support@Diligence.ai</a>
+                <a href="mailto:support@Diligince.ai" className="text-gray-400 hover:text-white transition-colors">support@Diligince.ai</a>
               </li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} Diligence.ai. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} Diligince.ai. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</Link>
             <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</Link>

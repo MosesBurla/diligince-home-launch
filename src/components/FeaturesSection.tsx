@@ -30,7 +30,7 @@ const FeaturesSection = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Why Choose Diligence.ai?</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Why Choose Diligince.ai?</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">Our platform offers cutting-edge solutions for the industrial sector</p>
         </div>
 

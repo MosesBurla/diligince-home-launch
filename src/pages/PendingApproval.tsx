@@ -23,7 +23,7 @@ const PendingApproval = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Helmet>
-        <title>Account Pending Approval | Diligence.ai</title>
+        <title>Account Pending Approval | Diligince.ai</title>
       </Helmet>
       
       <div className="flex-1 flex items-center justify-center p-4">

@@ -80,7 +80,7 @@ Retrieve all requirements awaiting approval from the authenticated user.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/pending?page=1&pageSize=10&sortBy=submittedDate&sortOrder=desc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/pending?page=1&pageSize=10&sortBy=submittedDate&sortOrder=desc' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -175,7 +175,7 @@ Retrieve full details of a specific requirement for approval review.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -228,7 +228,7 @@ curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123' \
         "fileType": "application/pdf",
         "documentType": "Technical Specification",
         "uploadedAt": "2024-01-15T10:00:00Z",
-        "url": "https://storage.Diligence.ai/documents/doc_123"
+        "url": "https://storage.Diligince.ai/documents/doc_123"
       }
     ],
     "approvalWorkflow": {
@@ -305,7 +305,7 @@ Approve a requirement at your approval level.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_xyz789/approve' \
+curl -X POST 'https://api.Diligince.ai/api/industry/approvals/approval_xyz789/approve' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -385,7 +385,7 @@ Reject a requirement with a reason.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_xyz789/reject' \
+curl -X POST 'https://api.Diligince.ai/api/industry/approvals/approval_xyz789/reject' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -474,7 +474,7 @@ View complete approval history and timeline for a requirement.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/approvals/approval_xyz789/history' \
+curl -X GET 'https://api.Diligince.ai/api/industry/approvals/approval_xyz789/history' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -1154,13 +1154,13 @@ if (error.code === 'CONCURRENT_PROCESSING') {
 
 **1. List Pending Requirements:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/pending' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/pending' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **2. Approve Requirement:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_123/approve' \
+curl -X POST 'https://api.Diligince.ai/api/industry/approvals/approval_123/approve' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1171,7 +1171,7 @@ curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_123/appro
 
 **3. Reject Requirement:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_123/reject' \
+curl -X POST 'https://api.Diligince.ai/api/industry/approvals/approval_123/reject' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1184,7 +1184,7 @@ curl -X POST 'https://api.Diligence.ai/api/industry/approvals/approval_123/rejec
 
 **4. Get Approval History:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/approvals/approval_123/history' \
+curl -X GET 'https://api.Diligince.ai/api/industry/approvals/approval_123/history' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -1265,4 +1265,4 @@ See `docs/workflows/approval-matrix-configuration.md` for details on configuring
 
 **Last Updated:** 2024-01-20  
 **API Version:** 1.0.0  
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

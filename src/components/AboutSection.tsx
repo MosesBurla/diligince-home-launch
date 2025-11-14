@@ -6,7 +6,7 @@ const AboutSection = () => {
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">About Diligence.ai</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">About Diligince.ai</h2>
           <p className="text-gray-600 max-w-3xl mx-auto">
             We are an AI powered platform connecting industrial plants with Vendors, Professionals and Logistics. 
             Launching in 2025, our mission is to revolutionize how industries find and collaborate with service providers.
@@ -39,7 +39,7 @@ const AboutSection = () => {
               <h3 className="text-xl font-semibold mb-3 text-gray-800">Contact</h3>
               <p className="text-gray-600">
                 Reach us at: Visakhapatnam, Andhra Pradesh, India. 
-                Phone: +91 9848756956. Email: support@Diligence.ai.
+                Phone: +91 9848756956. Email: support@Diligince.ai.
               </p>
             </CardContent>
           </Card>

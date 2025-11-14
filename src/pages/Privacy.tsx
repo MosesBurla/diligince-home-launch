@@ -16,7 +16,7 @@ const Privacy = () => {
                 Effective Date: April 1, 2025
               </p>
               <p>
-                At Diligence.ai, we take your privacy seriously. This Privacy Policy explains how we collect, 
+                At Diligince.ai, we take your privacy seriously. This Privacy Policy explains how we collect, 
                 use, disclose, and safeguard your information when you visit our website and use our services.
               </p>
               
@@ -34,7 +34,7 @@ const Privacy = () => {
               
               <h2 className="text-2xl font-bold mt-8 mb-4">Contact Us</h2>
               <p>
-                If you have questions about this Privacy Policy, please contact us at privacy@Diligence.ai
+                If you have questions about this Privacy Policy, please contact us at privacy@Diligince.ai
               </p>
             </div>
           </div>

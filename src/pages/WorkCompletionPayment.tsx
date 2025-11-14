@@ -325,7 +325,7 @@ const WorkCompletionPayment = (): JSX.Element => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Work Completion & Payment | Diligence.ai</title>
+        <title>Work Completion & Payment | Diligince.ai</title>
       </Helmet>
       
 

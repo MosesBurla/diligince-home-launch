@@ -19,7 +19,7 @@ const VendorDetails: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Vendor Details | Diligence.ai</title>
+        <title>Vendor Details | Diligince.ai</title>
       </Helmet>
 
       {/* Global Header */}

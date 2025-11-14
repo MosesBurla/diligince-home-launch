@@ -1691,9 +1691,9 @@ Cache-Control: public, max-age=300
 ## Support
 
 For API support:
-- **Email:** api-support@diligence.ai
-- **Documentation:** https://docs.diligence.ai
-- **Status Page:** https://status.diligence.ai
+- **Email:** api-support@Diligince.ai
+- **Documentation:** https://docs.Diligince.ai
+- **Status Page:** https://status.Diligince.ai
 
 ---
 

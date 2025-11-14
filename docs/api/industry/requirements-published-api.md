@@ -83,7 +83,7 @@ Retrieve all published requirements with vendor engagement metrics.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/published?page=1&pageSize=10&sortBy=publishedDate&sortOrder=desc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/published?page=1&pageSize=10&sortBy=publishedDate&sortOrder=desc' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -117,7 +117,7 @@ curl -X GET 'https://api.Diligence.ai/api/industry/requirements/published?page=1
       "hasActiveQuestions": true,
       "canExtendDeadline": true,
       "canClose": true,
-      "publicUrl": "https://app.Diligence.ai/requirements/REQ-001"
+      "publicUrl": "https://app.Diligince.ai/requirements/REQ-001"
     }
   ],
   "pagination": {
@@ -148,7 +148,7 @@ Retrieve comprehensive details of a specific published requirement including all
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -268,7 +268,7 @@ Retrieve all quotes/proposals submitted for a requirement.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123/responses?sortBy=quoteValue&sortOrder=asc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123/responses?sortBy=quoteValue&sortOrder=asc' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -320,7 +320,7 @@ Retrieve detailed analytics and engagement metrics.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123/analytics' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123/analytics' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -428,7 +428,7 @@ Extend the deadline for vendors to submit quotes.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/extend-deadline' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_abc123/extend-deadline' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1009,19 +1009,19 @@ const VendorResponsesList = ({ requirementId }) => {
 
 **1. List Published Requirements:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/published' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/published' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **2. Get Analytics:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123/analytics' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123/analytics' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **3. Extend Deadline:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/extend-deadline' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_abc123/extend-deadline' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1044,4 +1044,4 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/exte
 
 **Last Updated:** 2024-01-20  
 **API Version:** 1.0.0  
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

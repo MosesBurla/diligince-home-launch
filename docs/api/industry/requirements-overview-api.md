@@ -78,7 +78,7 @@ Retrieve summary statistics across all requirement statuses.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/stats' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/stats' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -218,7 +218,7 @@ Retrieve all requirements with unified filtering across all statuses.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements?page=1&pageSize=20&status=pending,approved&sortBy=createdDate&sortOrder=desc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements?page=1&pageSize=20&status=pending,approved&sortBy=createdDate&sortOrder=desc' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -306,7 +306,7 @@ Perform full-text search across all requirements.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/search?query=software+development&status=published,approved' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/search?query=software+development&status=published,approved' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -383,7 +383,7 @@ Retrieve recent activity and changes across all requirements.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/recent-activity?limit=20' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/recent-activity?limit=20' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -511,7 +511,7 @@ Generate comprehensive reports across all requirements.
     "fileSize": 5120000,
     "recordsIncluded": 65,
     "generatedAt": "2024-01-24T16:00:00Z",
-    "downloadUrl": "https://storage.Diligence.ai/exports/export_123.xlsx",
+    "downloadUrl": "https://storage.Diligince.ai/exports/export_123.xlsx",
     "expiresAt": "2024-01-31T16:00:00Z",
     "sheets": [
       "Summary",
@@ -544,7 +544,7 @@ Retrieve requirements that need action from the authenticated user.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/action-items?dueWithin=7' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/action-items?dueWithin=7' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -1046,25 +1046,25 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 **1. Get Dashboard Stats:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/stats' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/stats' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **2. Search Requirements:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/search?query=software' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/search?query=software' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **3. Get Action Items:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/action-items?dueWithin=7' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/action-items?dueWithin=7' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **4. Export Report:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/export' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/export' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1091,4 +1091,4 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/export' \
 
 **Last Updated:** 2024-01-20  
 **API Version:** 1.0.0  
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

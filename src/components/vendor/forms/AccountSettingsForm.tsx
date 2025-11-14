@@ -754,7 +754,7 @@ const AccountSettingsForm = () => {
                           <div className="space-y-0.5">
                             <FormLabel className="text-base">Data Sharing</FormLabel>
                             <FormDescription>
-                              Allow Diligence.ai to share your profile data with partner platforms
+                              Allow Diligince.ai to share your profile data with partner platforms
                             </FormDescription>
                           </div>
                           <FormControl>

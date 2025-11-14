@@ -13,9 +13,9 @@ const PublicHeader = () => {
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-[#2F80ED] rounded-md flex items-center justify-center font-bold text-white">
-                <img src="/logo-main-no-bg.svg" alt="Diligence.ai" />
+                <img src="/logo-main-no-bg.svg" alt="Diligince.ai" />
               </div>
-              <span className="text-xl font-bold text-[#1A2A4F]">Diligence.ai</span>
+              <span className="text-xl font-bold text-[#1A2A4F]">Diligince.ai</span>
             </Link>
             <div className="flex items-center space-x-6">
               {/* Navigation Menu */}

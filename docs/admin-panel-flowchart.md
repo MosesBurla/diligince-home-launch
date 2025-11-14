@@ -1,5 +1,5 @@
 
-# Diligence.ai Staff Admin Panel - Enterprise Flow Chart
+# Diligince.ai Staff Admin Panel - Enterprise Flow Chart
 
 ## System Overview Architecture
 

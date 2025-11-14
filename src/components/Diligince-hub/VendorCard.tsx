@@ -1,15 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Briefcase, Award, Star, Eye, UserPlus, IndianRupee } from "lucide-react";
-import type { ProfessionalListItem } from "@/types/professional";
+import { MapPin, Briefcase, Award, Star, Eye, Mail } from "lucide-react";
+import type { VendorListItem } from "@/types/vendor";
 import { useNavigate } from "react-router-dom";
 
-interface ProfessionalCardProps {
-  professional: ProfessionalListItem;
+interface VendorCardProps {
+  vendor: VendorListItem;
 }
 
-export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional }) => {
+export const VendorCard: React.FC<VendorCardProps> = ({ vendor }) => {
   const navigate = useNavigate();
 
   const getInitials = (name: string) => {
@@ -52,19 +52,19 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-              {professional.avatar ? (
-                <img src={professional.avatar} alt={professional.name} className="w-12 h-12 rounded-full" />
+              {vendor.avatar ? (
+                <img src={vendor.avatar} alt={vendor.name} className="w-12 h-12 rounded-full" />
               ) : (
-                getInitials(professional.name)
+                getInitials(vendor.companyName)
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{professional.name}</h3>
-              <p className="text-sm text-muted-foreground truncate">{professional.expertise}</p>
+              <h3 className="font-semibold text-lg truncate">{vendor.companyName}</h3>
+              <p className="text-sm text-muted-foreground truncate">{vendor.name}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {professional.isVerified && (
+            {vendor.isVerified && (
               <Badge variant="secondary" className="bg-green-50 text-green-700">
                 <Award className="w-3 h-3 mr-1" />
                 Verified
@@ -75,51 +75,51 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional
 
         {/* Rating */}
         <div className="flex items-center gap-2">
-          <div className="flex">{renderStars(professional.rating)}</div>
-          <span className="text-sm font-medium">{professional.rating.toFixed(1)}</span>
-          <span className="text-sm text-muted-foreground">({professional.reviewCount} reviews)</span>
+          <div className="flex">{renderStars(vendor.rating)}</div>
+          <span className="text-sm font-medium">{vendor.rating.toFixed(1)}</span>
+          <span className="text-sm text-muted-foreground">({vendor.reviewCount} reviews)</span>
         </div>
 
         {/* Details */}
         <div className="space-y-2">
           <div className="flex items-center text-sm text-muted-foreground">
             <Briefcase className="w-4 h-4 mr-2" />
-            <span>{professional.experience} Years Experience</span>
+            <span className="capitalize">{vendor.vendorType} Vendor</span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
             <MapPin className="w-4 h-4 mr-2" />
-            <span>{professional.city}, {professional.state}</span>
+            <span>{vendor.city}, {vendor.state}</span>
           </div>
-          <div className="flex items-center text-sm font-medium">
-            <IndianRupee className="w-4 h-4 mr-1" />
-            <span>{professional.hourlyRate.toLocaleString()}/hour</span>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Award className="w-4 h-4 mr-2" />
+            <span>{vendor.completedProjects} Completed Projects</span>
           </div>
         </div>
 
-        {/* Skills */}
+        {/* Specializations */}
         <div>
-          <p className="text-sm font-medium mb-2">Skills:</p>
+          <p className="text-sm font-medium mb-2">Specializations:</p>
           <div className="flex flex-wrap gap-2">
-            {professional.topSkills.slice(0, 3).map((skill, index) => (
+            {vendor.specialization.slice(0, 3).map((spec, index) => (
               <Badge key={index} variant="outline" className="text-xs">
-                {skill}
+                {spec}
               </Badge>
             ))}
-            {professional.skills.length > 3 && (
+            {vendor.specialization.length > 3 && (
               <Badge variant="outline" className="text-xs">
-                +{professional.skills.length - 3} more
+                +{vendor.specialization.length - 3} more
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Availability & Certifications */}
-        <div className="pt-2 border-t flex items-center justify-between">
-          <Badge className={getAvailabilityColor(professional.availability)}>
-            {professional.availability.charAt(0).toUpperCase() + professional.availability.slice(1)}
+        {/* Availability */}
+        <div className="pt-2 border-t">
+          <Badge className={getAvailabilityColor(vendor.availability)}>
+            {vendor.availability.charAt(0).toUpperCase() + vendor.availability.slice(1)}
           </Badge>
-          <span className="text-xs text-muted-foreground">
-            {professional.certificationCount} Certifications
+          <span className="text-xs text-muted-foreground ml-2">
+            Response: {vendor.responseTime}
           </span>
         </div>
 
@@ -128,14 +128,14 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional
           <Button
             variant="default"
             className="flex-1"
-            onClick={() => navigate(`/dashboard/diligence-hub/professionals/${professional.id}`)}
+            onClick={() => navigate(`/dashboard/Diligince-hub/vendors/${vendor.id}`)}
           >
             <Eye className="w-4 h-4 mr-2" />
             View Profile
           </Button>
           <Button variant="outline" className="flex-1">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Hire
+            <Mail className="w-4 h-4 mr-2" />
+            Contact
           </Button>
         </div>
       </div>

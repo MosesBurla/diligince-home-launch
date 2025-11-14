@@ -354,10 +354,15 @@ export default {
 				'flow-1': 'flow-dots-1 4s ease-in-out infinite',
 				'flow-2': 'flow-dots-2 4s ease-in-out infinite',
 				'flow-3': 'flow-dots-3 4s ease-in-out infinite',
-				'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
 				'pulse-flow-down': 'pulse-flow-down 3s ease-in-out infinite',
-				'float': 'float 3s ease-in-out infinite',
-				'slide-up': 'slide-up 0.6s ease-out'
+				'float-particle': 'float-particle 10s ease-in-out infinite',
+				'orb-pulse': 'orb-pulse 8s ease-in-out infinite',
+				'scanline': 'scanline 6s linear infinite',
+				'grid-pulse': 'grid-pulse 6s ease-in-out infinite',
+				'grid-breathe': 'grid-breathe 8s ease-in-out infinite',
+				'accent-pulse': 'accent-pulse 4s ease-in-out infinite',
+				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
+				'fade-up-stagger': 'fade-up-stagger 0.6s ease-out forwards'
 			}
 		}
 	},

@@ -47,7 +47,7 @@ export interface ProfessionalProject {
 
 export type ProjectStatus = 'ongoing' | 'completed' | 'paused' | 'cancelled';
 
-// ============= Diligence HUB Types =============
+// ============= Diligince HUB Types =============
 
 export interface ProfessionalListItem {
   id: string;

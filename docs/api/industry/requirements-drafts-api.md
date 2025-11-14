@@ -60,7 +60,7 @@ Retrieve all draft requirements for the authenticated user with pagination, filt
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/drafts?page=1&pageSize=10&sortBy=lastModified&sortOrder=desc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/drafts?page=1&pageSize=10&sortBy=lastModified&sortOrder=desc' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -116,7 +116,7 @@ Retrieve full details of a specific draft for resuming editing.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -165,7 +165,7 @@ curl -X GET 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc1
         "fileType": "application/pdf",
         "documentType": "Technical Specification",
         "uploadedAt": "2024-01-15T11:00:00Z",
-        "url": "https://storage.Diligence.ai/documents/doc_123"
+        "url": "https://storage.Diligince.ai/documents/doc_123"
       }
     ]
   }
@@ -185,7 +185,7 @@ Delete a specific draft permanently.
 
 **Request Example:**
 ```bash
-curl -X DELETE 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123' \
+curl -X DELETE 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -212,7 +212,7 @@ Mark a draft as "in progress" and return to the create requirement flow.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123/resume' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123/resume' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -248,7 +248,7 @@ Delete multiple drafts at once.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/drafts/bulk-delete' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/drafts/bulk-delete' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{"draftIds": ["draft_abc123", "draft_def456"]}'
@@ -870,43 +870,43 @@ function validatePaginationParams(params: PaginationParams): string[] {
 **1. List Drafts**
 ```bash
 # Get first page of drafts
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/drafts?page=1&pageSize=10' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/drafts?page=1&pageSize=10' \
   -H 'Authorization: Bearer eyJhbGc...' \
   -H 'Content-Type: application/json'
 
 # Filter by high priority
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/drafts?priority=High' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/drafts?priority=High' \
   -H 'Authorization: Bearer eyJhbGc...'
 
 # Search by title
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/drafts?searchTerm=software' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/drafts?searchTerm=software' \
   -H 'Authorization: Bearer eyJhbGc...'
 ```
 
 **2. Get Draft Details**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123' \
   -H 'Authorization: Bearer eyJhbGc...' \
   -H 'Content-Type: application/json'
 ```
 
 **3. Resume Draft**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123/resume' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123/resume' \
   -H 'Authorization: Bearer eyJhbGc...' \
   -H 'Content-Type: application/json'
 ```
 
 **4. Delete Draft**
 ```bash
-curl -X DELETE 'https://api.Diligence.ai/api/industry/requirements/draft/draft_abc123' \
+curl -X DELETE 'https://api.Diligince.ai/api/industry/requirements/draft/draft_abc123' \
   -H 'Authorization: Bearer eyJhbGc...' \
   -H 'Content-Type: application/json'
 ```
 
 **5. Bulk Delete**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/drafts/bulk-delete' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/drafts/bulk-delete' \
   -H 'Authorization: Bearer eyJhbGc...' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1106,4 +1106,4 @@ Track these metrics for draft management:
 
 **Last Updated:** 2024-01-20
 **API Version:** 1.2.0
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

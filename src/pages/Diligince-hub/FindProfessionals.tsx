@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { UserCheck } from "lucide-react";
-import { ProfessionalCard } from "@/components/diligence-hub/ProfessionalCard";
-import { SearchFilterBar } from "@/components/diligence-hub/SearchFilterBar";
-import { EmptyState } from "@/components/diligence-hub/EmptyState";
+import { ProfessionalCard } from "@/components/Diligince-hub/ProfessionalCard";
+import { SearchFilterBar } from "@/components/Diligince-hub/SearchFilterBar";
+import { EmptyState } from "@/components/Diligince-hub/EmptyState";
 import type { ProfessionalListItem, ProfessionalSearchFilters } from "@/types/professional";
 
 // Mock data for development

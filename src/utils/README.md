@@ -108,7 +108,7 @@ This directory contains utility functions and configuration objects that support
 // Navigation configuration structure
 export const userTypeHeaderConfig = {
   userType: 'industry',
-  brand: { name: 'Diligence.ai', href: '/' },
+  brand: { name: 'Diligince.ai', href: '/' },
   navItems: [
     { name: 'Dashboard', href: '/dashboard', active: true },
     { name: 'Messages', href: '/messages' }

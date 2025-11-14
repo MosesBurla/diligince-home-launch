@@ -2,7 +2,7 @@
 # Architectural Decision Records (ADRs)
 
 ## Overview
-This document records key architectural decisions made during the development of Diligence.ai, including the context, decision rationale, and consequences of each choice.
+This document records key architectural decisions made during the development of Diligince.ai, including the context, decision rationale, and consequences of each choice.
 
 ---
 

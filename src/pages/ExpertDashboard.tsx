@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Briefcase, Calendar, MessageSquare, DollarSign, Star, Clock } from "lucide-react";
 
 const expertHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/expert",
   navItems: [
     { label: "Dashboard", href: "/dashboard/expert", icon: <Briefcase size={18} /> },
@@ -29,7 +29,7 @@ const ExpertDashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Expert Dashboard | Diligence.ai</title>
+        <title>Expert Dashboard | Diligince.ai</title>
       </Helmet>
       
       <GenericHeader config={expertHeaderConfig} />

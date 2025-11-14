@@ -21,7 +21,7 @@ const Experts = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Helmet>
-        <title>Industry Professionals | Diligence.ai</title>
+        <title>Industry Professionals | Diligince.ai</title>
       </Helmet>
       
       

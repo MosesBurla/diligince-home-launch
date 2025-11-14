@@ -32,7 +32,7 @@ const TestimonialsSection = () => {
       <div className="container mx-auto px-4 md:px-8">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Trusted by Industry Leaders</h2>
-          <p className="text-gray-600">See what our users are saying about Diligence.ai</p>
+          <p className="text-gray-600">See what our users are saying about Diligince.ai</p>
         </div>
 
         {testimonials.length > 0 ? (

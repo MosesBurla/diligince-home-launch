@@ -1,4 +1,4 @@
-# Diligence.ai - Executive Product Overview
+# Diligince.ai - Executive Product Overview
 
 **World's #1 B2B & B2C AI-Native Business Platform**
 
@@ -9,7 +9,7 @@
 ## 1. Executive Summary
 
 ### Product Identity
-- **Product Name:** Diligence.ai
+- **Product Name:** Diligince.ai
 - **Tagline:** "World's #1 B2B & B2C AI-Native Business Platform"
 - **Launch Timeline:** 2025
 
@@ -144,11 +144,11 @@ For a mid-size manufacturing company ($50M revenue):
 
 ---
 
-## 3. Our Solution: Diligence.ai Platform
+## 3. Our Solution: Diligince.ai Platform
 
 ### Platform Overview
 
-Diligence.ai is a comprehensive, AI-powered B2B procurement platform that transforms industrial procurement from a fragmented, manual process into an intelligent, automated ecosystem.
+Diligince.ai is a comprehensive, AI-powered B2B procurement platform that transforms industrial procurement from a fragmented, manual process into an intelligent, automated ecosystem.
 
 ### Core Value Proposition
 **"From Requirement to Payment in One Intelligent Platform"**
@@ -261,7 +261,7 @@ We connect three key stakeholder groups in an intelligent ecosystem:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Diligence.AI PLATFORM                     │
+│                    Diligince.AI PLATFORM                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
@@ -311,7 +311,7 @@ We connect three key stakeholder groups in an intelligent ecosystem:
 
 ---
 
-## 4. AI-Powered Intelligence: The Brain of Diligence.ai
+## 4. AI-Powered Intelligence: The Brain of Diligince.ai
 
 ### AI Recommendation Engine
 
@@ -550,7 +550,7 @@ Our AI engine continuously learns and improves:
 
 ### End-to-End Process Flow
 
-Diligence.ai automates the entire procurement lifecycle from requirement to payment.
+Diligince.ai automates the entire procurement lifecycle from requirement to payment.
 
 #### Phase 1: Requirement Creation
 **Industry User Journey**
@@ -804,7 +804,7 @@ Post-Project Analytics
 
 ### Total Process Efficiency Gains
 
-| Metric | Traditional Process | With Diligence.ai | Improvement |
+| Metric | Traditional Process | With Diligince.ai | Improvement |
 |--------|---------------------|-------------------|-------------|
 | **Total Cycle Time** | 45-60 days | 15-20 days | **65% faster** |
 | **Vendor Discovery** | 3-4 weeks | 48 hours | **90% faster** |
@@ -827,7 +827,7 @@ ISO 9001 is the international standard for Quality Management Systems (QMS). For
 
 **Traditional Challenge:** Maintaining compliance while executing procurement requires significant manual effort, dedicated personnel, and is error-prone.
 
-**Diligence.ai Solution:** Compliance is automated and embedded in every workflow—not an afterthought.
+**Diligince.ai Solution:** Compliance is automated and embedded in every workflow—not an afterthought.
 
 ### Automated Compliance Features
 
@@ -1131,7 +1131,7 @@ Status: APPROVED - Published for vendor matching
 
 ### Business Benefits of Built-In Compliance
 
-| Benefit | Traditional Approach | With Diligence.ai | Improvement |
+| Benefit | Traditional Approach | With Diligince.ai | Improvement |
 |---------|---------------------|-------------------|-------------|
 | **Audit Preparation Time** | 3-5 weeks | 2-3 hours | **95% reduction** |
 | **Compliance Documentation** | Manual, error-prone | Automatic, complete | **100% coverage** |
@@ -1651,7 +1651,7 @@ Status: APPROVED - Published for vendor matching
 
 ### Revenue Model Overview
 
-Diligence.ai employs a **hybrid freemium + transaction-based** revenue model designed to:
+Diligince.ai employs a **hybrid freemium + transaction-based** revenue model designed to:
 - Attract users with free tier (network effects)
 - Monetize through premium subscriptions and transaction fees
 - Align incentives (we succeed when our users succeed)
@@ -1749,7 +1749,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 **1. Vendor Verification & Certification (₹25,000-₹1,00,000)**
 - On-site audits and verification
-- Due diligence reports
+- Due Diligince reports
 - ISO certification assistance
 - Background checks
 - Financial health assessment
@@ -1889,7 +1889,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 **Example User Journey Comparison:**
 
-| Stage | Traditional Tools | Competitors | Diligence.ai |
+| Stage | Traditional Tools | Competitors | Diligince.ai |
 |-------|------------------|-------------|--------------|
 | Requirement | Email, Word docs | Some platforms | ✅ AI-assisted wizard |
 | Vendor Discovery | Manual search, phone calls | Marketplace search | ✅ AI-powered matching (92% relevance) |
@@ -1942,7 +1942,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 | Moglix | ✅ | ❌ | ✅ | ❌ | ❌ |
 | LinkedIn | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Upwork | ❌ | Partial | ❌ | ❌ | ✅ |
-| **Diligence.ai** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Diligince.ai** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 **Barrier to Entry:** High (requires critical mass in all segments simultaneously)
 
@@ -2066,7 +2066,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 **First-Mover Advantage:**
 - Building the definitive industrial procurement platform in India
-- Capturing mindshare ("Diligence.ai is the place for industrial procurement")
+- Capturing mindshare ("Diligince.ai is the place for industrial procurement")
 - Network effects compound over time (winner-take-most dynamics)
 
 ---
@@ -2240,10 +2240,10 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 — Rajesh Kumar, Head of Procurement
 
-**The Solution with Diligence.ai:**
+**The Solution with Diligince.ai:**
 
 **Day 1: Requirement Creation (30 minutes)**
-- Rajesh logged into Diligence.ai and used the 6-step requirement wizard
+- Rajesh logged into Diligince.ai and used the 6-step requirement wizard
 - Selected "Maintenance Services" → "CNC Machinery Maintenance"
 - AI auto-populated common specifications from similar past requirements
 - Uploaded technical drawings and maintenance schedule
@@ -2266,7 +2266,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 **Day 2-5: Quote Collection (Automated)**
 - Vendors received RFQ via email and platform notification
 - 12 vendors submitted quotes (67% response rate)
-- All quotes centralized in Diligence.ai (no email juggling)
+- All quotes centralized in Diligince.ai (no email juggling)
 - Automatic reminders sent to non-responsive vendors
 
 **Day 5-6: Quote Comparison & Selection**
@@ -2303,7 +2303,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 **The Results:**
 
-| Metric | Before Diligence.ai | After Diligence.ai | Improvement |
+| Metric | Before Diligince.ai | After Diligince.ai | Improvement |
 |--------|---------------------|-------------------|-------------|
 | **Vendor Search Time** | 3-4 weeks | 48 hours | **90% faster** |
 | **Quotes Received** | 4-6 (limited network) | 12 (qualified matches) | **100% more options** |
@@ -2315,7 +2315,7 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 **Customer Testimonial:**
 
-*"Diligence.ai transformed our procurement process from a 3-4 week nightmare into a 48-hour streamlined workflow. We got 12 qualified quotes—more than double our usual 4-6 options—and the AI helped us identify the best vendor based on actual data, not just gut feel. The cost savings were significant (23%), but the real game-changer was the time savings and compliance. Our ISO auditor was amazed at the completeness of our audit trail. What used to take 2-3 days to prepare now takes 5 minutes. We've since posted 15 more requirements and will never go back to the old way."*
+*"Diligince.ai transformed our procurement process from a 3-4 week nightmare into a 48-hour streamlined workflow. We got 12 qualified quotes—more than double our usual 4-6 options—and the AI helped us identify the best vendor based on actual data, not just gut feel. The cost savings were significant (23%), but the real game-changer was the time savings and compliance. Our ISO auditor was amazed at the completeness of our audit trail. What used to take 2-3 days to prepare now takes 5 minutes. We've since posted 15 more requirements and will never go back to the old way."*
 
 — Rajesh Kumar, Head of Procurement, AutoParts Manufacturing Ltd.
 
@@ -2336,10 +2336,10 @@ Diligence.ai employs a **hybrid freemium + transaction-based** revenue model des
 
 — Amit Sharma, Founder, SafetyFirst Consultants
 
-**The Solution with Diligence.ai:**
+**The Solution with Diligince.ai:**
 
 **Week 1: Platform Onboarding**
-- Created comprehensive vendor profile on Diligence.ai (2 hours)
+- Created comprehensive vendor profile on Diligince.ai (2 hours)
 - Uploaded certifications (NEBOSH, ISO lead auditor, industrial hygiene)
 - Added portfolio: 25 past projects with client testimonials
 - Defined service offerings, typical project size (₹2-8 lakh), coverage areas
@@ -2420,7 +2420,7 @@ Why you should bid:
 
 **The Results:**
 
-| Metric | Before Diligence.ai | After Diligence.ai (6 months) | Improvement |
+| Metric | Before Diligince.ai | After Diligince.ai (6 months) | Improvement |
 |--------|---------------------|-------------------------------|-------------|
 | **Monthly Revenue** | ₹6 lakh avg | ₹13 lakh avg | **117% increase** |
 | **Team Utilization** | 40% | 85% | **113% increase** |
@@ -2432,7 +2432,7 @@ Why you should bid:
 
 **Vendor Testimonial:**
 
-*"Diligence.ai was a game-changer for our business. Within the first month, we won 4 projects worth ₹20 lakh—more than our typical quarterly revenue. The AI matching is incredibly accurate; every opportunity we received was highly relevant to our capabilities. No more wasting time on mismatched leads or trying to break through procurement gatekeepers. We're now working with enterprise clients we could never access before. Our revenue has doubled, our team is fully utilized, and we're actually turning down work—something we never imagined 6 months ago. The platform paid for itself 40x over in the first year. Best business decision we ever made."*
+*"Diligince.ai was a game-changer for our business. Within the first month, we won 4 projects worth ₹20 lakh—more than our typical quarterly revenue. The AI matching is incredibly accurate; every opportunity we received was highly relevant to our capabilities. No more wasting time on mismatched leads or trying to break through procurement gatekeepers. We're now working with enterprise clients we could never access before. Our revenue has doubled, our team is fully utilized, and we're actually turning down work—something we never imagined 6 months ago. The platform paid for itself 40x over in the first year. Best business decision we ever made."*
 
 — Amit Sharma, Founder, SafetyFirst Consultants
 
@@ -2453,10 +2453,10 @@ Why you should bid:
 
 — Dr. Priya Desai, Independent Quality Consultant
 
-**The Solution with Diligence.ai:**
+**The Solution with Diligince.ai:**
 
 **Week 1: Professional Profile Creation**
-- Created detailed profile on Diligence.ai (90 minutes)
+- Created detailed profile on Diligince.ai (90 minutes)
 - Highlighted certifications: ISO 9001 Lead Auditor, Six Sigma Black Belt, ASQ CQE
 - Uploaded portfolio: 10 case studies from previous roles (process improvements, ISO implementations)
 - Set hourly rate: ₹3,000/hour (₹150-200/hour suggested by AI based on credentials)
@@ -2567,7 +2567,7 @@ Why this matches:
 
 **The Results:**
 
-| Metric | Before Diligence.ai (Network Referrals) | After Diligence.ai (6 months) | Improvement |
+| Metric | Before Diligince.ai (Network Referrals) | After Diligince.ai (6 months) | Improvement |
 |--------|----------------------------------------|-------------------------------|-------------|
 | **Monthly Income** | ₹80K-1.5L (inconsistent) | ₹2.36 lakh avg (consistent) | **115% increase (avg)** |
 | **Hourly Rate** | ₹2,000-2,500/hour | ₹3,300/hour avg | **45% increase** |
@@ -2579,7 +2579,7 @@ Why this matches:
 
 **Professional Testimonial:**
 
-*"Diligence.ai gave me the career I dreamed of but didn't know how to build. As an independent consultant, finding quality clients was my biggest challenge. The platform's AI matching is remarkable—every opportunity I receive is highly relevant to my skills and pays what I'm worth. In 6 months, I've earned more than I did in corporate, worked half the hours, and served fascinating clients across industries. The 80% success rate on applications means I'm not wasting time on mismatched bids. I've gone from feast-or-famine income to predictable, high-value project flow. I finally have the work-life balance I wanted with the income I deserve. I recommend Diligence.ai to every experienced professional considering independent consulting."*
+*"Diligince.ai gave me the career I dreamed of but didn't know how to build. As an independent consultant, finding quality clients was my biggest challenge. The platform's AI matching is remarkable—every opportunity I receive is highly relevant to my skills and pays what I'm worth. In 6 months, I've earned more than I did in corporate, worked half the hours, and served fascinating clients across industries. The 80% success rate on applications means I'm not wasting time on mismatched bids. I've gone from feast-or-famine income to predictable, high-value project flow. I finally have the work-life balance I wanted with the income I deserve. I recommend Diligince.ai to every experienced professional considering independent consulting."*
 
 — Dr. Priya Desai, Independent Quality Consultant
 
@@ -2797,15 +2797,15 @@ Why this matches:
 **Vision:**
 - **#1 Global Industrial Procurement Platform** (India + 20+ countries)
 - **10 million+ vendors and professionals** on the platform
-- **100,000+ enterprises** managing procurement through Diligence.ai
+- **100,000+ enterprises** managing procurement through Diligince.ai
 - **₹1 trillion+ GMV** (gross merchandise value) annually
 - **AI-first procurement** becomes industry standard (we set the benchmark)
 - **Impact:** Save ₹10,000+ crore annually in procurement waste, create ₹50,000+ crore in new business opportunities
 
 **Strategic Goals:**
 1. **Become the "Operating System" for Industrial Procurement**
-   - Every manufacturing company uses Diligence.ai as default procurement tool
-   - "Diligence.ai Verified" becomes mark of quality for vendors
+   - Every manufacturing company uses Diligince.ai as default procurement tool
+   - "Diligince.ai Verified" becomes mark of quality for vendors
    - Platform becomes talent pool for industrial professionals
 
 2. **Drive Industry Transformation**
@@ -2826,7 +2826,7 @@ Why this matches:
 
 ---
 
-**The Future is Intelligent, Automated, and Collaborative. Diligence.ai is building it.**
+**The Future is Intelligent, Automated, and Collaborative. Diligince.ai is building it.**
 
 ---
 
@@ -2999,7 +2999,7 @@ Why this matches:
 
 ---
 
-### Why Invest in Diligence.ai?
+### Why Invest in Diligince.ai?
 
 #### 1. Massive Market Opportunity
 - **$1 trillion+ Indian industrial procurement market** with 30-40% inefficiency waste
@@ -3049,7 +3049,7 @@ Why this matches:
 | **Coupa (US)** | Procurement SaaS | $700M | $8B | 11.4x |
 | **Procore (US)** | Construction Tech | $600M | $9B | 15x |
 
-**Diligence.ai Series A Valuation:**
+**Diligince.ai Series A Valuation:**
 - Post-Money: $45M
 - Year 2 Revenue (projected): $33.4M
 - **Implied Multiple: 1.35x** (Year 2 revenue)
@@ -3099,15 +3099,15 @@ Why this matches:
 
 **Investment Process:**
 1. **Initial Meeting:** Pitch deck review, Q&A with founders
-2. **Due Diligence:** Product demo, financials review, customer references
+2. **Due Diligince:** Product demo, financials review, customer references
 3. **Term Sheet:** Investment terms negotiation
 4. **Legal Documentation:** SHA, closing documents
 5. **Funds Transfer & Closing:** Wire transfer, share issuance
 
 **Contact:**
-- **Email:** investors@Diligence.ai
+- **Email:** investors@Diligince.ai
 - **Phone:** +91-XXX-XXX-XXXX
-- **Website:** www.Diligence.ai/investors
+- **Website:** www.Diligince.ai/investors
 
 **Data Room Access:**
 - Financials (actuals, projections, unit economics)
@@ -3130,21 +3130,21 @@ Why this matches:
 - **Expertise:** Procurement strategy, supply chain management, vendor relationships
 - **Education:** [MBA from IIM-A, B.Tech from IIT-X]
 - **LinkedIn:** [linkedin.com/in/founder1]
-- **Why Diligence:** *"I spent 15 years managing procurement teams and saw firsthand the inefficiencies costing companies millions. I knew AI could solve this, and I built Diligence.ai to transform the industry."*
+- **Why Diligince:** *"I spent 15 years managing procurement teams and saw firsthand the inefficiencies costing companies millions. I knew AI could solve this, and I built Diligince.ai to transform the industry."*
 
 **[Founder 2 Name] - Co-Founder & CTO**
 - **Background:** [12 years in AI/ML and product engineering, ex-Engineering Lead at Google/Meta]
 - **Expertise:** AI/ML systems, scalable architecture, product development
 - **Education:** [MS Computer Science from Stanford/MIT, B.Tech from IIT-X]
 - **LinkedIn:** [linkedin.com/in/founder2]
-- **Why Diligence:** *"Industrial procurement is ripe for AI disruption. The matching problem is complex but solvable with modern ML. I joined to build world-class AI for a massive market."*
+- **Why Diligince:** *"Industrial procurement is ripe for AI disruption. The matching problem is complex but solvable with modern ML. I joined to build world-class AI for a massive market."*
 
 **[Founder 3 Name] - Co-Founder & COO** (if applicable)
 - **Background:** [10 years in operations and business development, ex-COO at B2B SaaS startup (acquired)]
 - **Expertise:** Scaling operations, go-to-market strategy, customer success
 - **Education:** [MBA from ISB, B.Com from Delhi University]
 - **LinkedIn:** [linkedin.com/in/founder3]
-- **Why Diligence:** *"I've scaled B2B platforms before and understand the operational complexities. Diligence.ai has the product-market fit and team to become a category leader."*
+- **Why Diligince:** *"I've scaled B2B platforms before and understand the operational complexities. Diligince.ai has the product-market fit and team to become a category leader."*
 
 ---
 
@@ -3241,13 +3241,13 @@ Why this matches:
 
 ### Ready to Transform Industrial Procurement?
 
-Diligence.ai is revolutionizing how industries connect with vendors, professionals, and logistics providers. Whether you're a buyer looking to save costs and time, a vendor seeking quality opportunities, or a professional wanting flexible, high-value work—**we're here to empower your success.**
+Diligince.ai is revolutionizing how industries connect with vendors, professionals, and logistics providers. Whether you're a buyer looking to save costs and time, a vendor seeking quality opportunities, or a professional wanting flexible, high-value work—**we're here to empower your success.**
 
 ---
 
 ### For Manufacturing Companies (Buyers)
 
-#### Why Choose Diligence.ai?
+#### Why Choose Diligince.ai?
 ✅ **65% Faster Procurement Cycles:** From 45-60 days to 15-20 days  
 ✅ **30-40% Cost Savings:** Better vendor matching, competitive pricing  
 ✅ **Automated ISO 9001 Compliance:** 95% reduction in audit prep time  
@@ -3276,7 +3276,7 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 - [Book a Demo →]
 
 **Contact Sales:**
-- **Email:** sales@Diligence.ai
+- **Email:** sales@Diligince.ai
 - **Phone:** +91-XXXX-XXXX
 - **WhatsApp:** +91-XXXXX-XXXXX
 
@@ -3284,7 +3284,7 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 
 ### For Vendors (Service, Product, Logistics)
 
-#### Why Join Diligence.ai?
+#### Why Join Diligince.ai?
 ✅ **3x More Qualified Leads:** AI matches you to ideal opportunities  
 ✅ **78% Win Probability:** Only see bids you're likely to win  
 ✅ **Access Enterprise Clients:** Break through procurement gatekeepers  
@@ -3307,7 +3307,7 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 - [Start Professional Plan →]
 
 **Contact Vendor Success Team:**
-- **Email:** vendors@Diligence.ai
+- **Email:** vendors@Diligince.ai
 - **Phone:** +91-XXXX-XXXX
 - **WhatsApp:** +91-XXXXX-XXXXX
 
@@ -3315,7 +3315,7 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 
 ### For Professionals (Consultants & Experts)
 
-#### Why Build Your Career on Diligence.ai?
+#### Why Build Your Career on Diligince.ai?
 ✅ **Skills-Based Matching:** Only see opportunities perfect for your expertise  
 ✅ **80% Application Success Rate:** Apply to ideal-fit projects  
 ✅ **Higher Rates:** ₹2,500-4,000/hour vs. ₹1,500-2,000 elsewhere  
@@ -3338,15 +3338,15 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 - [Upgrade to Professional →]
 
 **Contact Professional Success Team:**
-- **Email:** professionals@Diligence.ai
+- **Email:** professionals@Diligince.ai
 - **Phone:** +91-XXXX-XXXX
-- **LinkedIn:** linkedin.com/company/Diligence-ai
+- **LinkedIn:** linkedin.com/company/Diligince-ai
 
 ---
 
 ### For Investors
 
-#### Why Invest in Diligence.ai?
+#### Why Invest in Diligince.ai?
 
 ✅ **$1 Trillion+ Market Opportunity** in industrial procurement  
 ✅ **AI-Native Platform** with 92% matching accuracy, strong moat  
@@ -3360,7 +3360,7 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 - **Path to Profitability:** Breakeven Year 2, profitable Year 3
 
 **Schedule Investor Call:**
-- **Email:** investors@Diligence.ai
+- **Email:** investors@Diligince.ai
 - **Phone:** +91-XXXX-XXXX
 - [Request Pitch Deck & Data Room Access →]
 
@@ -3369,32 +3369,32 @@ Diligence.ai is revolutionizing how industries connect with vendors, professiona
 ### For Partners & Integrators
 
 #### Partnership Opportunities
-- **ERP/Accounting Software:** Integrate Diligence.ai (co-marketing, revenue share)
+- **ERP/Accounting Software:** Integrate Diligince.ai (co-marketing, revenue share)
 - **Industry Associations:** Member benefits, sponsored events
 - **Consulting Firms:** Referral partnerships (10% referral fee)
 - **Technology Providers:** API integrations, co-development
 
 **Contact Partnerships Team:**
-- **Email:** partnerships@Diligence.ai
+- **Email:** partnerships@Diligince.ai
 - **Phone:** +91-XXXX-XXXX
 
 ---
 
 ### Connect With Us
 
-**Website:** www.Diligence.ai  
-**Email:** contact@Diligence.ai  
+**Website:** www.Diligince.ai  
+**Email:** contact@Diligince.ai  
 **Phone:** +91-XXXX-XXXX-XXXX  
 **WhatsApp:** +91-XXXXX-XXXXX  
 
 **Social Media:**
-- **LinkedIn:** linkedin.com/company/Diligence-ai  
-- **Twitter:** @DiligenceAI  
-- **YouTube:** youtube.com/diligenceai (Product demos, webinars)  
-- **Instagram:** @diligence.ai  
+- **LinkedIn:** linkedin.com/company/Diligince-ai  
+- **Twitter:** @DiliginceAI  
+- **YouTube:** youtube.com/Diliginceai (Product demos, webinars)  
+- **Instagram:** @Diligince.ai  
 
 **Office Address:**
-Diligence Technologies Pvt. Ltd.  
+Diligince Technologies Pvt. Ltd.  
 [Address Line 1]  
 [Address Line 2]  
 [City, State, PIN]  
@@ -3405,14 +3405,14 @@ India
 ### Media & Press
 
 For media inquiries, press releases, or speaking opportunities:
-- **Email:** press@Diligence.ai
-- **Press Kit:** www.Diligence.ai/press
+- **Email:** press@Diligince.ai
+- **Press Kit:** www.Diligince.ai/press
 
 ---
 
 ## Let's Build the Future of Procurement Together
 
-**Whether you're a buyer seeking efficiency, a vendor chasing growth, a professional pursuing flexibility, or an investor looking for the next big opportunity—Diligence.ai is your platform.**
+**Whether you're a buyer seeking efficiency, a vendor chasing growth, a professional pursuing flexibility, or an investor looking for the next big opportunity—Diligince.ai is your platform.**
 
 **Join 10,000+ businesses already transforming their procurement.**
 
@@ -3420,7 +3420,7 @@ For media inquiries, press releases, or speaking opportunities:
 
 ---
 
-*Diligence.ai - World's #1 B2B & B2C AI-Native Business Platform*
+*Diligince.ai - World's #1 B2B & B2C AI-Native Business Platform*
 
 *Empowering industries, vendors, and professionals to connect, collaborate, and grow through intelligent procurement.*
 
@@ -3428,7 +3428,7 @@ For media inquiries, press releases, or speaking opportunities:
 
 **Document Version:** 1.0  
 **Last Updated:** January 2025  
-**Prepared By:** Diligence.ai Team  
+**Prepared By:** Diligince.ai Team  
 **Confidential:** For authorized recipients only
 
 ---

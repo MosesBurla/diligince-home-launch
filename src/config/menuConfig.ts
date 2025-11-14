@@ -221,18 +221,18 @@ export const menuConfig: MenuConfig = {
     },
     {
       icon: Target,
-      label: "Diligence HUB",
-      path: "/dashboard/industry-diligence-hub",
+      label: "Diligince HUB",
+      path: "/dashboard/industry-Diligince-hub",
       submenu: [
         {
           icon: Building,
           label: "Find Vendors",
-          path: "/dashboard/diligence-hub/vendors",
+          path: "/dashboard/Diligince-hub/vendors",
         },
         {
           icon: UserCheck,
           label: "Find Professionals",
-          path: "/dashboard/diligence-hub/professionals",
+          path: "/dashboard/Diligince-hub/professionals",
         },
       ],
     },

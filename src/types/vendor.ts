@@ -313,7 +313,7 @@ export interface VendorPOStats {
   averageValue: number;
 }
 
-// ============= Diligence HUB Types =============
+// ============= Diligince HUB Types =============
 
 export interface VendorListItem {
   id: string;

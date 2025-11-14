@@ -1,24 +1,24 @@
 import apiService from '../../core/api.service';
-import { diligenceHubVendorsRoutes } from './vendors.routes';
+import { DiliginceHubVendorsRoutes } from './vendors.routes';
 import type { VendorListResponse, VendorSearchFilters, VendorListItem } from '@/types/vendor';
 
-class DiligenceHubVendorsService {
+class DiliginceHubVendorsService {
   async searchVendors(filters?: VendorSearchFilters): Promise<VendorListResponse> {
-    return apiService.get(diligenceHubVendorsRoutes.search(filters));
+    return apiService.get(DiliginceHubVendorsRoutes.search(filters));
   }
 
   async getVendorById(vendorId: string): Promise<VendorListItem> {
-    return apiService.get(diligenceHubVendorsRoutes.getById(vendorId));
+    return apiService.get(DiliginceHubVendorsRoutes.getById(vendorId));
   }
 
   async getSpecializations(): Promise<string[]> {
-    return apiService.get(diligenceHubVendorsRoutes.getSpecializations());
+    return apiService.get(DiliginceHubVendorsRoutes.getSpecializations());
   }
 
   async getLocations(): Promise<string[]> {
-    return apiService.get(diligenceHubVendorsRoutes.getLocations());
+    return apiService.get(DiliginceHubVendorsRoutes.getLocations());
   }
 }
 
-export const diligenceHubVendorsService = new DiligenceHubVendorsService();
-export default diligenceHubVendorsService;
+export const DiliginceHubVendorsService = new DiliginceHubVendorsService();
+export default DiliginceHubVendorsService;

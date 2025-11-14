@@ -1,7 +1,7 @@
-# Industry Module Development Requirements - Diligence.ai Backend
+# Industry Module Development Requirements - Diligince.ai Backend
 
 ## Project Overview
-Develop a comprehensive Node.js backend with MongoDB for Diligence.ai's Industry Module, implementing enterprise-grade procurement, RFQ management, and ISO compliance features.
+Develop a comprehensive Node.js backend with MongoDB for Diligince.ai's Industry Module, implementing enterprise-grade procurement, RFQ management, and ISO compliance features.
 
 ## Architecture Requirements
 
@@ -20,7 +20,7 @@ Develop a comprehensive Node.js backend with MongoDB for Diligence.ai's Industry
 
 ### Directory Structure
 ```
-Diligence.ai-Backend-Testing-Repo/
+Diligince.ai-Backend-Testing-Repo/
 ├── .env
 ├── .gitignore
 ├── App/

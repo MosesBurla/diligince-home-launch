@@ -527,7 +527,7 @@ const IndustryDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>Industry Dashboard | Diligence.ai</title>
+        <title>Industry Dashboard | Diligince.ai</title>
       </Helmet>
       <DashboardContainer />
     </div>

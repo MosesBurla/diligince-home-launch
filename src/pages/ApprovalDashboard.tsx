@@ -79,7 +79,7 @@ const ApprovalDashboard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Approval Dashboard | Diligence.ai</title>
+        <title>Approval Dashboard | Diligince.ai</title>
       </Helmet>
       
       

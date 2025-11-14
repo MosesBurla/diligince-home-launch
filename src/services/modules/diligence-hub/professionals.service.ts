@@ -1,28 +1,28 @@
 import apiService from '../../core/api.service';
-import { diligenceHubProfessionalsRoutes } from './professionals.routes';
+import { DiliginceHubProfessionalsRoutes } from './professionals.routes';
 import type { ProfessionalListResponse, ProfessionalSearchFilters, ProfessionalListItem } from '@/types/professional';
 
-class DiligenceHubProfessionalsService {
+class DiliginceHubProfessionalsService {
   async searchProfessionals(filters?: ProfessionalSearchFilters): Promise<ProfessionalListResponse> {
-    return apiService.get(diligenceHubProfessionalsRoutes.search(filters));
+    return apiService.get(DiliginceHubProfessionalsRoutes.search(filters));
   }
 
   async getProfessionalById(professionalId: string): Promise<ProfessionalListItem> {
-    return apiService.get(diligenceHubProfessionalsRoutes.getById(professionalId));
+    return apiService.get(DiliginceHubProfessionalsRoutes.getById(professionalId));
   }
 
   async getExpertiseAreas(): Promise<string[]> {
-    return apiService.get(diligenceHubProfessionalsRoutes.getExpertiseAreas());
+    return apiService.get(DiliginceHubProfessionalsRoutes.getExpertiseAreas());
   }
 
   async getSkills(): Promise<string[]> {
-    return apiService.get(diligenceHubProfessionalsRoutes.getSkills());
+    return apiService.get(DiliginceHubProfessionalsRoutes.getSkills());
   }
 
   async getLocations(): Promise<string[]> {
-    return apiService.get(diligenceHubProfessionalsRoutes.getLocations());
+    return apiService.get(DiliginceHubProfessionalsRoutes.getLocations());
   }
 }
 
-export const diligenceHubProfessionalsService = new DiligenceHubProfessionalsService();
-export default diligenceHubProfessionalsService;
+export const DiliginceHubProfessionalsService = new DiliginceHubProfessionalsService();
+export default DiliginceHubProfessionalsService;

@@ -144,7 +144,7 @@ const mockMessages: Message[] = [
   },
   {
     id: 5,
-    sender: "Diligence.ai",
+    sender: "Diligince.ai",
     initials: "DL",
     message:
       "We've found 3 new job opportunities matching your skills profile...",

@@ -80,7 +80,7 @@ Retrieve all approved requirements ready for publication.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/approved?page=1&pageSize=10&sortBy=approvedDate&sortOrder=desc' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/approved?page=1&pageSize=10&sortBy=approvedDate&sortOrder=desc' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -162,7 +162,7 @@ Retrieve full details of a specific approved requirement.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_abc123' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -202,7 +202,7 @@ curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_abc123' \
       {
         "id": "doc_123",
         "filename": "technical_spec.pdf",
-        "url": "https://storage.Diligence.ai/doc_123"
+        "url": "https://storage.Diligince.ai/doc_123"
       }
     ],
     "approvalWorkflow": {
@@ -290,7 +290,7 @@ Publish an approved requirement to vendors with configuration settings.
 
 **Request Example:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/publish' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_abc123/publish' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -331,7 +331,7 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/publ
       "certified": 32,
       "preferred": 15
     },
-    "publicUrl": "https://app.Diligence.ai/requirements/REQ-001",
+    "publicUrl": "https://app.Diligince.ai/requirements/REQ-001",
     "trackingId": "pub_xyz789"
   }
 }
@@ -1109,13 +1109,13 @@ if (error.code === 'NO_VENDORS_MATCHED') {
 
 **1. List Approved Requirements:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/approved' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/approved' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **2. Publish Requirement:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/publish' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_abc123/publish' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1133,7 +1133,7 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/publ
 
 **3. Bulk Publish:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/bulk-publish' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/bulk-publish' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1158,4 +1158,4 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/bulk-publish' \
 
 **Last Updated:** 2024-01-20  
 **API Version:** 1.0.0  
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

@@ -1,9 +1,9 @@
 import { buildQueryString, API_BASE_PATH } from '../../core/api.config';
 import type { ProfessionalSearchFilters } from '@/types/professional';
 
-const BASE_PATH = `${API_BASE_PATH}/industry/diligence-hub/professionals`;
+const BASE_PATH = `${API_BASE_PATH}/industry/Diligince-hub/professionals`;
 
-export const diligenceHubProfessionalsRoutes = {
+export const DiliginceHubProfessionalsRoutes = {
   search: (filters?: ProfessionalSearchFilters) => 
     `${BASE_PATH}/search${buildQueryString(filters)}`,
   

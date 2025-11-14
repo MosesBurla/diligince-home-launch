@@ -10,7 +10,7 @@ const PurchaseOrderHeader = () => {
       <div className="container mx-auto h-full flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/industry-dashboard" className="text-xl font-bold text-blue-600">
-            Diligence.ai
+            Diligince.ai
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
             <Link 

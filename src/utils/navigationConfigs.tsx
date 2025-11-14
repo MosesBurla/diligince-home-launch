@@ -39,7 +39,7 @@ export interface HeaderConfig {
 
 /* ---------------- INDUSTRY ---------------- */
 export const industryHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/industry",
   navItems: [
     {
@@ -91,7 +91,7 @@ export const industryHeaderConfig: HeaderConfig = {
 
 /* ---------------- SERVICE VENDOR ---------------- */
 export const serviceVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/service-vendor",
   navItems: [
     {
@@ -137,7 +137,7 @@ export const serviceVendorHeaderConfig: HeaderConfig = {
 
 /* ---------------- PRODUCT VENDOR ---------------- */
 export const productVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/product-vendor",
   navItems: [
     {
@@ -184,7 +184,7 @@ export const productVendorHeaderConfig: HeaderConfig = {
 
 /* ---------------- LOGISTICS VENDOR ---------------- */
 export const logisticsVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/logistics-vendor",
   navItems: [
     {
@@ -231,7 +231,7 @@ export const logisticsVendorHeaderConfig: HeaderConfig = {
 
 /* ---------------- PROFESSIONAL ---------------- */
 export const professionalHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/professional",
   navItems: [
     {
@@ -273,7 +273,7 @@ export const professionalHeaderConfig: HeaderConfig = {
 
 /* ---------------- EXPERT ---------------- */
 export const expertHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/expert",
   navItems: [
     { label: "Dashboard", href: "/dashboard/expert", icon: <Home size={18} /> },
@@ -311,7 +311,7 @@ export const expertHeaderConfig: HeaderConfig = {
 
 /* ---------------- GENERIC VENDOR ---------------- */
 export const vendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/dashboard/vendor",
   navItems: [
     { label: "Dashboard", href: "/dashboard/vendor", icon: <Home size={18} /> },

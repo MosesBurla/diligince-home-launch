@@ -26,7 +26,7 @@ export interface HeaderConfig {
 
 // Industry Dashboard Navigation - ISO 9001 Compliant Flow
 export const industryHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/industry-dashboard",
   navItems: [
     {
@@ -79,7 +79,7 @@ export const industryHeaderConfig: HeaderConfig = {
 
 // Service Vendor Dashboard Navigation
 export const serviceVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/service-vendor-dashboard",
   navItems: [
     {
@@ -126,7 +126,7 @@ export const serviceVendorHeaderConfig: HeaderConfig = {
 
 // Product Vendor Dashboard Navigation (NEW - Fixed for product vendors)
 export const productVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/product-vendor-dashboard",
   navItems: [
     {
@@ -173,7 +173,7 @@ export const productVendorHeaderConfig: HeaderConfig = {
 
 // Vendor Dashboard Navigation (Generic)
 // export const vendorHeaderConfig: HeaderConfig = {
-//   brandName: "Diligence.ai",
+//   brandName: "Diligince.ai",
 //   brandHref: "/vendor-dashboard",
 //   navItems: [
 //     {
@@ -214,7 +214,7 @@ export const productVendorHeaderConfig: HeaderConfig = {
 
 // Logistics Vendor Dashboard Navigation (NEW - Fixed for logistics vendors)
 export const logisticsVendorHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/logistics-vendor-dashboard",
   navItems: [
     {
@@ -264,7 +264,7 @@ export const logisticsVendorHeaderConfig: HeaderConfig = {
 
 // Expert Dashboard Navigation
 // export const expertHeaderConfig: HeaderConfig = {
-//   brandName: "Diligence.ai",
+//   brandName: "Diligince.ai",
 //   brandHref: "/expert-dashboard",
 //   navItems: [
 //     {
@@ -306,7 +306,7 @@ export const logisticsVendorHeaderConfig: HeaderConfig = {
 
 // Professional Dashboard Navigation (missing export)
 export const professionalHeaderConfig: HeaderConfig = {
-  brandName: "Diligence.ai",
+  brandName: "Diligince.ai",
   brandHref: "/professional-dashboard",
   navItems: [
     {

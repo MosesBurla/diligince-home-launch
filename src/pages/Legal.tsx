@@ -21,7 +21,7 @@ const Legal = () => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-4">
-                    Read our terms and conditions for using Diligence.ai platform.
+                    Read our terms and conditions for using Diligince.ai platform.
                   </p>
                   <Link 
                     to="/terms" 

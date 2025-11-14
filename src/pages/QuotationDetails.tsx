@@ -238,7 +238,7 @@ export default function QuotationDetails() {
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>Quotation {quotation.quotationNumber} | Diligence.ai</title>
+        <title>Quotation {quotation.quotationNumber} | Diligince.ai</title>
       </Helmet>
 
       {/* Header */}

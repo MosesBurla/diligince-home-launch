@@ -1,9 +1,9 @@
 
-# Diligence.ai - AI-Powered B2B Procurement Platform
+# Diligince.ai - AI-Powered B2B Procurement Platform
 
 ## Overview
 
-Diligence.ai is a comprehensive, ISO 9001-compliant B2B procurement platform that streamlines the entire procurement lifecycle from requirement creation to payment completion. The platform serves multiple user types including manufacturing companies, service providers, product suppliers, logistics vendors, and expert consultants, facilitating intelligent stakeholder matching and automated workflow management.
+Diligince.ai is a comprehensive, ISO 9001-compliant B2B procurement platform that streamlines the entire procurement lifecycle from requirement creation to payment completion. The platform serves multiple user types including manufacturing companies, service providers, product suppliers, logistics vendors, and expert consultants, facilitating intelligent stakeholder matching and automated workflow management.
 
 ## Business Context
 
@@ -656,7 +656,7 @@ npm run dev
 
 ## License and Usage
 
-This project is proprietary software for Diligence.ai platform. All rights reserved.
+This project is proprietary software for Diligince.ai platform. All rights reserved.
 
 For technical questions or business inquiries, please contact our support team.
 

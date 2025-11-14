@@ -93,7 +93,7 @@ const PageName = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Page Title | Diligence.ai</title>
+        <title>Page Title | Diligince.ai</title>
       </Helmet>
       
       <UserTypeHeader />
@@ -117,7 +117,7 @@ export default PageName;
 
 #### SEO and Meta
 - Helmet integration for page titles and meta tags
-- Descriptive titles following pattern: "Page Name | Diligence.ai"
+- Descriptive titles following pattern: "Page Name | Diligince.ai"
 
 #### Error Handling
 - RouteErrorBoundary wrapping in App.tsx

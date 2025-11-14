@@ -102,7 +102,7 @@ const IndustryWorkflows = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Workflow Management | Diligence.ai</title>
+        <title>Workflow Management | Diligince.ai</title>
       </Helmet>
       
       

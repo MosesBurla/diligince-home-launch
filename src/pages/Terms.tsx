@@ -19,8 +19,8 @@ const Terms: React.FC = () => {
 
               <p>
                 Please read these Terms of Service ("Terms", "Terms of Service")
-                carefully before using the Diligence.ai website and platform
-                operated by Diligence.ai ("us", "we", "our").
+                carefully before using the Diligince.ai website and platform
+                operated by Diligince.ai ("us", "we", "our").
               </p>
 
               <p>
@@ -122,14 +122,14 @@ const Terms: React.FC = () => {
               </h2>
               <p>
                 The Service and its original content, features and functionality
-                are and will remain the exclusive property of Diligence.ai and
+                are and will remain the exclusive property of Diligince.ai and
                 its licensors. The Service is protected by copyright, trademark
                 and other laws of both India and foreign countries.
               </p>
               <p>
                 Our trademarks and trade dress may not be used in connection
                 with any product or service without the prior written consent of
-                Diligence.ai.
+                Diligince.ai.
               </p>
 
               {/* Termination */}
@@ -151,7 +151,7 @@ const Terms: React.FC = () => {
                 Limitation of Liability
               </h2>
               <p>
-                In no event shall Diligence.ai, nor its directors, employees,
+                In no event shall Diligince.ai, nor its directors, employees,
                 partners, agents, suppliers, or affiliates, be liable for any
                 indirect, incidental, special, consequential or punitive
                 damages, including without limitation, loss of profits, data,
@@ -191,7 +191,7 @@ const Terms: React.FC = () => {
               </p>
               <p>
                 Email:{" "}
-                <a href="mailto:legal@Diligence.ai">legal@Diligence.ai</a>
+                <a href="mailto:legal@Diligince.ai">legal@Diligince.ai</a>
                 <br />
                 Phone: +91 9848756956
                 <br />

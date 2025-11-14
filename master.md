@@ -1,8 +1,8 @@
 
-# Diligence.ai Codebase Documentation
+# Diligince.ai Codebase Documentation
 
 ## Project Overview
-Diligence.ai is a comprehensive B2B platform connecting industries, professionals, and vendors for industrial services, procurement, and logistics. The platform facilitates requirement creation, vendor discovery, professional expertise, purchase orders, and payment processing.
+Diligince.ai is a comprehensive B2B platform connecting industries, professionals, and vendors for industrial services, procurement, and logistics. The platform facilitates requirement creation, vendor discovery, professional expertise, purchase orders, and payment processing.
 
 ## Tech Stack
 - **Frontend Framework**: React 18+ with TypeScript
@@ -268,4 +268,4 @@ npm run preview     # Preview production build
 - **TypeScript**: Type checking and safety
 - **Husky**: Pre-commit hooks (planned)
 
-This documentation provides a comprehensive overview of the Diligence.ai codebase architecture, design decisions, and development standards. The codebase is well-structured for scalability and maintainability, with clear separation of concerns and established patterns for future development.
+This documentation provides a comprehensive overview of the Diligince.ai codebase architecture, design decisions, and development standards. The codebase is well-structured for scalability and maintainability, with clear separation of concerns and established patterns for future development.

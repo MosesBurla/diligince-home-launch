@@ -158,7 +158,7 @@ const Careers = () => {
                 We are always looking for talented individuals. Send your resume to:
               </p>
               <Button variant="outline" size="lg" asChild>
-                <a href="mailto:careers@Diligence.ai">careers@Diligence.ai</a>
+                <a href="mailto:careers@Diligince.ai">careers@Diligince.ai</a>
               </Button>
             </div>
           </div>

@@ -51,7 +51,7 @@ const ProfessionalOpportunities = () => {
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border border-blue-100">
             <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              Diligence AI Suggests These Opportunities for You
+              Diligince AI Suggests These Opportunities for You
             </h2>
             <p className="text-sm text-muted-foreground">
               Based on your profile: Safety Engineering Expert, 15 years experience

@@ -163,8 +163,8 @@ const Contact = () => {
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">Email</h3>
                         <p className="text-gray-600 mt-1">
-                          <a href="mailto:support@Diligence.ai" className="hover:text-blue-600">
-                            support@Diligence.ai
+                          <a href="mailto:support@Diligince.ai" className="hover:text-blue-600">
+                            support@Diligince.ai
                           </a>
                         </p>
                       </div>

@@ -1,6 +1,6 @@
-// Diligence Hub Module Exports
-export { diligenceHubVendorsRoutes } from './vendors.routes';
-export { diligenceHubVendorsService } from './vendors.service';
+// Diligince Hub Module Exports
+export { DiliginceHubVendorsRoutes } from './vendors.routes';
+export { DiliginceHubVendorsService } from './vendors.service';
 
-export { diligenceHubProfessionalsRoutes } from './professionals.routes';
-export { diligenceHubProfessionalsService } from './professionals.service';
+export { DiliginceHubProfessionalsRoutes } from './professionals.routes';
+export { DiliginceHubProfessionalsService } from './professionals.service';

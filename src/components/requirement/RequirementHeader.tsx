@@ -16,7 +16,7 @@ const RequirementHeader = () => {
             to="/" 
             className="flex items-center gap-2 font-bold text-xl"
           >
-            <span>Diligence.ai</span>
+            <span>Diligince.ai</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6">
             <Link to="/" className="text-sm font-medium opacity-90 hover:opacity-100">

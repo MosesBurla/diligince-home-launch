@@ -267,7 +267,7 @@ const RequirementDetails = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Requirement Details - {requirement.title} | Diligence.ai</title>
+        <title>Requirement Details - {requirement.title} | Diligince.ai</title>
       </Helmet>
 
       

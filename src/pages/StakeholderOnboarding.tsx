@@ -84,7 +84,7 @@ const StakeholderOnboarding: React.FC = () => {
   };
 
   const handleCompleteOnboarding = () => {
-    toast.success("Welcome to Diligence.ai! Redirecting to your dashboard...");
+    toast.success("Welcome to Diligince.ai! Redirecting to your dashboard...");
 
     setTimeout(() => {
       if (stakeholderType === "expert") {
@@ -140,7 +140,7 @@ const StakeholderOnboarding: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <Helmet>
-          <title>Invalid Invitation | Diligence.ai</title>
+          <title>Invalid Invitation | Diligince.ai</title>
         </Helmet>
 
         <div className="w-full max-w-md">
@@ -188,14 +188,14 @@ const StakeholderOnboarding: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Helmet>
-        <title>Join Diligence.ai | Stakeholder Onboarding</title>
+        <title>Join Diligince.ai | Stakeholder Onboarding</title>
       </Helmet>
 
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome to Diligence.ai
+            Welcome to Diligince.ai
           </h1>
           <p className="text-gray-600">
             Complete your registration as a {getStakeholderTypeLabel()}
@@ -239,7 +239,7 @@ const StakeholderOnboarding: React.FC = () => {
                   Create Your Account
                 </CardTitle>
                 <CardDescription>
-                  Set up your account to access the Diligence.ai platform
+                  Set up your account to access the Diligince.ai platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -367,7 +367,7 @@ const StakeholderOnboarding: React.FC = () => {
                   </div>
                   <p className="text-sm text-green-700">
                     Your account has been successfully created and verified. You
-                    now have access to the Diligence.ai platform.
+                    now have access to the Diligince.ai platform.
                   </p>
                 </div>
 

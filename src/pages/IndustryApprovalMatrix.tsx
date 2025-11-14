@@ -277,7 +277,7 @@ const IndustryApprovalMatrix = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Helmet>
-        <title>Approval Matrix Configuration | Diligence.ai</title>
+        <title>Approval Matrix Configuration | Diligince.ai</title>
       </Helmet>
       
       

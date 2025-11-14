@@ -145,7 +145,7 @@ This folder contains all email templates related to user authentication, account
 
 ### Header
 - Background: `#153b60` (Dark Blue)
-- Logo: "Diligence AI" text-based logo
+- Logo: "Diligince AI" text-based logo
 - Padding: 30px 40px
 
 ### Body
@@ -171,12 +171,12 @@ This folder contains all email templates related to user authentication, account
 
 All email templates support deep linking to specific app sections:
 
-- **Dashboard:** `https://app.diligence.ai/dashboard`
-- **Security Settings:** `https://app.diligence.ai/settings/security`
-- **Account Activity:** `https://app.diligence.ai/account/activity`
-- **Help Center:** `https://help.diligence.ai`
+- **Dashboard:** `https://app.Diligince.ai/dashboard`
+- **Security Settings:** `https://app.Diligince.ai/settings/security`
+- **Account Activity:** `https://app.Diligince.ai/account/activity`
+- **Help Center:** `https://help.Diligince.ai`
 
-Alternative app protocol: `diligence://settings/security`
+Alternative app protocol: `Diligince://settings/security`
 
 ---
 
@@ -211,13 +211,13 @@ const sendWelcomeEmail = async (user) => {
   
   const emailContent = template
     .replace('{{user_name}}', user.name)
-    .replace('{{dashboard_url}}', `https://app.diligence.ai/dashboard`)
-    .replace('{{help_center_url}}', `https://help.diligence.ai`)
+    .replace('{{dashboard_url}}', `https://app.Diligince.ai/dashboard`)
+    .replace('{{help_center_url}}', `https://help.Diligince.ai`)
     .replace('{{current_year}}', new Date().getFullYear());
   
   await sendEmail({
     to: user.email,
-    subject: 'Welcome to Diligence AI',
+    subject: 'Welcome to Diligince AI',
     html: emailContent
   });
 };
@@ -230,7 +230,7 @@ def send_password_reset_email(user, reset_token):
     with open('./auth/password-reset.html', 'r') as file:
         template = file.read()
     
-    reset_url = f"https://app.diligence.ai/reset-password?token={reset_token}"
+    reset_url = f"https://app.Diligince.ai/reset-password?token={reset_token}"
     
     email_content = template.replace('{{user_name}}', user.name)
     email_content = email_content.replace('{{reset_password_url}}', reset_url)
@@ -238,7 +238,7 @@ def send_password_reset_email(user, reset_token):
     
     send_email(
         to=user.email,
-        subject='Reset Your Password - Diligence AI',
+        subject='Reset Your Password - Diligince AI',
         html=email_content
     )
 ```
@@ -279,9 +279,9 @@ Before deploying templates to production:
 ## 🤝 Support
 
 For questions or issues with these templates:
-- Email: support@diligence.ai
-- Documentation: https://docs.diligence.ai/email-templates
-- GitHub Issues: https://github.com/diligence-ai/templates/issues
+- Email: support@Diligince.ai
+- Documentation: https://docs.Diligince.ai/email-templates
+- GitHub Issues: https://github.com/Diligince-ai/templates/issues
 
 ---
 

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Building } from "lucide-react";
-import { VendorCard } from "@/components/diligence-hub/VendorCard";
-import { SearchFilterBar } from "@/components/diligence-hub/SearchFilterBar";
-import { EmptyState } from "@/components/diligence-hub/EmptyState";
+import { VendorCard } from "@/components/Diligince-hub/VendorCard";
+import { SearchFilterBar } from "@/components/Diligince-hub/SearchFilterBar";
+import { EmptyState } from "@/components/Diligince-hub/EmptyState";
 import type { VendorListItem, VendorSearchFilters } from "@/types/vendor";
 
 // Mock data for development

@@ -42,13 +42,13 @@ const Navbar = () => {
           <Link to="/" className="flex items-center space-x-2">
             <img 
               src={location.pathname === '/signup' || location.pathname === '/signin' 
-                ? "/diligence-no-bg-white.svg" 
+                ? "/Diligince-no-bg-white.svg" 
                 : "/logo-main-no-bg.svg"
               } 
-              alt="Diligence.ai" 
+              alt="Diligince.ai" 
               className="h-8 w-8" 
             />
-            <span className="text-xl font-bold text-white">Diligence.ai</span>
+            <span className="text-xl font-bold text-white">Diligince.ai</span>
           </Link>
         </div>
         

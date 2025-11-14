@@ -85,7 +85,7 @@ Retrieve all archived requirements with filtering and search capabilities.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/archived?page=1&pageSize=10&status=completed' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/archived?page=1&pageSize=10&status=completed' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json'
 ```
@@ -157,7 +157,7 @@ Retrieve comprehensive details of a specific archived requirement including outc
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_archived_abc123' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_archived_abc123' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -393,7 +393,7 @@ Retrieve detailed outcome report for a completed requirement.
 
 **Request Example:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/req_archived_abc123/outcome' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/req_archived_abc123/outcome' \
   -H 'Authorization: Bearer <token>'
 ```
 
@@ -535,7 +535,7 @@ Export archived requirements data in various formats.
     "fileSize": 2560000,
     "recordsIncluded": 98,
     "generatedAt": "2024-07-01T10:00:00Z",
-    "downloadUrl": "https://storage.Diligence.ai/exports/export_123.xlsx",
+    "downloadUrl": "https://storage.Diligince.ai/exports/export_123.xlsx",
     "expiresAt": "2024-07-08T10:00:00Z"
   }
 }
@@ -992,13 +992,13 @@ const CostVarianceBadge = ({ variance, varianceAmount }) => {
 
 **1. List Archived Requirements:**
 ```bash
-curl -X GET 'https://api.Diligence.ai/api/industry/requirements/archived?status=completed' \
+curl -X GET 'https://api.Diligince.ai/api/industry/requirements/archived?status=completed' \
   -H 'Authorization: Bearer <token>'
 ```
 
 **2. Archive Requirement:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/archive' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_abc123/archive' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1015,7 +1015,7 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_abc123/arch
 
 **3. Restore Requirement:**
 ```bash
-curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_archived_abc123/restore' \
+curl -X POST 'https://api.Diligince.ai/api/industry/requirements/req_archived_abc123/restore' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -1037,4 +1037,4 @@ curl -X POST 'https://api.Diligence.ai/api/industry/requirements/req_archived_ab
 
 **Last Updated:** 2024-01-20  
 **API Version:** 1.0.0  
-**Author:** Diligence.ai Backend Team
+**Author:** Diligince.ai Backend Team

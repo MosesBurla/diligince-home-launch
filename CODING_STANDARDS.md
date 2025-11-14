@@ -2,7 +2,7 @@
 # Coding Standards and Best Practices
 
 ## Overview
-This document establishes coding standards and best practices for the Diligence.ai project to ensure consistency, maintainability, and scalability across the codebase.
+This document establishes coding standards and best practices for the Diligince.ai project to ensure consistency, maintainability, and scalability across the codebase.
 
 ## TypeScript Standards
 
