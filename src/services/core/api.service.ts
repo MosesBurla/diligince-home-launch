@@ -81,7 +81,7 @@ api.interceptors.response.use(
             { refresh_token: refreshToken }
           );
 
-          const { access_token } = response.data.meta;
+          const { access_token } = response.data.data;
           localStorage.setItem('authToken', access_token);
 
           // Retry original request with new token
@@ -186,9 +186,31 @@ const remove = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> =
 
 };
 
+// Generic PATCH method
+const patch = async <T, D>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> => {
+  try {
+    const response: AxiosResponse = await api.patch(url, data, config);
+
+    // Check if response has standardized envelope structure
+    if (response.data &&
+      typeof response.data === 'object' &&
+      'success' in response.data &&
+      'data' in response.data) {
+      return response.data as T;
+    }
+
+    // Return raw data for non-enveloped responses
+    return response.data as T;
+  } catch (e) {
+    return e.response
+  }
+
+};
+
 export default {
   get,
   post,
   put,
+  patch,
   remove
 };

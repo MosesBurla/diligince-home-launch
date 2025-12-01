@@ -1,29 +1,9 @@
-
-import React, { useRef, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRequirement } from "@/contexts/RequirementContext";
 import { useRequirementDraft } from "@/hooks/useRequirementDraft";
-import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { 
-  File, 
-  X, 
-  Upload, 
-  FileText, 
-  Image as ImageIcon, 
-  FileArchive,
-  Loader2
-} from "lucide-react";
 import { toast } from "sonner";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { RequirementDocumentUploadField } from "@/components/requirement/RequirementDocumentUploadField";
 
 interface DocumentsStepProps {
   onNext: () => void;
@@ -33,254 +13,141 @@ interface DocumentsStepProps {
 const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => {
   const { formData, updateFormData, draftId } = useRequirement();
   const { uploadDocs, deleteDoc } = useRequirementDraft();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragActive, setDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [newDocumentType, setNewDocumentType] = useState<"specification" | "drawing" | "reference" | "compliance" | "other">("specification");
 
-  const handleNext = () => {
-    onNext();
+  // Helper to get document by type
+  const getDocumentByType = (type: string) => {
+    return formData.documents?.find(doc => doc.type === type);
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  const handleFiles = async (files: FileList) => {
+  // Upload handler
+  const handleUpload = async (file: File, documentType: string) => {
     if (!draftId) {
-      toast.error("No draft available. Please start from Step 1.");
-      return;
+      toast.error("Unable to upload. Please save your requirement first.");
+      throw new Error("No draft ID");
     }
 
     try {
       setIsUploading(true);
-      setUploadProgress(20);
+      const uploadedDocs = await uploadDocs([file], [documentType]);
       
-      const fileArray = Array.from(files);
-      const types = fileArray.map(() => newDocumentType);
-
-      setUploadProgress(50);
-      
-      // Upload to backend
-      const uploadedDocs = await uploadDocs(fileArray, types);
-      
-      setUploadProgress(100);
-      
-      // Update form data with server response (convert uploadedAt string to Date)
       const docsWithDateObjects = uploadedDocs.map(doc => ({
         ...doc,
         uploadedAt: new Date(doc.uploadedAt)
       }));
       
+      // Replace existing document of this type or add new
+      const updatedDocs = formData.documents.filter(d => d.type !== documentType);
       updateFormData({
-        documents: [...formData.documents, ...docsWithDateObjects]
+        documents: [...updatedDocs, ...docsWithDateObjects]
       });
 
-      toast.success(`${uploadedDocs.length} document(s) uploaded`);
+      return docsWithDateObjects[0];
     } catch (error: any) {
       console.error("Upload failed:", error);
-      toast.error(error.message || "Failed to upload documents");
+      throw error;
     } finally {
       setIsUploading(false);
-      setUploadProgress(0);
     }
   };
 
+  // Delete handler
   const handleDeleteDocument = async (documentId: string) => {
     try {
       await deleteDoc(documentId);
       updateFormData({
-        documents: formData.documents.filter(doc => doc.id !== documentId)
+        documents: formData.documents.filter(d => d.id !== documentId)
       });
-      toast.success("Document deleted");
+      toast.success("Document deleted successfully");
     } catch (error: any) {
       console.error("Delete failed:", error);
       toast.error(error.message || "Failed to delete document");
     }
   };
 
-  const getFileIcon = (type: string) => {
-    if (type.startsWith("image/")) {
-      return <ImageIcon className="h-6 w-6 text-primary" />;
-    } else if (
-      type === "application/pdf" ||
-      type === "application/msword" ||
-      type.includes("wordprocessingml")
-    ) {
-      return <FileText className="h-6 w-6 text-red-500" />;
-    } else if (
-      type.includes("spreadsheet") ||
-      type.includes("excel")
-    ) {
-      return <FileText className="h-6 w-6 text-green-500" />;
-    } else if (
-      type.includes("zip") ||
-      type.includes("rar") ||
-      type.includes("tar") ||
-      type.includes("7z")
-    ) {
-      return <FileArchive className="h-6 w-6 text-yellow-500" />;
-    } else {
-      return <File className="h-6 w-6 text-gray-500" />;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    } else if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    } else {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    }
+  const handleContinue = () => {
+    onNext();
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">{steps[2].name}</h2>
-        <p className="text-gray-600">
-          {steps[2].description}
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-bold">Supporting Documents</h2>
+        <p className="text-muted-foreground mt-2">
+          Upload documents to support your requirement. All documents are optional.
         </p>
       </div>
 
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-          <div className="md:col-span-4">
-            <div
-              className={`flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
-                dragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-gray-300 hover:bg-gray-50"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mb-2 h-6 w-6 text-gray-500" />
-              <p className="mb-1 text-sm font-medium text-gray-900">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-gray-500">
-                PDF, DOC, XLS, JPG, PNG (max 10MB)
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                multiple
-                onChange={handleChange}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="documentType" className="text-sm">Document Type</Label>
-            <Select
-              value={newDocumentType}
-              onValueChange={(value: any) => setNewDocumentType(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Document type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="specification">Specification</SelectItem>
-                <SelectItem value="drawing">Drawing</SelectItem>
-                <SelectItem value="reference">Reference</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      {/* Document Upload Fields */}
+      <div className="space-y-4">
+        <RequirementDocumentUploadField
+          label="Technical Specifications"
+          documentType="specification"
+          helperText="Upload technical requirements, product specs, or detailed specifications"
+          currentDocument={getDocumentByType('specification')}
+          onUpload={handleUpload}
+          onDelete={handleDeleteDocument}
+          isUploading={isUploading}
+        />
 
-        {/* Upload Progress */}
-        {isUploading && (
-          <div className="mt-4">
-            <Progress value={uploadProgress} className="h-2" />
-            <p className="text-sm text-muted-foreground mt-2 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Uploading documents...
-            </p>
-          </div>
-        )}
+        <RequirementDocumentUploadField
+          label="Engineering Drawings"
+          documentType="drawing"
+          helperText="Upload CAD files, blueprints, or technical drawings"
+          currentDocument={getDocumentByType('drawing')}
+          onUpload={handleUpload}
+          onDelete={handleDeleteDocument}
+          isUploading={isUploading}
+        />
 
-        {formData.documents.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="font-medium text-gray-900">Uploaded Documents</h3>
-            <div className="divide-y rounded-md border">
-              {formData.documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center space-x-3">
-                    {getFileIcon(doc.type)}
-                    <div>
-                      <p className="font-medium text-gray-900">{doc.name}</p>
-                      <div className="flex items-center space-x-2 text-xs text-gray-500">
-                        <span>{formatFileSize(doc.size)}</span>
-                        <span>•</span>
-                        <span className="capitalize">{doc.documentType}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/5"
-                    >
-                      View
-                    </a>
-                    <button
-                      onClick={() => handleDeleteDocument(doc.id)}
-                      className="rounded-md p-1 text-gray-500 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <RequirementDocumentUploadField
+          label="Reference Documents"
+          documentType="reference"
+          helperText="Upload standards, guidelines, or reference materials"
+          currentDocument={getDocumentByType('reference')}
+          onUpload={handleUpload}
+          onDelete={handleDeleteDocument}
+          isUploading={isUploading}
+        />
+
+        <RequirementDocumentUploadField
+          label="Compliance Documents"
+          documentType="compliance"
+          helperText="Upload certifications, compliance requirements, or regulatory documents"
+          currentDocument={getDocumentByType('compliance')}
+          onUpload={handleUpload}
+          onDelete={handleDeleteDocument}
+          isUploading={isUploading}
+        />
+
+        <RequirementDocumentUploadField
+          label="Other Documents"
+          documentType="other"
+          helperText="Upload any additional supporting documents"
+          currentDocument={getDocumentByType('other')}
+          onUpload={handleUpload}
+          onDelete={handleDeleteDocument}
+          isUploading={isUploading}
+        />
       </div>
 
-      <div className="flex justify-between pt-6">
-        <Button 
-          variant="outline" 
+      {/* Navigation Buttons */}
+      <div className="flex justify-between pt-6 border-t">
+        <Button
+          type="button"
+          variant="outline"
           onClick={onPrevious}
           disabled={isUploading}
         >
           Previous
         </Button>
-        <Button onClick={handleNext} disabled={isUploading}>
-          Next
+        <Button
+          type="button"
+          onClick={onNext}
+          disabled={isUploading}
+        >
+          Continue
         </Button>
       </div>
     </div>

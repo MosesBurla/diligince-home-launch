@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { UserProvider } from "@/contexts/UserContext";
+import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { NotificationStoreProvider } from "@/contexts/NotificationStoreContext";
 import { EnhancedApprovalProvider } from "@/contexts/EnhancedApprovalContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -31,6 +32,7 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import SignUp from "@/pages/SignUp";
 import SignIn from "@/pages/SignIn";
+import MultiStepLogin from "@/pages/MultiStepLogin";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
@@ -39,6 +41,7 @@ import TestPage from "@/pages/TestPage";
 import BlogArticle from "@/pages/BlogArticle";
 import StakeholderOnboarding from "@/pages/StakeholderOnboarding";
 import PendingApproval from "@/pages/PendingApproval";
+import PendingApprovals from "@/pages/PendingApprovals";
 import WorkCompletionPayment from "@/pages/WorkCompletionPayment";
 import VerificationPending from "@/pages/VerificationPending";
 import VendorSettings from "@/pages/VendorSettings";
@@ -57,14 +60,22 @@ import IndustryProjectWorkflow from "@/pages/IndustryProjectWorkflow";
 import IndustryStakeholders from "@/pages/IndustryStakeholders";
 import IndustryDocuments from "@/pages/IndustryDocuments";
 import IndustryMessages from "@/pages/IndustryMessages";
-import IndustryApprovalMatrix from "@/pages/IndustryApprovalMatrix";
+import UserAccountSettings from "@/pages/settings/UserAccountSettings";
+
 import IndustryAnalytics from "@/pages/IndustryAnalytics";
-import IndustryTeam from "@/pages/IndustryTeam";
+import TeamMembersPage from "@/pages/settings/TeamMembersPage";
 import IndustryNotifications from "@/pages/IndustryNotifications";
 import CreateRequirement from "@/pages/CreateRequirement";
 import CreatePurchaseOrder from "@/pages/CreatePurchaseOrder";
 import CreateEditPurchaseOrder from "@/pages/CreateEditPurchaseOrder";
 import RoleManagement from "@/pages/RoleManagement";
+import RoleManagementPage from "@/pages/RoleManagementPage";
+import CreateRolePage from "@/pages/CreateRolePage";
+import EditRolePage from "@/pages/EditRolePage";
+import ViewRolePage from "@/pages/ViewRolePage";
+import { ApprovalMatrixListPage } from "@/pages/ApprovalMatrixListPage";
+import { ApprovalMatrixFormPage } from "@/pages/ApprovalMatrixFormPage";
+import { ApprovalMatrixViewPage } from "@/pages/ApprovalMatrixViewPage";
 
 // Requirements sub-pages
 import RequirementsDrafts from "@/pages/RequirementsDrafts";
@@ -150,14 +161,15 @@ function App() {
     <Router>
       <ErrorBoundary>
         <UserProvider>
-          <NotificationStoreProvider>
-            <NotificationProvider>
-              <EnhancedApprovalProvider>
-                <RequirementProvider>
-                  <ApprovalProvider>
-                    <StakeholderProvider>
-                      <VendorSpecializationProvider>
-                        <div className="App">
+          <PermissionsProvider>
+            <NotificationStoreProvider>
+              <NotificationProvider>
+                <EnhancedApprovalProvider>
+                  <RequirementProvider>
+                    <ApprovalProvider>
+                      <StakeholderProvider>
+                        <VendorSpecializationProvider>
+                          <div className="App">
                           <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Index />} />
@@ -176,6 +188,7 @@ function App() {
 
                             {/* Auth Routes */}
                             <Route path="/signup" element={<SignUp />} />
+                            <Route path="/login" element={<MultiStepLogin />} />
                             <Route path="/signin" element={<SignIn />} />
                             <Route
                               path="/forgot-password"
@@ -275,9 +288,10 @@ function App() {
                                 path="industry-messages"
                                 element={<IndustryMessages />}
                               />
+                              {/* Redirect from old approval matrix path to new redesigned pages */}
                               <Route
                                 path="industry-approval-matrix"
-                                element={<IndustryApprovalMatrix />}
+                                element={<Navigate to="/dashboard/approval-matrix" replace />}
                               />
                               <Route
                                 path="industry-analytics"
@@ -285,7 +299,7 @@ function App() {
                               />
                               <Route
                                 path="industry-team"
-                                element={<IndustryTeam />}
+                                element={<TeamMembersPage />}
                               />
                               <Route
                                 path="industry-notifications"
@@ -294,6 +308,10 @@ function App() {
                               <Route
                                 path="create-requirement"
                                 element={<CreateRequirement />}
+                              />
+                              <Route
+                                path="pending-approvals"
+                                element={<PendingApprovals />}
                               />
                               <Route
                                 path="create-purchase-order"
@@ -309,7 +327,37 @@ function App() {
                               />
                               <Route
                                 path="role-management"
-                                element={<RoleManagement />}
+                                element={<RoleManagementPage />}
+                              />
+                              <Route
+                                path="role-management/create"
+                                element={<CreateRolePage />}
+                              />
+                              <Route
+                                path="role-management/:roleId"
+                                element={<ViewRolePage />}
+                              />
+                              <Route
+                                path="role-management/:roleId/edit"
+                                element={<EditRolePage />}
+                              />
+
+                              {/* Approval Matrix Routes */}
+                              <Route
+                                path="approval-matrix"
+                                element={<ApprovalMatrixListPage />}
+                              />
+                              <Route
+                                path="approval-matrix/create"
+                                element={<ApprovalMatrixFormPage />}
+                              />
+                              <Route
+                                path="approval-matrix/:matrixId"
+                                element={<ApprovalMatrixViewPage />}
+                              />
+                              <Route
+                                path="approval-matrix/:matrixId/edit"
+                                element={<ApprovalMatrixFormPage />}
                               />
 
                               {/* Requirements Sub-routes */}
@@ -559,18 +607,28 @@ function App() {
                               />
                             </Route>
 
+                            {/* Settings Routes - with Layout wrapper */}
+                            <Route path="/settings/*" element={
+                              <ProtectedRoute>
+                                <Layout />
+                              </ProtectedRoute>
+                            }>
+                              <Route path="account-settings" element={<UserAccountSettings />} />
+                            </Route>
+
                             {/* 404 */}
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                           <Toaster richColors position="top-right"/>
-                        </div>
-                      </VendorSpecializationProvider>
-                    </StakeholderProvider>
-                  </ApprovalProvider>
-                </RequirementProvider>
-              </EnhancedApprovalProvider>
-            </NotificationProvider>
-          </NotificationStoreProvider>
+                          </div>
+                        </VendorSpecializationProvider>
+                      </StakeholderProvider>
+                    </ApprovalProvider>
+                  </RequirementProvider>
+                </EnhancedApprovalProvider>
+              </NotificationProvider>
+            </NotificationStoreProvider>
+          </PermissionsProvider>
         </UserProvider>
       </ErrorBoundary>
     </Router>

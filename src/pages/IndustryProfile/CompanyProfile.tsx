@@ -83,7 +83,7 @@ const addressSchema = z.object({
 // MODIFIED: Main company schema now uses an array of addresses
 const companySchema = z.object({
   companyName: z.string().min(1, { message: "Required" }),
-  industryFocus: z.string().min(1, { message: "Required" }),
+  industryType: z.string().min(1, { message: "Required" }),
   companyDescription: z
     .string()
     .min(50, { message: "Required" })
@@ -135,7 +135,7 @@ type FormValues = z.infer<typeof companySchema>;
 // MODIFIED: Default values now use the 'addresses' array structure
 const defaultValues: FormValues = {
   companyName: "",
-  industryFocus: "",
+  industryType: "",
   companyDescription: "",
   gstNumber: "",
   registrationNumber: "",
@@ -377,7 +377,7 @@ const CompanyInfoForm = () => {
 
               <FormField
                 control={form.control}
-                name="industryFocus"
+                name="industryType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-primary-500">Industry Type</FormLabel>

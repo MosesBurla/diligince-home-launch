@@ -2,7 +2,7 @@ import { CompanyProfile, VerificationStatus, VerificationDocument } from '@/type
 
 export const MOCK_INCOMPLETE_PROFILE: Partial<CompanyProfile> = {
   companyName: "TechPro Industries",
-  industryFocus: "manufacturing",
+  industryType: "manufacturing",
   verificationStatus: VerificationStatus.INCOMPLETE,
   isProfileComplete: false,
   profileCompletionPercentage: 30,
@@ -11,7 +11,7 @@ export const MOCK_INCOMPLETE_PROFILE: Partial<CompanyProfile> = {
 
 export const MOCK_COMPLETE_PROFILE: CompanyProfile = {
   companyName: "TechPro Industries",
-  industryFocus: "manufacturing",
+  industryType: "manufacturing",
   companyDescription: "Leading manufacturer of industrial automation equipment and solutions specialized in cutting-edge technology.",
   yearEstablished: "2010",
   panNumber: "AABCU9603R",

@@ -1,12 +1,14 @@
-
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useRequirement } from "@/contexts/RequirementContext";
+import { useRequirementDraft } from "@/hooks/useRequirementDraft";
 import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Package, User, Wrench, Truck, Edit, File } from "lucide-react";
 import { StepType } from "@/pages/CreateRequirement";
+import { toast } from "sonner";
 
 interface PreviewStepProps {
   onNext: () => void;
@@ -20,6 +22,23 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
   onEdit 
 }) => {
   const { formData } = useRequirement();
+  const { forceSave } = useRequirementDraft();
+  const navigate = useNavigate();
+
+  const handleSendForApproval = async () => {
+    try {
+      // Auto-save will handle saving in background
+      onNext(); // Navigate to approval workflow step
+      toast.success("Proceeding to approval configuration");
+    } catch (error) {
+      console.error("Failed to proceed:", error);
+      toast.error("Failed to proceed. Please try again.");
+    }
+  };
+
+  const handleClose = () => {
+    navigate("/industry");
+  };
 
   const getCategoryIcon = () => {
     switch (formData.category) {
@@ -300,9 +319,14 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
         >
           Previous
         </Button>
-        <Button onClick={onNext}>
-          Next
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleClose}>
+            Close
+          </Button>
+          <Button onClick={handleSendForApproval}>
+            Send for Approvals
+          </Button>
+        </div>
       </div>
     </div>
   );

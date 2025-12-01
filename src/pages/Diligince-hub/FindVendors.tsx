@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Building } from "lucide-react";
+import { Building, Search, Sparkles, TrendingUp, Award } from "lucide-react";
 import { VendorCard } from "@/components/Diligince-hub/VendorCard";
 import { SearchFilterBar } from "@/components/Diligince-hub/SearchFilterBar";
 import { EmptyState } from "@/components/Diligince-hub/EmptyState";
@@ -75,7 +75,6 @@ const FindVendors: React.FC = () => {
   const filterVendors = () => {
     let result = [...vendors];
 
-    // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(v =>
@@ -85,17 +84,14 @@ const FindVendors: React.FC = () => {
       );
     }
 
-    // Rating filter
     if (filters.rating) {
       result = result.filter(v => v.rating >= filters.rating!);
     }
 
-    // Category filter
     if (filters.category) {
       result = result.filter(v => v.vendorType === filters.category);
     }
 
-    // Location filter
     if (filters.location) {
       result = result.filter(v => v.city === filters.location);
     }
@@ -104,54 +100,81 @@ const FindVendors: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Building className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold">Find Vendors</h1>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-[#fff] from-primary/5 via-primary/10 to-accent/5 border-b">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-start gap-4 mb-2">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+              <Building className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  Find Trusted Vendors
+                </h1>
+                <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+              </div>
+              <p className="text-lg text-muted-foreground max-w-2xl">
+                Discover and connect with verified vendors for all your procurement needs
+              </p>
+            </div>
+          </div>
+          
         </div>
-        <p className="text-muted-foreground">
-          Discover and connect with verified vendors for your procurement needs
-        </p>
       </div>
 
-      {/* Search and Filters */}
-      <SearchFilterBar
-        type="vendors"
-        onSearch={setSearchTerm}
-        onFilterChange={setFilters}
-        filters={filters}
-      />
-
-      {/* Results Count */}
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredVendors.length} {filteredVendors.length === 1 ? 'vendor' : 'vendors'}
-        </p>
-      </div>
-
-      {/* Vendor Grid */}
-      {filteredVendors.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredVendors.map((vendor) => (
-            <VendorCard key={vendor.id} vendor={vendor} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title="No vendors found"
-          description="Try adjusting your search criteria or filters to find more vendors"
-          icon={<Building className="w-12 h-12 text-muted-foreground" />}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Search and Filters */}
+        <SearchFilterBar
+          type="vendors"
+          onSearch={setSearchTerm}
+          onFilterChange={setFilters}
+          filters={filters}
         />
-      )}
 
-      {/* Loading indicator for infinite scroll */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        {/* Results Count */}
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredVendors.length}</span> {filteredVendors.length === 1 ? 'vendor' : 'vendors'} available
+          </p>
         </div>
-      )}
+
+        {/* Vendor Grid */}
+        {filteredVendors.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredVendors.map((vendor, index) => (
+              <div 
+                key={vendor.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <VendorCard vendor={vendor} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No vendors found"
+            description="Try adjusting your search criteria or filters to find more vendors"
+            icon={<Building className="w-12 h-12 text-muted-foreground" />}
+          />
+        )}
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Search className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

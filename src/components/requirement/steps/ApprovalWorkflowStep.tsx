@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRequirement } from "@/contexts/RequirementContext";
+import { CommentsSection } from "@/components/requirement/CommentsSection";
 import { useApproval } from "@/contexts/ApprovalContext";
 import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { Users, Clock, AlertTriangle, Shield, CheckCircle, XCircle, User } from "lucide-react";
+import { Users, Clock, AlertTriangle, Shield, CheckCircle, XCircle, User, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
 interface ApprovalWorkflowStepProps {
@@ -351,6 +352,29 @@ const ApprovalWorkflowStep: React.FC<ApprovalWorkflowStepProps> = ({ onNext, onP
               )}
             </CardContent>
           </Card>
+
+          {/* Approver Comments Section */}
+          {workflowCreated && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Approver Comments & Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Add comments, questions, or feedback for approvers to review with this requirement.
+                </p>
+                <CommentsSection
+                  requirementId={formData.approvalWorkflowId || 'pending'}
+                  commentType="approval_request"
+                  title=""
+                  placeholder="Add comments for approvers..."
+                />
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 

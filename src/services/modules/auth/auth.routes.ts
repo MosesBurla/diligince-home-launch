@@ -3,6 +3,7 @@ import { API_BASE_PATH } from '../../core/api.config';
 const BASE_PATH = `${API_BASE_PATH}/auth`;
 
 export const authRoutes = {
+  lookupAccounts: `${BASE_PATH}/lookup-accounts`,
   register: `${BASE_PATH}/register`,
   login: `${BASE_PATH}/login`,
   refreshToken: `${BASE_PATH}/refresh-token`,
@@ -10,6 +11,8 @@ export const authRoutes = {
   resetPassword: `${BASE_PATH}/reset-password`,
   verifyEmail: `${BASE_PATH}/verify-email`,
   resendVerification: `${BASE_PATH}/resend-verification`,
+  verify2FA: `${BASE_PATH}/2fa/verify`,
+  resend2FA: `${BASE_PATH}/2fa/resend`,
   mfaVerify: `${BASE_PATH}/mfa/verify`,
   getRoles: `${BASE_PATH}/roles`,
   googleLogin: `${BASE_PATH}/google`,

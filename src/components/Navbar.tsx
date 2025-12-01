@@ -42,7 +42,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center space-x-2">
             <img 
               src={location.pathname === '/signup' || location.pathname === '/signin' 
-                ? "/Diligince-no-bg-white.svg" 
+                ? "/diligence-no-bg-white.svg" 
                 : "/logo-main-no-bg.svg"
               } 
               alt="Diligince.ai" 

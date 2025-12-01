@@ -1,6 +1,6 @@
 
 import React, { useState, lazy, Suspense, useCallback, useEffect, memo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import IndustryHeader from "@/components/industry/IndustryHeader";
 import RequirementStepIndicator from "@/components/requirement/RequirementStepIndicator";
@@ -8,13 +8,17 @@ import { StepLoadingSkeleton } from "@/components/requirement/StepLoadingSkeleto
 import { MobileStepHeader } from "@/components/requirement/MobileStepHeader";
 import { MobileStepFooter } from "@/components/requirement/MobileStepFooter";
 import SuccessScreen from "@/components/requirement/SuccessScreen";
-import { RequirementProvider, useRequirement } from "@/contexts/RequirementContext";
-import { StakeholderProvider } from "@/contexts/StakeholderContext";
-import { ApprovalProvider } from "@/contexts/ApprovalContext";
+import { useRequirement } from "@/contexts/RequirementContext";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import { Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Save, MessageSquare, X } from "lucide-react";
 import { toast } from "sonner";
+import { useRequirementDraft } from "@/hooks/useRequirementDraft";
+import { AutoSaveIndicator } from "@/components/requirement/AutoSaveIndicator";
+import { ExitDraftDialog } from "@/components/requirement/ExitDraftDialog";
+import { CommentsSection } from "@/components/requirement/CommentsSection";
 
 // Lazy load step components for better performance
 const EnhancedBasicInfoStep = lazy(() => import("@/components/requirement/steps/EnhancedBasicInfoStep"));
@@ -79,60 +83,78 @@ StepRenderer.displayName = "StepRenderer";
 
 const CreateRequirement = () => {
   const [currentStep, setCurrentStep] = useState<StepType>(1);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const navigate = useNavigate();
-  const { isSaving, lastSaved, draftId } = useRequirement();
+  const [searchParams] = useSearchParams();
+  const { isSaving, lastSaved, draftId, updateFormData, loadDraftData } = useRequirement();
+  const { deleteDraft, loadDraft } = useRequirementDraft();
+  
+  // Determine if we're in edit mode based on URL
+  const urlDraftId = searchParams.get('draftId');
+  const isEditMode = !!urlDraftId;
 
-  // Initialize or resume draft on mount
+  // Navigation protection
   useEffect(() => {
-    const initializeOrResumeDraft = async () => {
-      try {
-        setIsInitializing(true);
-        const savedDraftId = localStorage.getItem('requirement-draft-id');
-        const savedStep = localStorage.getItem('requirement-current-step');
-        
-        if (savedDraftId) {
-          const shouldResume = window.confirm(
-            "You have an unsaved draft. Would you like to resume where you left off?"
-          );
-          
-          if (shouldResume) {
-            if (savedStep) {
-              const step = parseInt(savedStep, 10);
-              if (step >= 1 && step <= 7) {
-                setCurrentStep(step as StepType);
-              }
-            }
-            toast.success("Draft resumed successfully");
-          } else {
-            localStorage.removeItem('requirement-draft-id');
-            localStorage.removeItem('requirement-draft');
-            localStorage.removeItem('requirement-current-step');
-          }
-        }
-      } catch (error) {
-        console.error("Draft initialization failed:", error);
-        toast.error("Failed to initialize draft");
-      } finally {
-        setIsInitializing(false);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (draftId) {
+        e.preventDefault();
+        e.returnValue = '';
       }
     };
 
-    initializeOrResumeDraft();
-  }, []);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [draftId]);
 
-  // Save current step to localStorage
+  // Load draft from URL parameter on mount
+  useEffect(() => {
+    const urlDraftId = searchParams.get('draftId');
+    
+    if (!urlDraftId) return;
+
+    const loadDraftFromUrl = async () => {
+      setIsLoadingDraft(true);
+      
+      try {
+        console.log("🔵 CreateRequirement: Loading draft from URL:", urlDraftId);
+        
+        const draftData = await loadDraft(urlDraftId);
+        
+        console.log("🟢 CreateRequirement: Draft data loaded:", draftData);
+        
+        if (draftData && Object.keys(draftData).length > 0) {
+          loadDraftData(draftData as any);
+          localStorage.setItem('requirement-draft-id', urlDraftId);
+          localStorage.setItem('requirement-draft', JSON.stringify(draftData));
+          setCurrentStep(1);
+        } else {
+          toast.error("Draft data is empty");
+        }
+      } catch (error) {
+        console.error("🔴 CreateRequirement: Failed to load draft from URL:", error);
+        toast.error("Failed to load draft. Redirecting...");
+        setTimeout(() => navigate('/dashboard/requirements/drafts'), 2000);
+      } finally {
+        setIsLoadingDraft(false);
+      }
+    };
+    
+    loadDraftFromUrl();
+  }, [searchParams, loadDraft, loadDraftData, navigate]);
+
+  // Save current step to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('requirement-current-step', currentStep.toString());
   }, [currentStep]);
 
-  const handleNext = useCallback(() => {
-    if (currentStep < 7) {
-      const nextStep = (currentStep + 1) as StepType;
-      setCurrentStep(nextStep);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleNext = () => {
+    if (currentStep < 6) {
+      setCurrentStep((prev) => (prev + 1) as StepType);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [currentStep]);
+  };
 
   const handlePrevious = useCallback(() => {
     if (currentStep > 1) {
@@ -144,8 +166,26 @@ const CreateRequirement = () => {
 
   const handleGoToStep = useCallback((step: StepType) => {
     setCurrentStep(step);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  const handleDeleteDraft = async () => {
+    try {
+      if (draftId) {
+        await deleteDraft();
+        toast.success("Draft deleted successfully");
+      }
+      navigate("/industry");
+    } catch (error) {
+      console.error("Failed to delete draft:", error);
+      toast.error("Failed to delete draft");
+    }
+  };
+
+  const handleCloseExitDialog = () => {
+    setShowExitDialog(false);
+    navigate("/industry");
+  };
 
   // Swipe gestures for mobile
   const swipeHandlers = useSwipeable({
@@ -203,49 +243,43 @@ const CreateRequirement = () => {
 
   const currentStepConfig = steps.find(s => s.id === currentStep);
 
-  // Show loading while initializing
-  if (isInitializing) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Initializing requirement form...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Success screen (Step 7)
   if (currentStep === 7) {
     return (
       <ErrorBoundary>
-        <ApprovalProvider>
-          <StakeholderProvider>
-            <RequirementProvider>
-              <div className="flex min-h-screen flex-col bg-background">
-                <SuccessScreen 
-                  onCreateAnother={() => {
-                    setCurrentStep(1);
-                    localStorage.removeItem('requirement-current-step');
-                  }}
-                  onViewRequirement={() => navigate("/industry-requirements")} 
-                  onReturnToDashboard={handleReturnToDashboard} 
-                />
-                <Toaster richColors position="top-right"/>
-              </div>
-            </RequirementProvider>
-          </StakeholderProvider>
-        </ApprovalProvider>
+        <div className="flex min-h-screen flex-col bg-background">
+          <SuccessScreen 
+            onCreateAnother={() => {
+              setCurrentStep(1);
+              localStorage.removeItem('requirement-current-step');
+            }}
+            onViewRequirement={() => navigate("/industry-requirements")} 
+            onReturnToDashboard={() => navigate("/industry")} 
+          />
+          <Toaster richColors position="top-right"/>
+        </div>
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary>
-      <ApprovalProvider>
-        <StakeholderProvider>
-          <RequirementProvider>
-            <div className="flex min-h-screen flex-col bg-corporate-gray-50">
+      {isLoadingDraft ? (
+              <div className="flex min-h-screen items-center justify-center bg-corporate-gray-50">
+                <div className="max-w-3xl mx-auto space-y-6 w-full px-4">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+                    <div className="space-y-4 bg-white p-8 rounded-xl border">
+                      <div className="h-12 bg-gray-200 rounded"></div>
+                      <div className="h-12 bg-gray-200 rounded"></div>
+                      <div className="h-32 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-screen flex-col bg-corporate-gray-50">
               {/* Mobile Step Header */}
               <MobileStepHeader
                 currentStep={currentStep}
@@ -256,48 +290,69 @@ const CreateRequirement = () => {
               />
 
               {/* Main Content */}
-              <div className="flex-1 container mx-auto px-4 py-6 md:py-8 md:px-6 md:pt-20">
+              <div className="flex-1 container mx-auto px-4 py-6 md:py-8 md:px-6 md:pt-10">
                 {/* Desktop Header */}
                 <div className="hidden md:block mb-8">
                   <div className="flex items-center justify-between">
-                    <div>
+                  <div>
                       <h1 className="text-3xl font-bold text-corporate-gray-900 md:text-4xl">
-                        Create Procurement Requirement
+                        {isEditMode ? 'Edit Procurement Requirement' : 'Create Procurement Requirement'}
                       </h1>
                       <p className="mt-2 text-lg text-corporate-gray-600">
-                        Enterprise-grade requirement management system
+                        {isEditMode ? 'Update your requirement details' : 'Enterprise-grade requirement management system'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-right">
-                      <Save className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Auto-saving</p>
-                        <p className="text-xs text-muted-foreground/70">
-                          Last saved: {formatLastSaved()}
-                        </p>
+                    <div className="flex items-center gap-3">
+                      {draftId && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowComments(true)}
+                          className="hidden md:flex items-center gap-2"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Show Comments
+                        </Button>
+                      )}
+                      <div className="flex items-center gap-2 text-right">
+                        <Save className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Auto-saving</p>
+                          <p className="text-xs text-muted-foreground/70">
+                            Last saved: {formatLastSaved()}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Step Indicator */}
-                <RequirementStepIndicator 
-                  currentStep={currentStep} 
-                  onStepClick={handleGoToStep} 
-                />
 
-                {/* Step Content with Swipe Support */}
-                <div 
-                  {...swipeHandlers}
-                  className="mt-6 md:mt-8 rounded-xl bg-white shadow-sm border border-corporate-gray-200 touch-pan-y"
-                >
-                  <div className="p-4 md:p-8">
-                    <StepRenderer
-                      currentStep={currentStep}
-                      handleNext={handleNext}
-                      handlePrevious={handlePrevious}
-                      handleGoToStep={handleGoToStep}
-                    />
+                {/* Main Content Area */}
+                <div className="flex gap-6 relative">
+                  {/* Main Form Area */}
+                  <div className="w-full">
+                    {/* Step Indicator */}
+                    <div className="hidden md:block">
+                      <RequirementStepIndicator 
+                        currentStep={currentStep} 
+                        onStepClick={handleGoToStep} 
+                      />
+                    </div>
+
+                    {/* Step Content with Swipe Support */}
+                    <div 
+                      {...swipeHandlers}
+                      className="mt-6 md:mt-8 rounded-xl bg-white shadow-sm border border-corporate-gray-200 touch-pan-y"
+                    >
+                      <div className="p-4 md:p-8">
+                        <StepRenderer
+                          currentStep={currentStep}
+                          handleNext={handleNext}
+                          handlePrevious={handlePrevious}
+                          handleGoToStep={handleGoToStep}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -318,11 +373,40 @@ const CreateRequirement = () => {
                 isLastStep={currentStep === 6}
               />
 
+              {/* Floating Comments Button (Mobile) */}
+              {draftId && (
+                <button
+                  onClick={() => setShowComments(true)}
+                  className="md:hidden fixed bottom-24 right-6 z-50 p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all hover:scale-110"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </button>
+              )}
+
+              {/* Comments Dialog (Desktop & Mobile) */}
+              <Dialog open={showComments} onOpenChange={setShowComments}>
+                <DialogContent className="sm:max-w-[700px] max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5" />
+                      Comments & Feedback
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="overflow-y-auto max-h-[60vh]">
+                    {draftId && (
+                      <CommentsSection
+                        requirementId={draftId}
+                        title=""
+                        placeholder="Add notes, questions, or feedback about this requirement..."
+                      />
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               <Toaster richColors position="top-right"/>
             </div>
-          </RequirementProvider>
-        </StakeholderProvider>
-      </ApprovalProvider>
+            )}
     </ErrorBoundary>
   );
 };

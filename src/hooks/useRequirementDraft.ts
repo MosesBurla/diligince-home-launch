@@ -106,9 +106,10 @@ export const useRequirementDraft = () => {
 
   /**
    * Force save draft immediately (no debounce)
+   * @param showToast - Whether to show success toast (default: false for silent auto-save)
    */
   const forceSave = useCallback(
-    async (data: Partial<RequirementFormData>) => {
+    async (data: Partial<RequirementFormData>, showToast: boolean = false) => {
       if (!draftId) {
         throw new Error("No draft ID available");
       }
@@ -121,11 +122,15 @@ export const useRequirementDraft = () => {
         setLastSaved(new Date());
         localStorage.setItem("requirement-draft", JSON.stringify(data));
 
-        toast.success("Draft saved successfully");
+        if (showToast) {
+          toast.success("Draft saved successfully");
+        }
       } catch (err: any) {
         const errorMsg = err?.message || "Failed to save draft";
         setError(errorMsg);
-        toast.error(errorMsg);
+        if (showToast) {
+          toast.error(errorMsg);
+        }
         throw err;
       } finally {
         setIsSaving(false);
@@ -139,15 +144,25 @@ export const useRequirementDraft = () => {
    */
   const loadDraft = useCallback(async (draftIdToLoad: string) => {
     try {
+      console.log("🔵 loadDraft: Fetching draft", draftIdToLoad);
       setIsSaving(true);
       setError(null);
 
       const response = await requirementDraftService.getDraft(draftIdToLoad);
+      const loadedFormData = response.data.formData;
+      
+      console.log("🟢 loadDraft: Received data", loadedFormData);
+      console.log("🟢 loadDraft: Data keys", Object.keys(loadedFormData || {}));
+      
       setDraftId(draftIdToLoad);
       localStorage.setItem("requirement-draft-id", draftIdToLoad);
+      
+      // Sync the actual draft data to localStorage
+      localStorage.setItem("requirement-draft", JSON.stringify(loadedFormData || {}));
 
-      return response.data.formData;
+      return loadedFormData;
     } catch (err: any) {
+      console.error("🔴 loadDraft: Error", err);
       const errorMsg = err?.message || "Failed to load draft";
       setError(errorMsg);
       toast.error(errorMsg);

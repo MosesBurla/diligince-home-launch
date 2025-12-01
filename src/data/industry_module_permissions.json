@@ -1,0 +1,514 @@
+{
+  "version": "1.0.0",
+  "roleName": "IndustryAdmin",
+  "modules": [
+    {
+      "id": "industry-dashboard",
+      "name": "Dashboard",
+      "path": "/dashboard/industry",
+      "icon": "LayoutDashboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      }
+    },
+    {
+      "id": "industry-requirements",
+      "name": "Requirements",
+      "path": "/dashboard/industry-requirements",
+      "icon": "FileText",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "create-requirement",
+          "name": "Create New",
+          "path": "/dashboard/create-requirement",
+          "icon": "Edit",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "requirements-drafts",
+          "name": "Drafts",
+          "path": "/dashboard/requirements/drafts",
+          "icon": "GitPullRequestDraft",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "requirements-pending",
+          "name": "Pending Approval",
+          "path": "/dashboard/requirements/pending",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "requirements-approved",
+          "name": "Approved",
+          "path": "/dashboard/requirements/approved",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "requirements-published",
+          "name": "Published",
+          "path": "/dashboard/requirements/published",
+          "icon": "Globe",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "requirements-archived",
+          "name": "Archived",
+          "path": "/dashboard/requirements/archived",
+          "icon": "Archive",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": true,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-quotations",
+      "name": "Quotations",
+      "path": "/dashboard/industry-quotes",
+      "icon": "Quote",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "quotations-all",
+          "name": "All Quotations",
+          "path": "/dashboard/industry-quotes",
+          "icon": "Eye",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "quotations-pending",
+          "name": "Pending Review",
+          "path": "/dashboard/quotations/pending",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "quotations-approved",
+          "name": "Approved",
+          "path": "/dashboard/quotations/approved",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "quotations-comparison",
+          "name": "Comparison",
+          "path": "/dashboard/quotations/comparison",
+          "icon": "BarChart3",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-purchase-orders",
+      "name": "Purchase Orders",
+      "path": "/dashboard/industry-purchase-orders",
+      "icon": "Clipboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "create-purchase-order",
+          "name": "Create PO",
+          "path": "/dashboard/create-purchase-order",
+          "icon": "Plus",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "purchase-orders-all",
+          "name": "All Orders",
+          "path": "/dashboard/industry-purchase-orders",
+          "icon": "List",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "purchase-orders-pending",
+          "name": "Pending",
+          "path": "/dashboard/purchase-orders/pending",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "purchase-orders-in-progress",
+          "name": "In Progress",
+          "path": "/dashboard/purchase-orders/in-progress",
+          "icon": "Activity",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "purchase-orders-completed",
+          "name": "Completed",
+          "path": "/dashboard/purchase-orders/completed",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-workflows",
+      "name": "Project Workflows",
+      "path": "/dashboard/industry-workflows",
+      "icon": "Workflow",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "workflows-all",
+          "name": "All Projects",
+          "path": "/dashboard/industry-workflows",
+          "icon": "List",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "workflows-active",
+          "name": "Active Projects",
+          "path": "/dashboard/workflows/active",
+          "icon": "Activity",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "workflows-timeline",
+          "name": "Timeline View",
+          "path": "/dashboard/workflows/timeline",
+          "icon": "Calendar",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "workflows-reports",
+          "name": "Progress Reports",
+          "path": "/dashboard/workflows/reports",
+          "icon": "TrendingUp",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-stakeholders",
+      "name": "Stakeholders",
+      "path": "/dashboard/industry-stakeholders",
+      "icon": "Users",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "stakeholders-vendors",
+          "name": "Vendors",
+          "path": "/dashboard/stakeholders/vendors",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "stakeholders-professionals",
+          "name": "Professionals",
+          "path": "/dashboard/stakeholders/professionals",
+          "icon": "UserCheck",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-messages",
+      "name": "Messages",
+      "path": "/dashboard/industry-messages",
+      "icon": "MessageSquare",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": false
+      }
+    },
+    {
+      "id": "industry-analytics",
+      "name": "Analytics",
+      "path": "/dashboard/industry-analytics",
+      "icon": "BarChart3",
+      "permissions": {
+        "read": true,
+        "write": false,
+        "edit": false,
+        "delete": false,
+        "download": true
+      }
+    },
+    {
+      "id": "industry-diligince-hub",
+      "name": "Diligince HUB",
+      "path": "/dashboard/industry-Diligince-hub",
+      "icon": "Target",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "diligince-hub-vendors",
+          "name": "Find Vendors",
+          "path": "/dashboard/Diligince-hub/vendors",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "diligince-hub-professionals",
+          "name": "Find Professionals",
+          "path": "/dashboard/Diligince-hub/professionals",
+          "icon": "UserCheck",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "industry-settings",
+      "name": "Settings",
+      "path": "/dashboard/industry-settings",
+      "icon": "Settings",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      },
+      "submodules": [
+        {
+          "id": "settings-company-profile",
+          "name": "Company Profile",
+          "path": "/dashboard/industry-settings",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "settings-team-members",
+          "name": "Team Members",
+          "path": "/dashboard/industry-team",
+          "icon": "Users",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "settings-role-management",
+          "name": "Role Management",
+          "path": "/dashboard/role-management",
+          "icon": "Shield",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "settings-approval-matrix",
+          "name": "Approval Matrix",
+          "path": "/dashboard/industry-approval-matrix",
+          "icon": "Shield",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "settings-notifications",
+          "name": "Notifications",
+          "path": "/dashboard/industry-notifications",
+          "icon": "Bell",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        }
+      ]
+    }
+  ]
+}

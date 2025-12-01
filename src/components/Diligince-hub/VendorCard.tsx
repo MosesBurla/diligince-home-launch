@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Briefcase, Award, Star, Eye, Mail } from "lucide-react";
+import { MapPin, Briefcase, Award, Star, Eye, Mail, CheckCircle2, Clock, Package, Zap } from "lucide-react";
 import type { VendorListItem } from "@/types/vendor";
 import { useNavigate } from "react-router-dom";
 
@@ -46,95 +46,136 @@ export const VendorCard: React.FC<VendorCardProps> = ({ vendor }) => {
   };
 
   return (
-    <Card className="p-6 hover:shadow-md transition-all duration-200">
-      <div className="space-y-4">
+    <Card className="group relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-xl bg-gradient-to-br from-card to-card/80">
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      
+      <div className="relative p-6 space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
+        <div className="flex items-start gap-4">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary font-bold text-lg border-2 border-primary/20 shadow-sm">
               {vendor.avatar ? (
-                <img src={vendor.avatar} alt={vendor.name} className="w-12 h-12 rounded-full" />
+                <img src={vendor.avatar} alt={vendor.name} className="w-16 h-16 rounded-2xl object-cover" />
               ) : (
                 getInitials(vendor.companyName)
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{vendor.companyName}</h3>
-              <p className="text-sm text-muted-foreground truncate">{vendor.name}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {vendor.isVerified && (
-              <Badge variant="secondary" className="bg-green-50 text-green-700">
-                <Award className="w-3 h-3 mr-1" />
-                Verified
-              </Badge>
+            {/* Availability Indicator */}
+            {vendor.availability === 'available' && (
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-card animate-pulse"></div>
             )}
           </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg truncate group-hover:text-primary transition-colors">
+              {vendor.companyName}
+            </h3>
+            <p className="text-sm text-muted-foreground truncate">{vendor.name}</p>
+            
+            {/* Rating */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex">{renderStars(vendor.rating)}</div>
+              <span className="text-sm font-semibold">{vendor.rating.toFixed(1)}</span>
+              <span className="text-xs text-muted-foreground">({vendor.reviewCount})</span>
+            </div>
+          </div>
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-2">
-          <div className="flex">{renderStars(vendor.rating)}</div>
-          <span className="text-sm font-medium">{vendor.rating.toFixed(1)}</span>
-          <span className="text-sm text-muted-foreground">({vendor.reviewCount} reviews)</span>
+        {/* Key Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border">
+            <Briefcase className="w-4 h-4 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Experience</p>
+              <p className="text-sm font-semibold truncate">{vendor.yearsInBusiness} Years</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/50 border">
+            <Award className="w-4 h-4 text-primary flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">Projects</p>
+              <p className="text-sm font-semibold truncate">{vendor.completedProjects}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Details */}
+        {/* Location & Type */}
         <div className="space-y-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Briefcase className="w-4 h-4 mr-2" />
-            <span className="capitalize">{vendor.vendorType} Vendor</span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{vendor.city}, {vendor.state}</span>
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4 mr-2" />
-            <span>{vendor.city}, {vendor.state}</span>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Award className="w-4 h-4 mr-2" />
-            <span>{vendor.completedProjects} Completed Projects</span>
+          
+          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-primary" />
+              <span className="font-semibold text-sm capitalize">{vendor.vendorType} Vendor</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span>{vendor.responseTime}</span>
+            </div>
           </div>
         </div>
 
         {/* Specializations */}
         <div>
-          <p className="text-sm font-medium mb-2">Specializations:</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Specializations</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
             {vendor.specialization.slice(0, 3).map((spec, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
+              <Badge 
+                key={index} 
+                variant="secondary" 
+                className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+              >
                 {spec}
               </Badge>
             ))}
             {vendor.specialization.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{vendor.specialization.length - 3} more
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                +{vendor.specialization.length - 3}
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Availability */}
-        <div className="pt-2 border-t">
-          <Badge className={getAvailabilityColor(vendor.availability)}>
-            {vendor.availability.charAt(0).toUpperCase() + vendor.availability.slice(1)}
-          </Badge>
-          <span className="text-xs text-muted-foreground ml-2">
-            Response: {vendor.responseTime}
-          </span>
+        {/* Availability Status */}
+        <div className="flex items-center gap-2">
+          {vendor.availability === 'available' ? (
+            <>
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-xs font-medium text-green-600 dark:text-green-400">Available Now</span>
+            </>
+          ) : (
+            <>
+              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Currently Busy</span>
+            </>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-2">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3 pt-2">
           <Button
-            variant="default"
-            className="flex-1"
-            onClick={() => navigate(`/dashboard/Diligince-hub/vendors/${vendor.id}`)}
+            variant="outline"
+            size="sm"
+            onClick={() => navigate(`/vendors/${vendor.id}`)}
+            className="w-full group/btn hover:border-primary/50"
           >
-            <Eye className="w-4 h-4 mr-2" />
-            View Profile
+            <Eye className="w-4 h-4 mr-1.5 group-hover/btn:scale-110 transition-transform" />
+            View
           </Button>
-          <Button variant="outline" className="flex-1">
-            <Mail className="w-4 h-4 mr-2" />
+          <Button
+            size="sm"
+            onClick={() => navigate(`/vendors/${vendor.id}/contact`)}
+            className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-md hover:shadow-lg transition-all"
+          >
+            <Mail className="w-4 h-4 mr-1.5" />
             Contact
           </Button>
         </div>

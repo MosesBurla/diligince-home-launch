@@ -56,10 +56,30 @@ const IndustryProfile = () => {
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ContentType)} className="w-full">
           <TabsList className="w-full justify-start mb-6 bg-muted">
-            <TabsTrigger value="company-profile">Company Profile</TabsTrigger>
-            <TabsTrigger value="certifications">Certifications</TabsTrigger>
-            <TabsTrigger value="payment-settings">Payment Settings</TabsTrigger>
-            <TabsTrigger value="account-settings">Account Settings</TabsTrigger>
+            <TabsTrigger 
+              value="company-profile"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Company Profile
+            </TabsTrigger>
+            <TabsTrigger 
+              value="certifications"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Certifications
+            </TabsTrigger>
+            <TabsTrigger 
+              value="payment-settings"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Payment Settings
+            </TabsTrigger>
+            <TabsTrigger 
+              value="account-settings"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Account Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="company-profile">

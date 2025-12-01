@@ -19,33 +19,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/components/auth/hooks/useAuth";
+import { industries } from "@/constants/Types";
 
-// Define industry types array to be shared between signup and profile pages
-export const industries = [
-  "Sugar Manufacturing",
-  "Rice Mills",
-  "Coal Mining",
-  "Steel Manufacturing",
-  "Cement Production",
-  "Oil Refining",
-  "Natural Gas Processing",
-  "Textile Manufacturing",
-  "Paper Mills",
-  "Chemical Manufacturing",
-  "Pharmaceutical Production",
-  "Food Processing",
-  "Automotive Manufacturing",
-  "Electronics Manufacturing",
-  "Plastics Manufacturing",
-  "Glass Production",
-  "Plumber and Wood Products",
-  "Fertilizer Production",
-  "Power Generation",
-  "Water Treatment",
-  "Manufacturing",
-  "Others"
-];
-
+// Using centralized industry types from constants
 const formSchema = z.object({
   firstName: z.string().min(1, {
     message: "First name is required",

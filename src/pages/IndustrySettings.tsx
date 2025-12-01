@@ -19,6 +19,8 @@ import { calculateProfileCompletion, getMissingFields, canSubmitForVerification 
 import { companyProfileService } from '@/services';
 import { ProfileCompletionBanner } from '@/components/verification/ProfileCompletionBanner';
 import { DocumentUploadField } from '@/components/verification/DocumentUploadField';
+import { industries } from '@/constants/Types';
+import PaymentSettingsTab from '@/components/companyProfile/PaymentSettingsTab';
 
 const IndustrySettings = () => {
   const navigate = useNavigate();
@@ -29,15 +31,6 @@ const IndustrySettings = () => {
   // Company Profile State (Tab 1)
   const [profile, setProfile] = useState<Partial<CompanyProfile>>({});
   
-  // Notifications State (Tab 3)
-  const [notifications, setNotifications] = useState({
-    email: true,
-    sms: false,
-    push: true,
-    requirements: true,
-    approvals: true,
-    payments: false
-  });
   
   // Calculate profile completion
   const profileCompletion = useMemo(() => {
@@ -137,12 +130,14 @@ const IndustrySettings = () => {
     
     try {
       const response = await companyProfileService.saveProfile(profile);
-      setProfile(response.data);
+      // Handle both flat and nested response structures
+      const savedProfile = 'profile' in response.data ? response.data.profile : response.data;
+      setProfile(savedProfile);
       
       errorHandler.updateSuccess(loadingToast, 'Profile saved successfully');
       
       // Show info about missing documents if any
-      if (response.data.documents && response.data.documents.length < 3) {
+      if (savedProfile.documents && savedProfile.documents.length < 3) {
         setTimeout(() => {
           toast.info('Documents needed', {
             description: 'Please upload all required documents to complete your profile.',
@@ -179,7 +174,15 @@ const IndustrySettings = () => {
     
     try {
       const result = await companyProfileService.submitForVerification();
-      setProfile(result.data.profile);
+      
+      // Update profile locally with verification data from response
+      setProfile(prev => ({
+        ...prev,
+        verificationStatus: result.data.status === 'pending' 
+          ? VerificationStatus.PENDING 
+          : VerificationStatus.INCOMPLETE,
+        verificationSubmittedAt: result.data.submittedAt,
+      }));
       
       errorHandler.updateSuccess(
         loadingToast, 
@@ -195,7 +198,25 @@ const IndustrySettings = () => {
         });
       }, 500);
       
+      // Show next steps
+      if (result.data.nextSteps && result.data.nextSteps.length > 0) {
+        setTimeout(() => {
+          toast.info('Next Steps', {
+            description: result.data.nextSteps.join('\n'),
+            duration: 8000,
+          });
+        }, 1000);
+      }
+      
       await refreshVerificationStatus();
+      
+      // Refresh profile from server to get latest state
+      try {
+        const updatedProfile = await companyProfileService.getProfile();
+        setProfile(updatedProfile);
+      } catch (error) {
+        console.error('Failed to refresh profile:', error);
+      }
       
       setTimeout(() => {
         navigate('/verification-pending');
@@ -208,9 +229,6 @@ const IndustrySettings = () => {
     }
   };
   
-  const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications(prev => ({ ...prev, [key]: value }));
-  };
 
   // Document handlers
   const handleDocumentUpload = async (file: File, documentType: string) => {
@@ -226,7 +244,7 @@ const IndustrySettings = () => {
         file,
         documentType as VerificationDocument['documentType']
       );
-      const uploadedDoc = response.data;
+      const uploadedDoc = response.data.document;
       
       setProfile(prev => {
         const existingDocs = prev.documents || [];
@@ -288,10 +306,19 @@ const IndustrySettings = () => {
         </Card>
       ) : (
         <Tabs defaultValue="company" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="company">Company Profile</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-muted">
+            <TabsTrigger 
+              value="company"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Company Profile
+            </TabsTrigger>
+            <TabsTrigger 
+              value="payments"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Payment Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="company" className="space-y-6">
@@ -340,7 +367,7 @@ const IndustrySettings = () => {
               onClick={() => {
                 setProfile({
                   companyName: '',
-                  industryFocus: '',
+                  industryType: '',
                   companyDescription: '',
                   yearEstablished: '',
                   panNumber: '',
@@ -393,37 +420,34 @@ const IndustrySettings = () => {
                   )}
                 </div>
 
-                {/* Industry Focus */}
+                {/* Industry Type */}
                 <div className="space-y-2">
-                  <Label htmlFor="industryFocus" className="flex items-center gap-2">
-                    Industry Focus <span className="text-red-500">*</span>
-                    {getFieldStatus(profile.industryFocus) === 'filled' && (
+                  <Label htmlFor="industryType" className="flex items-center gap-2">
+                    Industry Type <span className="text-red-500">*</span>
+                    {getFieldStatus(profile.industryType) === 'filled' && (
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
                     )}
-                    {getFieldStatus(profile.industryFocus) === 'empty' && (
+                    {getFieldStatus(profile.industryType) === 'empty' && (
                       <XCircle className="w-4 h-4 text-red-600" />
                     )}
                   </Label>
                   <Select
-                    value={profile.industryFocus || ''}
-                    onValueChange={(value) => handleChange('industryFocus', value)}
+                    value={profile.industryType || ''}
+                    onValueChange={(value) => handleChange('industryType', value)}
                     disabled={isProfileLocked}
                   >
-                    <SelectTrigger className={getFieldClassName(getFieldStatus(profile.industryFocus))}>
+                    <SelectTrigger className={getFieldClassName(getFieldStatus(profile.industryType))}>
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                      <SelectItem value="steel">Steel Industry</SelectItem>
-                      <SelectItem value="automotive">Automotive</SelectItem>
-                      <SelectItem value="construction">Construction</SelectItem>
-                      <SelectItem value="energy">Energy</SelectItem>
-                      <SelectItem value="mining">Mining</SelectItem>
-                      <SelectItem value="chemical">Chemical</SelectItem>
-                      <SelectItem value="electronics">Electronics</SelectItem>
+                      {industries.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  {getFieldStatus(profile.industryFocus) === 'empty' && (
+                  {getFieldStatus(profile.industryType) === 'empty' && (
                     <p className="text-xs text-red-600 mt-1">This field is required</p>
                   )}
                 </div>
@@ -588,6 +612,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Upload company PAN card"
+                  isProfileLocked={isProfileLocked}
                 />
 
                 {/* GST Certificate */}
@@ -600,6 +625,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Upload GST certificate"
+                  isProfileLocked={isProfileLocked}
                 />
 
                 {/* Registration Certificate */}
@@ -612,6 +638,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Upload registration certificate"
+                  isProfileLocked={isProfileLocked}
                 />
               </div>
             </CardContent>
@@ -718,6 +745,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Upload your company logo (JPG, PNG, or SVG)"
+                  isProfileLocked={isProfileLocked}
                 />
 
                 {/* Address Proof */}
@@ -730,6 +758,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Utility bill, lease agreement, or property document"
+                  isProfileLocked={isProfileLocked}
                 />
 
                 {/* Authorization Letter */}
@@ -742,6 +771,7 @@ const IndustrySettings = () => {
                   onUpload={handleDocumentUpload}
                   onDelete={handleDocumentDelete}
                   helperText="Letter authorizing signatory (if applicable)"
+                  isProfileLocked={isProfileLocked}
                 />
               </div>
             </CardContent>
@@ -886,37 +916,46 @@ const IndustrySettings = () => {
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
-            {canSubmit ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              {/* Save Button - Always visible until profile is locked */}
+              <Button
+                onClick={handleSave}
+                disabled={isSubmitting || isProfileLocked}
+                variant="outline"
+                size="lg"
+              >
+                {isSubmitting ? 'Saving...' : 'Save Profile'}
+              </Button>
+
+              {/* Submit for Verification - Only enabled when profile is complete */}
               <Button
                 onClick={handleSubmitForVerification}
-                disabled={isSubmitting || isProfileLocked}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={isSubmitting || isProfileLocked || !canSubmit}
+                className={`${
+                  canSubmit && !isProfileLocked
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : ''
+                }`}
                 size="lg"
               >
                 <CheckCircle2 className="w-5 h-5 mr-2" />
                 {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
               </Button>
-            ) : (
-              <>
-                <Button
-                  onClick={handleSave}
-                  disabled={isSubmitting || isProfileLocked}
-                  size="lg"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Progress'}
-                </Button>
-                {(missingFields.length > 0 || profile.companyDescription && profile.companyDescription.length < 50) && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>
-                      {missingFields.length > 0 
-                        ? `Complete ${missingFields.length} more field(s) to verify`
-                        : 'Complete description (minimum 50 characters)'}
-                    </span>
-                  </div>
-                )}
-              </>
+            </div>
+
+            {/* Helpful message when Submit is disabled */}
+            {!canSubmit && !isProfileLocked && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <AlertCircle className="w-4 h-4" />
+                <span>
+                  {missingFields.length > 0 
+                    ? `Complete ${missingFields.length} more field(s) and upload all required documents`
+                    : profile.companyDescription && profile.companyDescription.length < 50
+                    ? 'Complete description (minimum 50 characters)'
+                    : 'Complete all requirements to submit for verification'}
+                </span>
+              </div>
             )}
           </div>
         </TabsContent>
@@ -954,115 +993,8 @@ const IndustrySettings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <h4 className="font-medium">Communication Methods</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <Switch
-                      id="email-notifications"
-                      checked={notifications.email}
-                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                    <Switch
-                      id="sms-notifications"
-                      checked={notifications.sms}
-                      onCheckedChange={(checked) => handleNotificationChange('sms', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-notifications">Push Notifications</Label>
-                    <Switch
-                      id="push-notifications"
-                      checked={notifications.push}
-                      onCheckedChange={(checked) => handleNotificationChange('push', checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-medium">Event Notifications</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="requirements-notifications">New Requirements</Label>
-                    <Switch
-                      id="requirements-notifications"
-                      checked={notifications.requirements}
-                      onCheckedChange={(checked) => handleNotificationChange('requirements', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="approvals-notifications">Approval Requests</Label>
-                    <Switch
-                      id="approvals-notifications"
-                      checked={notifications.approvals}
-                      onCheckedChange={(checked) => handleNotificationChange('approvals', checked)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="payments-notifications">Payment Updates</Label>
-                    <Switch
-                      id="payments-notifications"
-                      checked={notifications.payments}
-                      onCheckedChange={(checked) => handleNotificationChange('payments', checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="current-password">Current Password</Label>
-                  <Input id="current-password" type="password" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <Input id="new-password" type="password" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
-                  <Input id="confirm-password" type="password" />
-                </div>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Update Password
-                </Button>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-medium">Two-Factor Authentication</h4>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h5 className="font-medium">Enable 2FA</h5>
-                    <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                  </div>
-                  <Switch />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="payments" className="space-y-6">
+          <PaymentSettingsTab />
         </TabsContent>
 
         <TabsContent value="integrations" className="space-y-6">

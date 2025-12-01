@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { menuConfig } from '@/config/menuConfig';
@@ -6,6 +6,7 @@ import { getMenuConfigKey } from '@/utils/roleMapper';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, User, LogOut, Settings as SettingsIcon, Lock } from 'lucide-react';
 import { VerificationStatus } from '@/types/verification';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const Sidebar: React.FC = () => {
   const { user, logout, verificationStatus } = useUser();
@@ -13,13 +14,53 @@ const Sidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const { isLoading, permissionsMap, pathToModuleMap, hierarchicalConfig } = usePermissions();
   
   const canAccessFeature = verificationStatus === VerificationStatus.APPROVED;
 
   if (!user) return null;
 
   const menuKey = getMenuConfigKey(user) as keyof typeof menuConfig;
-  const menuItems = menuConfig[menuKey] || [];
+  const rawMenuItems = menuConfig[menuKey] || [];
+
+  // Filter menu items based on permissions - strict filtering
+  const menuItems = useMemo(() => {
+    // If no hierarchical config, don't show any menu items
+    if (!hierarchicalConfig) {
+      return [];
+    }
+
+    return rawMenuItems
+      .map(item => {
+        // Filter submenus based on read permission
+        const filteredSubmenu = item.submenu?.filter(subItem => {
+          const moduleId = pathToModuleMap.get(subItem.path);
+          if (!moduleId) {
+            // Hide if not in permission config
+            return false;
+          }
+          const perm = permissionsMap.get(moduleId);
+          // Only show if explicitly has read: true
+          return perm?.permissions.read === true;
+        });
+
+        return { ...item, submenu: filteredSubmenu };
+      })
+      .filter(item => {
+        // Check if parent item should be shown
+        const moduleId = pathToModuleMap.get(item.path);
+        if (!moduleId) {
+          // Hide if not in permission config
+          return false;
+        }
+        const perm = permissionsMap.get(moduleId);
+        const hasAccess = perm?.permissions.read === true;
+        
+        // Show if has access OR has accessible submenus
+        const hasAccessibleSubmenus = item.submenu && item.submenu.length > 0;
+        return hasAccess || hasAccessibleSubmenus;
+      });
+  }, [rawMenuItems, permissionsMap, pathToModuleMap, hierarchicalConfig]);
 
   const handleLogout = () => {
     logout();
@@ -88,7 +129,20 @@ const Sidebar: React.FC = () => {
         {/* Navigation Menu */}
         <div className="flex-1 overflow-y-auto p-2 relative">
           <nav className="space-y-2 flex-1 overflow-y-auto">
-            {menuItems.map((item) => {
+            {isLoading ? (
+              <div className="space-y-2 p-4">
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+              </div>
+            ) : !hierarchicalConfig || menuItems.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground">
+                <p className="text-sm">No menu access available</p>
+              </div>
+            ) : (
+              menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               const isExpanded = expandedMenus.includes(item.path);
@@ -180,7 +234,8 @@ const Sidebar: React.FC = () => {
                   )}
                 </div>
               );
-            })}
+            })
+            )}
           </nav>
         </div>
 

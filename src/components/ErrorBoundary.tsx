@@ -1,5 +1,5 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  location?: string;
 }
 
 interface State {
@@ -14,13 +15,20 @@ interface State {
   error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryInner extends Component<Props, State> {
   public state: State = {
     hasError: false
   };
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  public componentDidUpdate(prevProps: Props) {
+    if (this.props.location !== prevProps.location && this.state.hasError) {
+      console.log('Route changed, resetting error boundary');
+      this.setState({ hasError: false, error: undefined });
+    }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -81,5 +89,10 @@ class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+const ErrorBoundary: React.FC<Omit<Props, 'location'>> = (props) => {
+  const location = useLocation();
+  return <ErrorBoundaryInner {...props} location={location.pathname} />;
+};
 
 export default ErrorBoundary;

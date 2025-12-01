@@ -51,7 +51,7 @@ export interface Address {
 export interface CompanyProfile {
   // Basic Info
   companyName: string;
-  industryFocus: string;
+  industryType: string;
   companyDescription: string;
   yearEstablished: string;
   
@@ -85,7 +85,7 @@ export interface CompanyProfile {
 
 export const REQUIRED_FIELDS = [
   'companyName',
-  'industryFocus',
+  'industryType',
   'companyDescription',
   'yearEstablished',
   'panNumber',

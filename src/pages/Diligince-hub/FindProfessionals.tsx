@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCheck } from "lucide-react";
+import { UserCheck, Search, Sparkles, TrendingUp, Award } from "lucide-react";
 import { ProfessionalCard } from "@/components/Diligince-hub/ProfessionalCard";
 import { SearchFilterBar } from "@/components/Diligince-hub/SearchFilterBar";
 import { EmptyState } from "@/components/Diligince-hub/EmptyState";
@@ -113,54 +113,76 @@ const FindProfessionals: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <UserCheck className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold">Find Professionals</h1>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-[#fff] from-primary/5 via-primary/10 to-accent/5 border-b">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-start gap-4 mb-2">
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+              <UserCheck className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  Find Top Professionals
+                </h1>
+                <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+              </div>
+              <p className="text-lg text-muted-foreground max-w-2xl">
+                Connect with verified industry experts and specialists for your projects
+              </p>
+            </div>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Connect with expert professionals to support your business needs
-        </p>
       </div>
 
-      {/* Search and Filters */}
-      <SearchFilterBar
-        type="professionals"
-        onSearch={setSearchTerm}
-        onFilterChange={setFilters}
-        filters={filters}
-      />
-
-      {/* Results Count */}
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredProfessionals.length} {filteredProfessionals.length === 1 ? 'professional' : 'professionals'}
-        </p>
-      </div>
-
-      {/* Professional Grid */}
-      {filteredProfessionals.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProfessionals.map((professional) => (
-            <ProfessionalCard key={professional.id} professional={professional} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState
-          title="No professionals found"
-          description="Try adjusting your search criteria or filters to find more professionals"
-          icon={<UserCheck className="w-12 h-12 text-muted-foreground" />}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <SearchFilterBar
+          type="professionals"
+          onSearch={setSearchTerm}
+          onFilterChange={setFilters}
+          filters={filters}
         />
-      )}
 
-      {/* Loading indicator for infinite scroll */}
-      {isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredProfessionals.length}</span> {filteredProfessionals.length === 1 ? 'professional' : 'professionals'} available
+          </p>
         </div>
-      )}
+
+        {filteredProfessionals.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProfessionals.map((professional, index) => (
+              <div 
+                key={professional.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ProfessionalCard professional={professional} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No professionals found"
+            description="Try adjusting your search criteria or filters to find more professionals"
+            icon={<UserCheck className="w-12 h-12 text-muted-foreground" />}
+          />
+        )}
+
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Search className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -42,7 +42,7 @@ const Settings: React.FC = () => {
   const resetForm = () => {
     setProfile({
       companyName: '',
-      industryFocus: '',
+      industryType: '',
       companyDescription: '',
       yearEstablished: '',
       gstNumber: '',
@@ -225,20 +225,20 @@ const Settings: React.FC = () => {
             </div>
 
             <div>
-              <Label htmlFor="industryFocus" className="flex items-center gap-2">
-                Industry Focus <span className="text-red-500">*</span>
-                {getFieldStatus(profile.industryFocus) === 'filled' && (
+              <Label htmlFor="industryType" className="flex items-center gap-2">
+                Industry Type <span className="text-red-500">*</span>
+                {getFieldStatus(profile.industryType) === 'filled' && (
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 )}
-                {getFieldStatus(profile.industryFocus) === 'empty' && (
+                {getFieldStatus(profile.industryType) === 'empty' && (
                   <XCircle className="w-4 h-4 text-red-600" />
                 )}
               </Label>
               <Select 
-                value={profile.industryFocus || ''} 
-                onValueChange={(value) => handleChange('industryFocus', value)}
+                value={profile.industryType || ''} 
+                onValueChange={(value) => handleChange('industryType', value)}
               >
-                <SelectTrigger className={getFieldClassName(getFieldStatus(profile.industryFocus))}>
+                <SelectTrigger className={getFieldClassName(getFieldStatus(profile.industryType))}>
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -253,7 +253,7 @@ const Settings: React.FC = () => {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-              {getFieldStatus(profile.industryFocus) === 'empty' && (
+              {getFieldStatus(profile.industryType) === 'empty' && (
                 <p className="text-xs text-red-600 mt-1">This field is required</p>
               )}
             </div>

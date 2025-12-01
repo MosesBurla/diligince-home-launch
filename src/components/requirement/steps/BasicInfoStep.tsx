@@ -1,11 +1,12 @@
-
 import React from "react";
 import { useRequirement } from "@/contexts/RequirementContext";
+import { useRequirementDraft } from "@/hooks/useRequirementDraft";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, Package, Wrench, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface BasicInfoStepProps {
   onNext: () => void;
@@ -15,11 +16,11 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ onNext }) => {
   const { formData, updateFormData, validateStep, stepErrors } = useRequirement();
 
   const handleNext = () => {
-    if (validateStep(1)) {
-      onNext();
-    } else {
+    if (!validateStep(1)) {
       toast.error("Please fill in all required fields");
+      return;
     }
+    onNext();
   };
 
   const categoryOptions = [
@@ -61,22 +62,28 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ onNext }) => {
       <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="title" className="text-base">
-            Requirement Title <span className="text-red-500">*</span>
+            Requirement Title <span className="text-red-600 font-bold text-lg">*</span>
           </Label>
           <Input
             id="title"
             placeholder="Enter a clear title for your requirement"
             value={formData.title}
             onChange={(e) => updateFormData({ title: e.target.value })}
+            className={cn(
+              stepErrors.title && "border-red-500 focus-visible:ring-red-500"
+            )}
+            aria-required="true"
           />
           {stepErrors.title && (
-            <p className="text-sm text-red-500">{stepErrors.title}</p>
+            <p className="text-sm text-red-500 flex items-center gap-1">
+              <span className="font-medium">!</span> {stepErrors.title}
+            </p>
           )}
         </div>
 
         <div className="space-y-3">
           <Label className="text-base">
-            Category <span className="text-red-500">*</span>
+            Category <span className="text-red-600 font-bold text-lg">*</span>
           </Label>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {categoryOptions.map((category) => (

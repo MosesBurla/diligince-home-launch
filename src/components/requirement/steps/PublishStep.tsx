@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useRequirement } from "@/contexts/RequirementContext";
 import { useStakeholder } from "@/contexts/StakeholderContext";
 import { useApproval } from "@/contexts/ApprovalContext";
@@ -19,6 +20,8 @@ import { CalendarIcon, AlertTriangle, Clock, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { parseBackendError } from "@/utils/backend-error-parser";
+import { RequiredFieldsChecklist } from "@/components/requirement/RequiredFieldsChecklist";
 
 interface PublishStepProps {
   onNext: () => void;
@@ -28,6 +31,7 @@ interface PublishStepProps {
 const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
   console.log("PublishStep rendering...");
   
+  const navigate = useNavigate();
   const { formData, updateFormData, validateStep, stepErrors, draftId } = useRequirement();
   const { publish } = useRequirementDraft();
   const stakeholderContext = useStakeholder();
@@ -98,14 +102,85 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
     }
   };
 
+  // Validate all required fields before publishing
+  const validateAllRequiredFields = () => {
+    const errors: { step: number; field: string }[] = [];
+    
+    // Step 1: Basic Info
+    if (!formData.title?.trim()) {
+      errors.push({ step: 1, field: 'Title' });
+    }
+    if (!formData.category) {
+      errors.push({ step: 1, field: 'Category' });
+    }
+    
+    // Step 2: Category-specific fields
+    if (formData.category === 'product') {
+      if (!formData.productSpecifications?.trim()) {
+        errors.push({ step: 2, field: 'Product Specifications' });
+      }
+      if (!formData.quantity || formData.quantity <= 0) {
+        errors.push({ step: 2, field: 'Quantity' });
+      }
+    } else if (formData.category === 'expert') {
+      if (!formData.specialization?.trim()) {
+        errors.push({ step: 2, field: 'Specialization' });
+      }
+      if (!formData.description?.trim()) {
+        errors.push({ step: 2, field: 'Description' });
+      }
+    } else if (formData.category === 'service') {
+      if (!formData.serviceDescription?.trim()) {
+        errors.push({ step: 2, field: 'Service Description' });
+      }
+      if (!formData.scopeOfWork?.trim()) {
+        errors.push({ step: 2, field: 'Scope of Work' });
+      }
+    } else if (formData.category === 'logistics') {
+      if (!formData.equipmentType?.trim()) {
+        errors.push({ step: 2, field: 'Equipment Type' });
+      }
+      if (!formData.pickupLocation?.trim()) {
+        errors.push({ step: 2, field: 'Pickup Location' });
+      }
+      if (!formData.deliveryLocation?.trim()) {
+        errors.push({ step: 2, field: 'Delivery Location' });
+      }
+    }
+    
+    // Step 4: Budget
+    if (!formData.estimatedBudget || formData.estimatedBudget <= 0) {
+      errors.push({ step: 4, field: 'Estimated Budget' });
+    }
+    
+    // Step 5: Timeline/Deadline
+    if (!formData.deadline) {
+      errors.push({ step: 5, field: 'Deadline' });
+    }
+    
+    return errors;
+  };
+
   const handlePublish = async () => {
     try {
       console.log("Starting publish process...");
       setIsPublishing(true);
       
+      // First, validate all required fields across all steps
+      const fieldErrors = validateAllRequiredFields();
+      if (fieldErrors.length > 0) {
+        const errorMessage = `Missing required fields: ${fieldErrors.map(e => e.field).join(', ')}`;
+        const firstErrorStep = Math.min(...fieldErrors.map(e => e.step));
+        toast.error(errorMessage, {
+          description: `Please go back to Step ${firstErrorStep} and complete the required fields.`,
+          duration: 6000,
+        });
+        return;
+      }
+      
       if (!validateStep(6)) {
-        console.log("Validation failed:", stepErrors);
-        toast.error("Please fill in all required fields");
+        console.log("Step 6 validation failed:", stepErrors);
+        toast.error("Please fill in all required fields on this step");
         return;
       }
 
@@ -134,11 +209,15 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
         termsAccepted: formData.termsAccepted!,
       });
 
-      // Display success message based on status
+      // Display success message and navigate based on status
       if (response.status === "published") {
         toast.success(`Requirement published! ${response.vendorsNotified} vendors notified.`);
+        // Navigate to success screen
+        onNext();
       } else if (response.status === "pending_approval") {
         toast.success("Requirement submitted for approval");
+        // Navigate to pending approvals page
+        navigate("/pending-approvals");
       }
       
       // Safely notify relevant stakeholders about the new requirement
@@ -149,11 +228,24 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
         // Don't block the publish process for notification failures
       }
       
-      console.log("Publish successful, calling onNext...");
-      onNext();
+      console.log("Publish successful");
     } catch (error: any) {
       console.error("Error during publish:", error);
-      toast.error(error?.message || "Failed to publish requirement. Please try again.");
+      
+      // Parse backend error and show user-friendly message
+      const parsedError = parseBackendError(error);
+      
+      if (parsedError.type === 'validation' && parsedError.step) {
+        toast.error(parsedError.message, {
+          description: `Please go back to Step ${parsedError.step} and complete this field.`,
+          duration: 6000,
+        });
+      } else {
+        toast.error(parsedError.message, {
+          description: "Please check all fields and try again.",
+          duration: 5000,
+        });
+      }
     } finally {
       setIsPublishing(false);
     }
@@ -204,6 +296,9 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
           </div>
         )}
       </div>
+
+      {/* Required Fields Checklist */}
+      <RequiredFieldsChecklist />
 
       <div className="space-y-6">
         <div className="space-y-3">

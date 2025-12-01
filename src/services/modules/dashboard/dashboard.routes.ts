@@ -7,22 +7,22 @@ export const dashboardRoutes = {
   stats: `${BASE_PATH}/stats`,
   
   // Get procurement analytics
-  analytics: `${BASE_PATH}/analytics`,
+  analytics: `${API_BASE_PATH}/industry/analytics/procurement`,
   
   // Get budget overview
-  budget: `${BASE_PATH}/budget`,
+  budget: `${API_BASE_PATH}/industry/budget/overview`,
   
   // Get vendor performance rankings
-  vendorPerformance: `${BASE_PATH}/vendors/performance`,
+  vendorPerformance: `${API_BASE_PATH}/industry/vendors/top-performers`,
   
   // Get pending approvals for current user
   pendingApprovals: `${API_BASE_PATH}/industry/approvals/pending`,
   
   // Get active requirements
-  activeRequirements: `${API_BASE_PATH}/industry/requirements?status=active`,
+  activeRequirements: `${API_BASE_PATH}/industry/requirements/active`,
   
   // Get active purchase orders
-  activePurchaseOrders: `${API_BASE_PATH}/industry/purchase-orders?status=active,in_progress`,
+  activePurchaseOrders: `${API_BASE_PATH}/industry/purchase-orders/active`,
   
   // Legacy endpoint function
   getStats: (params?: { period?: string; startDate?: string; endDate?: string }) =>

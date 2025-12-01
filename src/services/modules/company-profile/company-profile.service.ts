@@ -5,7 +5,7 @@ import errorHandler from '@/utils/errorHandler.utils';
 
 export interface SaveProfileResponse {
   success: boolean;
-  data: CompanyProfile;
+  data: CompanyProfile | { profile: CompanyProfile };
   message?: string;
 }
 
@@ -13,15 +13,25 @@ export interface SubmitVerificationResponse {
   success: boolean;
   data: {
     verificationId: string;
+    status: 'pending' | 'approved' | 'rejected';
+    submittedAt: string;
     estimatedCompletionAt: string;
-    profile: CompanyProfile;
+    estimatedCompletionHours: number;
+    isLocked: boolean;
+    nextSteps: string[];
   };
   message?: string;
 }
 
 export interface UploadDocumentResponse {
   success: boolean;
-  data: VerificationDocument;
+  data: {
+    document: VerificationDocument;
+    replacedDocument?: {
+      id: string;
+      name: string;
+    };
+  };
   message?: string;
 }
 
@@ -40,10 +50,15 @@ class CompanyProfileService {
    */
   async getProfile(): Promise<CompanyProfile> {
     try {
-      const response = await apiService.get<{ success: boolean; data: CompanyProfile }>(
-        companyProfileRoutes.get
-      );
-      return response.data;
+      const response = await apiService.get<{ 
+        success: boolean; 
+        data: { 
+          profile: CompanyProfile;
+          missingFields: string[];
+          missingDocuments: string[];
+        }
+      }>(companyProfileRoutes.get);
+      return response.data.profile;
     } catch (error) {
       errorHandler.handleApiError(error, 'Failed to load profile');
       throw error;

@@ -1,69 +1,214 @@
-
 import { Link } from "react-router-dom";
-import { Linkedin, Twitter, Mail, Phone, MapPin } from "lucide-react";
+import { Globe, MessageSquare } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-12">
-      <div className="container mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-1">
-            <h3 className="text-xl font-bold mb-4">Diligince.ai</h3>
-            <p className="text-gray-400 text-sm">
-              Connecting industrial ecosystems with artificial intelligence.
+    <footer className="bg-[#FAFAFA] text-[#333333] py-20 relative overflow-hidden" id="contact">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(45deg, #153b60 25%, transparent 25%), linear-gradient(-45deg, #153b60 25%, transparent 25%)`,
+            backgroundSize: "60px 60px",
+            backgroundPosition: "0 0, 30px 30px",
+          }}
+        ></div>
+      </div>
+
+      {/* Geometric Accent Elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[#153b60]/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#1e4976]/5 rounded-full blur-3xl"></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Top Section - Brand & Newsletter */}
+        <div className="grid lg:grid-cols-2 gap-12 mb-16 pb-16 border-b-2 border-[#153b60]/10">
+          {/* Brand Section */}
+          <div>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#153b60] to-[#1e4976] rounded-xl flex items-center justify-center">
+                <img src="/diligence-no-bg-white.svg" alt="Diligince.ai" className="w-8 h-8" />
+              </div>
+              <span className="text-3xl font-bold text-[#153b60]">Diligince.ai</span>
+            </div>
+            <p className="text-[#828282] text-lg leading-relaxed mb-6 max-w-md">
+              Connecting industries, professionals, and vendors through intelligent AI-powered business solutions for accelerated growth and success.
             </p>
-            <div className="flex space-x-4 mt-4">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin size={20} />
+
+            {/* Social Links */}
+            <div className="flex space-x-3">
+              <a href="#" className="group w-11 h-11 bg-white rounded-xl flex items-center justify-center hover:-translate-y-1 transition-all duration-300"
+                style={{
+                  boxShadow: '4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff'
+                }}>
+                <Globe className="w-5 h-5 text-[#828282] group-hover:text-[#153b60] transition-colors" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter size={20} />
+              <a href="#" className="group w-11 h-11 bg-white rounded-xl flex items-center justify-center hover:-translate-y-1 transition-all duration-300"
+                style={{
+                  boxShadow: '4px 4px 8px #d1d1d1, -4px -4px 8px #ffffff'
+                }}>
+                <MessageSquare className="w-5 h-5 text-[#828282] group-hover:text-[#153b60] transition-colors" />
               </a>
             </div>
           </div>
-          
-          <div className="col-span-1">
-            <h4 className="text-lg font-semibold mb-4">Company</h4>
-            <ul className="space-y-2">
-              <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About</Link></li>
-              <li><Link to="/careers" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
-              <li><a href="mailto:careers@Diligince.ai" className="text-gray-400 hover:text-white transition-colors">Join us!</a></li>
+
+          {/* Newsletter Section */}
+          <div className="lg:pl-12">
+            <h4 className="text-2xl font-bold text-[#333333] mb-4">Stay Updated</h4>
+            <p className="text-[#828282] mb-6">
+              Get the latest insights on AI-powered procurement and industry trends.
+            </p>
+            <div className="flex gap-3">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-5 py-3 rounded-xl bg-white text-[#333333] placeholder:text-[#828282] focus:outline-none focus:ring-2 focus:ring-[#153b60]/30 transition-all"
+                style={{
+                  boxShadow: 'inset 3px 3px 6px #d1d1d1, inset -3px -3px 6px #ffffff'
+                }}
+              />
+              <button
+                className="px-8 py-3 bg-gradient-to-r from-[#153b60] to-[#1e4976] text-white rounded-xl font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap"
+              >
+                Subscribe
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Section - Links Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          {/* Company */}
+          <div>
+            <h4 className="text-lg font-bold text-[#333333] mb-4 relative inline-block">
+              Company
+              <span className="absolute -bottom-1 left-0 w-8 h-0.5 bg-[#153b60]"></span>
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <Link to="/about" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/careers" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Press Kit
+                </a>
+              </li>
+              <li>
+                <Link to="/blog" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
-          
-          <div className="col-span-1">
-            <h4 className="text-lg font-semibold mb-4">Resources</h4>
-            <ul className="space-y-2">
-              <li><Link to="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link></li>
-              <li><Link to="/pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
-              <li><span className="text-gray-400">Freemium + Pro tier</span></li>
+
+          {/* Solutions */}
+          <div>
+            <h4 className="text-lg font-bold text-[#333333] mb-4 relative inline-block">
+              Solutions
+              <span className="absolute -bottom-1 left-0 w-8 h-0.5 bg-[#153b60]"></span>
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  For Industries
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  For Professionals
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  For Vendors
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Enterprise
+                </a>
+              </li>
             </ul>
           </div>
-          
-          <div className="col-span-1">
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
-            <ul className="space-y-2">
-              <li className="flex items-start space-x-2">
-                <MapPin size={18} className="text-gray-400 mt-1 flex-shrink-0" />
-                <span className="text-gray-400">Visakhapatnam, Andhra Pradesh, India</span>
+
+          {/* Resources */}
+          <div>
+            <h4 className="text-lg font-bold text-[#333333] mb-4 relative inline-block">
+              Resources
+              <span className="absolute -bottom-1 left-0 w-8 h-0.5 bg-[#153b60]"></span>
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Help Center
+                </a>
               </li>
-              <li className="flex items-center space-x-2">
-                <Phone size={18} className="text-gray-400 flex-shrink-0" />
-                <a href="tel:+919848756956" className="text-gray-400 hover:text-white transition-colors">+91 9848756956</a>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Documentation
+                </a>
               </li>
-              <li className="flex items-center space-x-2">
-                <Mail size={18} className="text-gray-400 flex-shrink-0" />
-                <a href="mailto:support@Diligince.ai" className="text-gray-400 hover:text-white transition-colors">support@Diligince.ai</a>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  API Reference
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Community
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 className="text-lg font-bold text-[#333333] mb-4 relative inline-block">
+              Legal
+              <span className="absolute -bottom-1 left-0 w-8 h-0.5 bg-[#153b60]"></span>
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <Link to="/privacy" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Cookie Policy
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-[#828282] hover:text-[#153b60] transition-colors duration-200 text-sm">
+                  Security
+                </a>
               </li>
             </ul>
           </div>
         </div>
-        
-        <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} Diligince.ai. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</Link>
-            <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">Terms of Service</Link>
+
+        {/* Bottom Section - Copyright */}
+        <div className="pt-8 border-t-2 border-[#153b60]/10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-[#828282] text-sm">
+              © 2025 Diligince.ai. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <span className="text-[#828282] text-sm">Made with AI-Powered Intelligence</span>
+              <div className="w-2 h-2 rounded-full bg-[#153b60] animate-pulse"></div>
+            </div>
           </div>
         </div>
       </div>

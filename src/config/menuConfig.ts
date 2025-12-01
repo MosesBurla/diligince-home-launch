@@ -192,23 +192,23 @@ export const menuConfig: MenuConfig = {
         },
       ],
     },
-    {
-      icon: Users,
-      label: "Stakeholders",
-      path: "/dashboard/industry-stakeholders",
-      submenu: [
-        {
-          icon: Building,
-          label: "Vendors",
-          path: "/dashboard/stakeholders/vendors",
-        },
-        {
-          icon: UserCheck,
-          label: "Professionals",
-          path: "/dashboard/stakeholders/professionals",
-        },
-      ],
-    },
+    // {
+    //   icon: Users,
+    //   label: "Stakeholders",
+    //   path: "/dashboard/industry-stakeholders",
+    //   submenu: [
+    //     {
+    //       icon: Building,
+    //       label: "Vendors",
+    //       path: "/dashboard/stakeholders/vendors",
+    //     },
+    //     {
+    //       icon: UserCheck,
+    //       label: "Professionals",
+    //       path: "/dashboard/stakeholders/professionals",
+    //     },
+    //   ],
+    // },
     {
       icon: MessageSquare,
       label: "Messages",

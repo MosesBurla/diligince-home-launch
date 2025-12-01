@@ -24,5 +24,5 @@ class DiliginceHubProfessionalsService {
   }
 }
 
-export const DiliginceHubProfessionalsService = new DiliginceHubProfessionalsService();
-export default DiliginceHubProfessionalsService;
+export const diliginceHubProfessionalsService = new DiliginceHubProfessionalsService();
+export default diliginceHubProfessionalsService;

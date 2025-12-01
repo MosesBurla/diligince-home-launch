@@ -120,12 +120,12 @@ export const ProjectSelectionModal = ({
     });
 
     // Navigate to requirement creation with pre-filled data
-    navigate(`/create-requirement?project=${selectedProject.id}&stakeholder=${stakeholderId}`);
+    navigate(`/dashboard/create-requirement?project=${selectedProject.id}&stakeholder=${stakeholderId}`);
     onClose();
   };
 
   const handleCreateNewRequirement = () => {
-    navigate('/create-requirement');
+    navigate('/dashboard/create-requirement');
     onClose();
   };
 

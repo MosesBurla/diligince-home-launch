@@ -45,6 +45,10 @@ export {
   useNotificationContext,
 } from "@/contexts/NotificationContext";
 export { UserProvider, useUser } from "@/contexts/UserContext";
+export {
+  PermissionsProvider,
+  usePermissionsContext,
+} from "@/contexts/PermissionsContext";
 
 // Export types from shared (explicit to avoid conflicts)
 export type {

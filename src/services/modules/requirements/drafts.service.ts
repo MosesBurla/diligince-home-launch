@@ -69,7 +69,8 @@ class RequirementDraftService {
   ): Promise<DraftResponse> {
     return this.retryRequest(async () => {
       try {
-        const response = await apiService.put<DraftResponse, Partial<RequirementFormData>>(
+        // Use POST instead of PUT to match backend implementation
+        const response = await apiService.post<DraftResponse, Partial<RequirementFormData>>(
           draftsRoutes.update(draftId),
           data
         );
@@ -140,9 +141,15 @@ class RequirementDraftService {
     data: Partial<RequirementFormData>
   ): Promise<ValidationResponse> {
     try {
-      const response = await apiService.post<ValidationResponse, { step: number; data: Partial<RequirementFormData> }>(
-        draftsRoutes.validate(draftId),
-        { step, data }
+      // Flatten the payload: backend expects { currentStep, ...formData } not { step, data: {...} }
+      const payload = {
+        currentStep: step,
+        ...data
+      };
+      
+      const response = await apiService.post<ValidationResponse, any>(
+        draftsRoutes.update(draftId),
+        payload
       );
       console.log("Step validation result:", response);
       return response;

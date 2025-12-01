@@ -35,10 +35,18 @@ const RequirementsArchived = () => {
         filters,
       });
       
-      setData(response.data.requirements);
+      // Defensive check to ensure requirements is an array
+      const requirements = Array.isArray(response.data?.requirements) 
+        ? response.data.requirements 
+        : [];
+      
+      setData(requirements);
       setPagination(response.data.pagination);
     } catch (error: any) {
+      console.error("Failed to fetch archived requirements:", error);
       toast.error(error.message || "Failed to load archived requirements");
+      // Set empty array on error to prevent crash
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -54,7 +62,11 @@ const RequirementsArchived = () => {
       label: "Requirement ID",
       isSortable: true,
       isSearchable: true,
-      action: (row) => navigate(`/dashboard/requirements/${row.id}`),
+      render: (value, row) => (
+        <span className="font-mono text-blue-600 font-semibold">
+          {value || row.draftId || 'N/A'}
+        </span>
+      ),
       width: "150px",
     },
     {
@@ -177,6 +189,7 @@ const RequirementsArchived = () => {
       <CustomTable
         columns={columns}
         data={data}
+        onRowClick={(row) => navigate(`/dashboard/requirements/${row.id}`)}
         filterCallback={handleFilter}
         searchCallback={handleSearch}
         onExport={{

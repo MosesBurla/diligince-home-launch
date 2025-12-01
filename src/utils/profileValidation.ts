@@ -34,7 +34,7 @@ export const getMissingFields = (profile: Partial<CompanyProfile> | null): strin
   const missing: string[] = [];
   const labels: Record<string, string> = {
     companyName: 'Company Name',
-    industryFocus: 'Industry Focus',
+    industryType: 'Industry Type',
     companyDescription: 'Company Description',
     yearEstablished: 'Year Established',
     panNumber: 'PAN Number',

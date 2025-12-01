@@ -59,7 +59,7 @@ const IndustryRequirements = () => {
   };
 
   const handleCreateRequirement = () => {
-    navigate('/create-requirement');
+    navigate('/dashboard/create-requirement');
   };
 
   // Define columns for CustomTable

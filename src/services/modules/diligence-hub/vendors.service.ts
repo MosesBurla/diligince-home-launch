@@ -20,5 +20,5 @@ class DiliginceHubVendorsService {
   }
 }
 
-export const DiliginceHubVendorsService = new DiliginceHubVendorsService();
-export default DiliginceHubVendorsService;
+export const diliginceHubVendorsService = new DiliginceHubVendorsService();
+export default diliginceHubVendorsService;

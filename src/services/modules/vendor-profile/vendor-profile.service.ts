@@ -4,7 +4,7 @@ import { VendorProfile, VerificationDocument, VendorDocumentType } from '@/types
 
 export interface SaveVendorProfileResponse {
   success: boolean;
-  data: VendorProfile;
+  data: VendorProfile | { profile: VendorProfile };
   message?: string;
 }
 
@@ -12,8 +12,12 @@ export interface SubmitVendorVerificationResponse {
   success: boolean;
   data: {
     verificationId: string;
+    status: 'pending' | 'approved' | 'rejected';
+    submittedAt: string;
     estimatedCompletionAt: string;
-    profile: VendorProfile;
+    estimatedCompletionHours: number;
+    isLocked: boolean;
+    nextSteps: string[];
   };
   message?: string;
 }
