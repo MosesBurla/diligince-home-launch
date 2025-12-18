@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, ArrowLeft, Edit, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { DetailPageSkeleton } from '@/components/shared/loading';
 
 import { vendorQuotationsService } from '@/services';
 
@@ -23,11 +24,7 @@ const VendorQuotationDetails: React.FC = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <DetailPageSkeleton showTabs tabCount={5} sections={2} />;
   }
 
   const getStatusColor = (status: string) => {

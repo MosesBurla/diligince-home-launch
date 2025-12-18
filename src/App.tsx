@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { DiliginceChatbot } from "@/components/chatbot";
 import { UserProvider } from "@/contexts/UserContext";
 import { PermissionsProvider } from "@/contexts/PermissionsContext";
 import { NotificationStoreProvider } from "@/contexts/NotificationStoreContext";
@@ -45,6 +46,7 @@ import PendingApprovals from "@/pages/PendingApprovals";
 import WorkCompletionPayment from "@/pages/WorkCompletionPayment";
 import VerificationPending from "@/pages/VerificationPending";
 import VendorSettings from "@/pages/VendorSettings";
+import VendorPaymentSettings from "@/pages/VendorPaymentSettings";
 
 // Industry pages
 import IndustryDashboard from "@/pages/IndustryDashboard";
@@ -80,9 +82,11 @@ import { ApprovalMatrixViewPage } from "@/pages/ApprovalMatrixViewPage";
 // Requirements sub-pages
 import RequirementsDrafts from "@/pages/RequirementsDrafts";
 import RequirementsPending from "@/pages/RequirementsPending";
+import PendingRequirementView from "@/pages/PendingRequirementView";
 import RequirementsApproved from "@/pages/RequirementsApproved";
+import ApprovedRequirementView from "@/pages/ApprovedRequirementView";
 import RequirementsPublished from "@/pages/RequirementsPublished";
-import RequirementsArchived from "@/pages/RequirementsArchived";
+import PublishedRequirementView from "@/pages/PublishedRequirementView";
 import RequirementDetails from "@/pages/RequirementDetails";
 
 // Quotations sub-pages
@@ -210,13 +214,10 @@ function App() {
                                 </ProtectedRoute>
                               }
                             />
+                            {/* Legacy vendor-settings route - redirect to dashboard path */}
                             <Route
                               path="/vendor-settings"
-                              element={
-                                <ProtectedRoute>
-                                  <VendorSettings />
-                                </ProtectedRoute>
-                              }
+                              element={<Navigate to="/dashboard/vendor-settings" replace />}
                             />
 
                             {/* Profile & Onboarding */}
@@ -235,6 +236,12 @@ function App() {
                                 <Layout />
                               </ProtectedRoute>
                             }>
+                              {/* Vendor Settings (inside dashboard for sidebar visibility) */}
+                              <Route
+                                path="vendor-settings"
+                                element={<VendorSettings />}
+                              />
+                              
                               {/* Industry */}
                               <Route
                                 path="industry"
@@ -370,16 +377,24 @@ function App() {
                                 element={<RequirementsPending />}
                               />
                               <Route
+                                path="requirements/pending/:id"
+                                element={<PendingRequirementView />}
+                              />
+                              <Route
                                 path="requirements/approved"
                                 element={<RequirementsApproved />}
+                              />
+                              <Route
+                                path="requirements/approved/:id"
+                                element={<ApprovedRequirementView />}
                               />
                               <Route
                                 path="requirements/published"
                                 element={<RequirementsPublished />}
                               />
-                            <Route
-                                path="requirements/archived"
-                                element={<RequirementsArchived />}
+                              <Route
+                                path="requirements/published/:id"
+                                element={<PublishedRequirementView />}
                               />
                               {/* Requirement Details */}
                               <Route
@@ -489,6 +504,10 @@ function App() {
                                 element={<ServiceVendorProfile />}
                               />
                               <Route
+                                path="service-vendor-profile/payment"
+                                element={<VendorPaymentSettings />}
+                              />
+                              <Route
                                 path="service-vendor-services"
                                 element={<ServiceVendorServices />}
                               />
@@ -514,6 +533,10 @@ function App() {
                                 path="product-vendor-profile"
                                 element={<ProductVendorProfile />}
                               />
+                              <Route
+                                path="product-vendor-profile/payment"
+                                element={<VendorPaymentSettings />}
+                              />
 
                               {/* Logistics Vendor Routes */}
                               <Route
@@ -535,6 +558,10 @@ function App() {
                               <Route
                                 path="logistics-vendor-profile"
                                 element={<LogisticsVendorProfile />}
+                              />
+                              <Route
+                                path="logistics-vendor-profile/payment"
+                                element={<VendorPaymentSettings />}
                               />
 
                               {/* Professional Routes */}
@@ -620,6 +647,7 @@ function App() {
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                           <Toaster richColors position="top-right"/>
+                          <DiliginceChatbot />
                           </div>
                         </VendorSpecializationProvider>
                       </StakeholderProvider>

@@ -104,107 +104,97 @@ api.interceptors.response.use(
 
 // Generic GET method
 const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse = await api.get(url, config);
+  const response: AxiosResponse = await api.get(url, config);
 
-    // Check if response has standardized envelope structure
-    if (response.data &&
-      typeof response.data === 'object' &&
-      'success' in response.data &&
-      'data' in response.data) {
-      return response.data as T;
-    }
-
-    // Return raw data for non-enveloped responses
+  // Check if response has standardized envelope structure
+  if (response.data &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data) {
     return response.data as T;
-  } catch (e) {
-    return e.response
   }
 
+  // Return raw data for non-enveloped responses
+  return response.data as T;
 };
 
 // Generic POST method
 const post = async <T, D>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse = await api.post(url, data, config);
-
-    // Check if response has standardized envelope structure
-    if (response.data &&
-      typeof response.data === 'object' &&
-      'success' in response.data &&
-      'data' in response.data) {
-      return response.data as T;
-    }
-
-    // Return raw data for non-enveloped responses
-    return response.data as T;
-  } catch (e) {
-    return e.response
+  let response: AxiosResponse;
+  
+  // If data is FormData, use base axios directly without default JSON headers
+  if (data instanceof FormData) {
+    const token = localStorage.getItem('authToken');
+    response = await axios.post(`${BASE_URL}${url}`, data, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        // No Content-Type - let axios auto-detect multipart/form-data
+      },
+    });
+  } else {
+    response = await api.post(url, data, config);
   }
 
+  // Check if response has standardized envelope structure
+  if (response.data &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data) {
+    return response.data as T;
+  }
+
+  // Return raw data for non-enveloped responses
+  return response.data as T;
 };
 
 // Generic PUT method
 const put = async <T, D>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse = await api.put(url, data, config);
+  const response: AxiosResponse = await api.put(url, data, config);
 
-    // Check if response has standardized envelope structure
-    if (response.data &&
-      typeof response.data === 'object' &&
-      'success' in response.data &&
-      'data' in response.data) {
-      return response.data as T;
-    }
-
-    // Return raw data for non-enveloped responses
+  // Check if response has standardized envelope structure
+  if (response.data &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data) {
     return response.data as T;
-  } catch (e) {
-    return e.response
   }
 
+  // Return raw data for non-enveloped responses
+  return response.data as T;
 };
 
 // Generic DELETE method
 const remove = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse = await api.delete(url, config);
+  const response: AxiosResponse = await api.delete(url, config);
 
-    // Check if response has standardized envelope structure
-    if (response.data &&
-      typeof response.data === 'object' &&
-      'success' in response.data &&
-      'data' in response.data) {
-      return response.data as T;
-    }
-
-    // Return raw data for non-enveloped responses
+  // Check if response has standardized envelope structure
+  if (response.data &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data) {
     return response.data as T;
-  } catch (e) {
-    return e.response
   }
 
+  // Return raw data for non-enveloped responses
+  return response.data as T;
 };
 
 // Generic PATCH method
 const patch = async <T, D>(url: string, data: D, config?: AxiosRequestConfig): Promise<T> => {
-  try {
-    const response: AxiosResponse = await api.patch(url, data, config);
+  const response: AxiosResponse = await api.patch(url, data, config);
 
-    // Check if response has standardized envelope structure
-    if (response.data &&
-      typeof response.data === 'object' &&
-      'success' in response.data &&
-      'data' in response.data) {
-      return response.data as T;
-    }
-
-    // Return raw data for non-enveloped responses
+  // Check if response has standardized envelope structure
+  if (response.data &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data) {
     return response.data as T;
-  } catch (e) {
-    return e.response
   }
 
+  // Return raw data for non-enveloped responses
+  return response.data as T;
 };
 
 export default {

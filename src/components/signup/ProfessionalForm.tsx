@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -16,15 +15,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { useAuth } from "@/components/auth/hooks/useAuth";
+import { useDropdownOptions } from "@/hooks/useDropdownOptions";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
-  expertise: z.string().min(1, { message: "Area of expertise is required" }),
+  expertise: z.array(z.string()).min(1, { message: "Select at least one area of expertise" }),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   confirmPassword: z.string(),
   termsAccepted: z.boolean().refine((value) => value === true, {
@@ -38,18 +38,13 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const expertiseAreas = [
-  "Mechanical Engineering", "Electrical Engineering", "Process Engineering", "Chemical Engineering",
-  "Civil Engineering", "Industrial Safety", "Quality Control", "Maintenance", "Plant Operations",
-  "Automation", "Robotics", "Welding", "Heavy Equipment Operation", "HVAC Systems", "Instrumentation",
-  "Logistics Management", "Supply Chain Management", "Production Management", "Project Management",
-  "Environmental Compliance"
-];
-
 export function ProfessionalForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signUp, isLoading } = useAuth();
+  
+  // Fetch expertise options from API
+  const { options: expertiseOptions, isLoading: isLoadingOptions } = useDropdownOptions('expert', 'expertise');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,7 +53,7 @@ export function ProfessionalForm() {
       lastName: "",
       email: "",
       phone: "",
-      expertise: "",
+      expertise: [],
       password: "",
       confirmPassword: "",
       termsAccepted: false,
@@ -162,20 +157,16 @@ export function ProfessionalForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-gray-700">Area of Expertise</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-blue-200">
-                      <SelectValue placeholder="Select your area of expertise" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
-                    {expertiseAreas.map((expertise) => (
-                      <SelectItem key={expertise} value={expertise} className="text-gray-900 hover:bg-gray-100">
-                        {expertise}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <MultiSelect
+                    options={expertiseOptions}
+                    selected={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select your areas of expertise"
+                    isLoading={isLoadingOptions}
+                    error={!!form.formState.errors.expertise}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

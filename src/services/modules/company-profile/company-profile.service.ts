@@ -48,18 +48,26 @@ class CompanyProfileService {
   /**
    * Get company profile
    */
-  async getProfile(): Promise<CompanyProfile> {
+  async getProfile(): Promise<CompanyProfile | null> {
     try {
-      const response = await apiService.get<{ 
-        success: boolean; 
-        data: { 
+      const response = await apiService.get<{
+        success: boolean;
+        data: {
           profile: CompanyProfile;
           missingFields: string[];
           missingDocuments: string[];
         }
       }>(companyProfileRoutes.get);
       return response.data.profile;
-    } catch (error) {
+    } catch (error: any) {
+      // If profile doesn't exist (404), return null silently for new users
+      // This prevents annoying error popups on first login
+      if (error.response?.status === 404) {
+        console.info('No company profile found - new user will need to create one');
+        return null;
+      }
+
+      // For other errors, show the error popup
       errorHandler.handleApiError(error, 'Failed to load profile');
       throw error;
     }

@@ -1,20 +1,26 @@
-import { UserProfile } from '@/types/shared';
+import { UserProfile, VendorCategory, mapUserSubTypeToVendorCategory } from '@/types/shared';
 
 /**
- * Maps API role format to UserContext role format
- * API: 'IndustryAdmin' | 'IndustryMember' | 'Professional' | 'Vendor' | 'SuperAdmin' | 'Support'
- * UserContext: 'industry' | 'professional' | 'vendor'
+ * Maps API role/userType to UserContext role format
+ * API userType: 'Industry' | 'Professional' | 'Vendor'
+ * UserContext role: 'industry' | 'professional' | 'vendor'
  */
-export const mapApiRoleToUserRole = (apiRole: string): 'industry' | 'professional' | 'vendor' => {
-  if (apiRole === 'IndustryAdmin' || apiRole === 'IndustryMember') {
-    return 'industry';
+export const mapApiRoleToUserRole = (
+  apiRole: string,
+  userType?: string
+): 'industry' | 'professional' | 'vendor' => {
+  // Use userType if available (preferred)
+  if (userType) {
+    if (userType === 'Vendor') return 'vendor';
+    if (userType === 'Industry') return 'industry';
+    if (userType === 'Professional') return 'professional';
   }
-  if (apiRole === 'Professional') {
-    return 'professional';
-  }
-  if (apiRole === 'Vendor') {
-    return 'vendor';
-  }
+  
+  // Fallback to role string matching for backward compatibility
+  if (apiRole.includes('Vendor')) return 'vendor';
+  if (apiRole === 'IndustryAdmin' || apiRole === 'IndustryMember') return 'industry';
+  if (apiRole === 'Professional') return 'professional';
+  
   return 'industry'; // Default fallback
 };
 
@@ -23,8 +29,18 @@ export const mapApiRoleToUserRole = (apiRole: string): 'industry' | 'professiona
  * Handles vendor categories: 'service-vendor', 'product-vendor', 'logistics-vendor'
  */
 export const getMenuConfigKey = (user: UserProfile): string => {
-  if (user.role === 'vendor' && user.profile?.vendorCategory) {
-    return `${user.profile.vendorCategory}-vendor`;
+  if (user.role === 'vendor') {
+    // Prefer userSubType, fallback to profile.vendorCategory
+    const vendorCategory: VendorCategory | undefined = user.userSubType 
+      ? mapUserSubTypeToVendorCategory(user.userSubType)
+      : user.profile?.vendorCategory;
+      
+    if (vendorCategory) {
+      return `${vendorCategory}-vendor`;
+    }
   }
   return user.role;
 };
+
+// Re-export for convenience
+export { mapUserSubTypeToVendorCategory };

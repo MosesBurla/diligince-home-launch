@@ -17,7 +17,7 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
 
   // Helper to get document by type
   const getDocumentByType = (type: string) => {
-    return formData.documents?.find(doc => doc.type === type);
+    return formData.documents?.find(doc => doc.documentType === type);
   };
 
   // Upload handler
@@ -31,13 +31,19 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
       setIsUploading(true);
       const uploadedDocs = await uploadDocs([file], [documentType]);
       
+      // Validate uploadedDocs before mapping
+      if (!uploadedDocs || !Array.isArray(uploadedDocs)) {
+        throw new Error("Invalid response from upload service");
+      }
+      
       const docsWithDateObjects = uploadedDocs.map(doc => ({
         ...doc,
         uploadedAt: new Date(doc.uploadedAt)
       }));
       
-      // Replace existing document of this type or add new
-      const updatedDocs = formData.documents.filter(d => d.type !== documentType);
+      // Ensure formData.documents is an array before filtering
+      const existingDocs = formData.documents || [];
+      const updatedDocs = existingDocs.filter(d => d.documentType !== documentType);
       updateFormData({
         documents: [...updatedDocs, ...docsWithDateObjects]
       });
@@ -79,12 +85,12 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         </p>
       </div>
 
-      {/* Document Upload Fields */}
-      <div className="space-y-4">
+      {/* Document Upload Fields - Responsive Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <RequirementDocumentUploadField
-          label="Technical Specifications"
+          label="Technical Specs"
           documentType="specification"
-          helperText="Upload technical requirements, product specs, or detailed specifications"
+          helperText="Technical requirements or product specs"
           currentDocument={getDocumentByType('specification')}
           onUpload={handleUpload}
           onDelete={handleDeleteDocument}
@@ -92,9 +98,9 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         />
 
         <RequirementDocumentUploadField
-          label="Engineering Drawings"
+          label="Drawings"
           documentType="drawing"
-          helperText="Upload CAD files, blueprints, or technical drawings"
+          helperText="CAD files or blueprints"
           currentDocument={getDocumentByType('drawing')}
           onUpload={handleUpload}
           onDelete={handleDeleteDocument}
@@ -102,9 +108,9 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         />
 
         <RequirementDocumentUploadField
-          label="Reference Documents"
+          label="Reference"
           documentType="reference"
-          helperText="Upload standards, guidelines, or reference materials"
+          helperText="Standards or guidelines"
           currentDocument={getDocumentByType('reference')}
           onUpload={handleUpload}
           onDelete={handleDeleteDocument}
@@ -112,9 +118,9 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         />
 
         <RequirementDocumentUploadField
-          label="Compliance Documents"
+          label="Compliance"
           documentType="compliance"
-          helperText="Upload certifications, compliance requirements, or regulatory documents"
+          helperText="Certifications or regulatory docs"
           currentDocument={getDocumentByType('compliance')}
           onUpload={handleUpload}
           onDelete={handleDeleteDocument}
@@ -122,9 +128,9 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         />
 
         <RequirementDocumentUploadField
-          label="Other Documents"
+          label="Other"
           documentType="other"
-          helperText="Upload any additional supporting documents"
+          helperText="Additional supporting documents"
           currentDocument={getDocumentByType('other')}
           onUpload={handleUpload}
           onDelete={handleDeleteDocument}
@@ -132,24 +138,6 @@ const DocumentsStep: React.FC<DocumentsStepProps> = ({ onNext, onPrevious }) => 
         />
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onPrevious}
-          disabled={isUploading}
-        >
-          Previous
-        </Button>
-        <Button
-          type="button"
-          onClick={onNext}
-          disabled={isUploading}
-        >
-          Continue
-        </Button>
-      </div>
     </div>
   );
 };

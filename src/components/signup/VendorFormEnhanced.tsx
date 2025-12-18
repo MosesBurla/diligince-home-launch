@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -17,7 +17,10 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { useAuth } from "@/components/auth/hooks/useAuth";
+import { useDropdownOptions } from "@/hooks/useDropdownOptions";
+import type { DropdownModule } from "@/services/modules/dropdowns/dropdown.types";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
@@ -26,7 +29,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
   vendorCategory: z.string().min(1, { message: "Vendor category is required" }),
-  specialization: z.string().min(1, { message: "Specialization is required" }),
+  specialization: z.array(z.string()).min(1, { message: "Select at least one specialization" }),
   password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   confirmPassword: z.string(),
   termsAccepted: z.boolean().refine((value) => value === true, {
@@ -46,22 +49,14 @@ const vendorCategories = [
   "Logistics Vendor"
 ];
 
-const specializations = {
-  "Service Vendor": [
-    "Equipment Maintenance", "Plant Installation", "Process Optimization", "Industrial Cleaning",
-    "Quality Inspection", "Safety Compliance", "Environmental Services", "Automation Services",
-    "Electrical Services", "Mechanical Services"
-  ],
-  "Product Vendor": [
-    "Industrial Equipment", "Spare Parts", "Raw Materials", "Safety Equipment", "Tools & Hardware",
-    "Industrial Chemicals", "Industrial Electronics", "Process Control Equipment", "Packaging Materials",
-    "Laboratory Equipment"
-  ],
-  "Logistics Vendor": [
-    "Transportation Services", "Warehouse Management", "Heavy Equipment Rental", "Crane Services",
-    "Forklift Rental", "Inventory Management", "Supply Chain Solutions", "Cold Chain Logistics",
-    "Bulk Material Transport", "Hazardous Material Transport"
-  ]
+// Map vendor category to API module
+const getVendorModule = (category: string): DropdownModule => {
+  switch (category) {
+    case 'Service Vendor': return 'serviceVendor';
+    case 'Product Vendor': return 'productVendor';
+    case 'Logistics Vendor': return 'logisticsVendor';
+    default: return 'serviceVendor';
+  }
 };
 
 export function VendorFormEnhanced() {
@@ -69,6 +64,14 @@ export function VendorFormEnhanced() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const { signUp, isLoading } = useAuth();
+
+  // Fetch specialization options based on selected category
+  const vendorModule = getVendorModule(selectedCategory);
+  const { options: specializationOptions, isLoading: isLoadingOptions } = useDropdownOptions(
+    vendorModule, 
+    'specialization',
+    { enabled: !!selectedCategory }
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,7 +82,7 @@ export function VendorFormEnhanced() {
       email: "",
       phone: "",
       vendorCategory: "",
-      specialization: "",
+      specialization: [],
       password: "",
       confirmPassword: "",
       termsAccepted: false,
@@ -88,6 +91,13 @@ export function VendorFormEnhanced() {
   });
 
   const navigate = useNavigate();
+
+  // Clear specialization when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      form.setValue("specialization", []);
+    }
+  }, [selectedCategory, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const registrationData = {
@@ -102,8 +112,7 @@ export function VendorFormEnhanced() {
       vendorCategory: values.vendorCategory,
       specialization: values.specialization,
       termsAccepted: values.termsAccepted,
-      privacyAccepted: values.privacyAccepted,
-      verificationStatus: 'incomplete', // Set initial verification status
+      privacyAccepted: values.privacyAccepted
     };
 
     const result = await signUp(registrationData);
@@ -116,7 +125,6 @@ export function VendorFormEnhanced() {
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
-    form.setValue("specialization", "");
   };
 
   return (
@@ -249,25 +257,17 @@ export function VendorFormEnhanced() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-gray-700">Specialization</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger 
-                        disabled={!selectedCategory}
-                        className="bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-blue-200 disabled:bg-gray-100"
-                      >
-                        <SelectValue placeholder="Select specialization" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
-                      {selectedCategory && 
-                        specializations[selectedCategory as keyof typeof specializations]?.map((spec) => (
-                          <SelectItem key={spec} value={spec} className="text-gray-900 hover:bg-gray-100">
-                            {spec}
-                          </SelectItem>
-                        ))
-                      }
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <MultiSelect
+                      options={specializationOptions}
+                      selected={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select specializations"
+                      isLoading={isLoadingOptions}
+                      disabled={!selectedCategory}
+                      error={!!form.formState.errors.specialization}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

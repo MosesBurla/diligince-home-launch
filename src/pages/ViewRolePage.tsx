@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRoles } from "@/hooks/useRoles";
 import { PermissionGate } from "@/components/shared/PermissionGate";
-import { LoadingSpinner } from "@/components/shared/loading";
+import { DetailPageSkeleton } from "@/components/shared/loading";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, Copy, Trash2, Power } from "lucide-react";
@@ -80,11 +80,7 @@ export default function ViewRolePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
+    return <DetailPageSkeleton showTabs={false} sections={2} />;
   }
 
   if (!role) {

@@ -11,6 +11,7 @@ import { POFilters } from '@/components/purchase-order/POFilters';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAsyncOperation } from '@/hooks/useAsyncOperation';
+import { StatisticsBarSkeleton, TableSkeletonLoader } from '@/components/shared/loading';
 
 const IndustryPurchaseOrders = () => {
   const navigate = useNavigate();
@@ -128,12 +129,15 @@ const IndustryPurchaseOrders = () => {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        <Card className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="h-8 w-48 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-muted rounded animate-pulse" />
           </div>
-        </Card>
+          <div className="h-10 w-44 bg-muted rounded animate-pulse" />
+        </div>
+        <StatisticsBarSkeleton count={4} />
+        <TableSkeletonLoader rows={5} columns={7} />
       </div>
     );
   }

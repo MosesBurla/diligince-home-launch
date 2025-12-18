@@ -23,7 +23,7 @@ interface RequirementDocument {
   type: string;
   size: number;
   documentType: 'specification' | 'drawing' | 'reference' | 'compliance' | 'other';
-  uploadedAt: Date;
+  uploadedAt: Date | string;
 }
 
 interface RequirementDocumentUploadFieldProps {
@@ -80,9 +80,17 @@ export const RequirementDocumentUploadField: React.FC<RequirementDocumentUploadF
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
-  const formatUploadTime = (date: Date): string => {
+  const formatUploadTime = (date: Date | string | undefined): string => {
+    if (!date) return 'Just now';
+    
+    // Convert string to Date if needed (for data from API)
+    const dateObj = date instanceof Date ? date : new Date(date);
+    
+    // Validate the date is valid
+    if (isNaN(dateObj.getTime())) return 'Recently';
+
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now.getTime() - dateObj.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -195,56 +203,49 @@ export const RequirementDocumentUploadField: React.FC<RequirementDocumentUploadF
   const isProcessing = localUploading || isUploading;
 
   return (
-    <div className="space-y-3">
-      <div>
-        <Label className="text-base font-semibold">{label}</Label>
-        <p className="text-sm text-muted-foreground mt-1">{helperText}</p>
-      </div>
+    <div className="h-full">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={accept}
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isProcessing}
+      />
 
       {!currentDocument ? (
         <Card 
           className={`
-            border-2 border-dashed transition-all duration-200
+            border-2 border-dashed transition-all duration-200 h-[160px]
             ${dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/40'}
             ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           `}
+          onClick={() => !isProcessing && fileInputRef.current?.click()}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <div className="p-8">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={accept}
-              onChange={handleFileSelect}
-              className="hidden"
-              disabled={isProcessing}
-            />
-            
+          <div className="p-4 h-full flex flex-col items-center justify-center">
             {isProcessing ? (
-              <div className="text-center space-y-4">
-                <Upload className="w-12 h-12 mx-auto text-primary animate-pulse" />
-                <div>
-                  <p className="font-medium">Uploading {label}...</p>
-                  <p className="text-sm text-muted-foreground">Please wait</p>
-                </div>
+              <div className="text-center space-y-2 w-full">
+                <Upload className="w-8 h-8 mx-auto text-primary animate-pulse" />
+                <p className="text-sm font-medium">Uploading...</p>
                 <Progress value={uploadProgress} className="w-full" />
               </div>
             ) : (
-              <div className="text-center space-y-4">
-                <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Click to upload or drag and drop</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max {maxSizeMB}MB)
-                  </p>
-                </div>
+              <div className="text-center space-y-2">
+                <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
+                <p className="font-medium text-sm">{label}</p>
+                <p className="text-xs text-muted-foreground line-clamp-1">{helperText}</p>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
                 >
                   Choose File
                 </Button>
@@ -253,30 +254,31 @@ export const RequirementDocumentUploadField: React.FC<RequirementDocumentUploadF
           </div>
         </Card>
       ) : (
-        <Card className="p-4 bg-muted/30 border-muted-foreground/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              {getFileIcon(currentDocument.name)}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{currentDocument.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(currentDocument.size)} • Uploaded {formatUploadTime(currentDocument.uploadedAt)}
-                </p>
-              </div>
-            </div>
+        <Card className="p-3 h-[160px] bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
+          <div className="flex flex-col h-full">
+            <p className="font-semibold text-xs text-emerald-700 dark:text-emerald-400 mb-2">{label}</p>
             <div className="flex items-center gap-2">
+              {getFileIcon(currentDocument.name)}
+              <p className="font-medium text-sm truncate flex-1">{currentDocument.name}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatFileSize(currentDocument.size)} • {formatUploadTime(currentDocument.uploadedAt)}
+            </p>
+            <div className="flex gap-2 mt-auto pt-2">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
+                className="flex-1 h-8"
                 onClick={() => window.open(currentDocument.url, '_blank')}
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3 h-3 mr-1" /> Preview
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
+                className="h-8 px-2"
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={isProcessing}
               >

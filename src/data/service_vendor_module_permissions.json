@@ -1,0 +1,370 @@
+{
+  "version": "1.0.0",
+  "roleName": "ServiceVendorAdmin",
+  "userType": "ServiceVendor",
+  "modules": [
+    {
+      "id": "sv-dashboard",
+      "name": "Dashboard",
+      "path": "/dashboard/service-vendor",
+      "icon": "LayoutDashboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      }
+    },
+    {
+      "id": "sv-rfqs",
+      "name": "RFQs",
+      "path": "/dashboard/service-vendor-rfqs",
+      "icon": "FileText",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "sv-rfqs-browse",
+          "name": "Browse RFQs",
+          "path": "/dashboard/service-vendor-rfqs",
+          "icon": "Eye",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-rfqs-saved",
+          "name": "Saved RFQs",
+          "path": "/dashboard/rfqs/saved",
+          "icon": "Bookmark",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-rfqs-applied",
+          "name": "Applied RFQs",
+          "path": "/dashboard/rfqs/applied",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "sv-quotations",
+      "name": "My Quotations",
+      "path": "/dashboard/vendor/quotations",
+      "icon": "Quote",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "sv-quotations-all",
+          "name": "All Quotations",
+          "path": "/dashboard/vendor/quotations",
+          "icon": "List",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-quotations-drafts",
+          "name": "Drafts",
+          "path": "/dashboard/vendor/quotations/drafts",
+          "icon": "GitPullRequestDraft",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "sv-quotations-submitted",
+          "name": "Submitted",
+          "path": "/dashboard/vendor/quotations/submitted",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-quotations-accepted",
+          "name": "Accepted",
+          "path": "/dashboard/vendor/quotations/accepted",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-quotations-rejected",
+          "name": "Rejected",
+          "path": "/dashboard/vendor/quotations/rejected",
+          "icon": "XCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "sv-projects",
+      "name": "Projects",
+      "path": "/dashboard/service-vendor-projects",
+      "icon": "Clipboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "sv-projects-active",
+          "name": "Active Projects",
+          "path": "/dashboard/service-vendor-projects/active",
+          "icon": "Activity",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-projects-completed",
+          "name": "Completed Projects",
+          "path": "/dashboard/service-vendor-projects/completed",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-projects-milestones",
+          "name": "Milestones",
+          "path": "/dashboard/service-vendor-projects/milestones",
+          "icon": "Target",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "sv-messages",
+      "name": "Messages",
+      "path": "/dashboard/service-vendor-messages",
+      "icon": "MessageSquare",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": false
+      }
+    },
+    {
+      "id": "sv-team",
+      "name": "Team",
+      "path": "/dashboard/team",
+      "icon": "Users",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "sv-team-members",
+          "name": "Team Members",
+          "path": "/dashboard/team/members",
+          "icon": "Users",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-team-roles",
+          "name": "Role Management",
+          "path": "/dashboard/team/roles",
+          "icon": "Shield",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "sv-services",
+      "name": "Services",
+      "path": "/dashboard/service-vendor-services",
+      "icon": "Layers",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": false
+      },
+      "submodules": [
+        {
+          "id": "sv-services-catalog",
+          "name": "Service Catalog",
+          "path": "/dashboard/service-vendor-services/catalog",
+          "icon": "List",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "sv-services-skills",
+          "name": "Skills & Expertise",
+          "path": "/dashboard/service-vendor-services/skills",
+          "icon": "Award",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "sv-settings",
+      "name": "Settings",
+      "path": "/dashboard/service-vendor-profile",
+      "icon": "Settings",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      },
+      "submodules": [
+        {
+          "id": "sv-settings-company",
+          "name": "Company Profile",
+          "path": "/dashboard/service-vendor-profile",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "sv-settings-certifications",
+          "name": "Certifications",
+          "path": "/dashboard/service-vendor-profile/certifications",
+          "icon": "Award",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-settings-portfolio",
+          "name": "Projects & Portfolio",
+          "path": "/dashboard/service-vendor-profile/portfolio",
+          "icon": "Briefcase",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "sv-settings-payment",
+          "name": "Payment Settings",
+          "path": "/dashboard/service-vendor-profile/payment",
+          "icon": "CreditCard",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        }
+      ]
+    }
+  ]
+}

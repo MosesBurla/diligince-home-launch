@@ -49,9 +49,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (isVendor) {
-    // TODO: Get vendor verification status from context
-    // For now, allow access to vendor pages
-    // Later, implement vendor-specific verification checks similar to industry
+    // Redirect vendors to vendor-settings if verification is incomplete/rejected
+    if (verificationStatus === VerificationStatus.INCOMPLETE || 
+        verificationStatus === VerificationStatus.REJECTED) {
+      // Only redirect if not already on vendor-settings or verification pages
+      if (!location.pathname.includes('vendor-settings') && 
+          !location.pathname.includes('verification-pending')) {
+        return <Navigate to="/dashboard/vendor-settings" replace />;
+      }
+    }
+
+    if (verificationStatus === VerificationStatus.PENDING) {
+      if (!location.pathname.includes('verification-pending')) {
+        return <Navigate to="/verification-pending" replace />;
+      }
+    }
   }
 
   // Full access for approved users

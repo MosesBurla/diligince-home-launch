@@ -39,6 +39,10 @@ import {
   Layers,
   Database,
   Bookmark,
+  XCircle,
+  RotateCcw,
+  MapPin,
+  Wrench,
 } from "lucide-react";
 
 interface MenuItem {
@@ -98,11 +102,6 @@ export const menuConfig: MenuConfig = {
           icon: Globe,
           label: "Published",
           path: "/dashboard/requirements/published",
-        },
-        {
-          icon: Archive,
-          label: "Archived",
-          path: "/dashboard/requirements/archived",
         },
       ],
     },
@@ -192,23 +191,6 @@ export const menuConfig: MenuConfig = {
         },
       ],
     },
-    // {
-    //   icon: Users,
-    //   label: "Stakeholders",
-    //   path: "/dashboard/industry-stakeholders",
-    //   submenu: [
-    //     {
-    //       icon: Building,
-    //       label: "Vendors",
-    //       path: "/dashboard/stakeholders/vendors",
-    //     },
-    //     {
-    //       icon: UserCheck,
-    //       label: "Professionals",
-    //       path: "/dashboard/stakeholders/professionals",
-    //     },
-    //   ],
-    // },
     {
       icon: MessageSquare,
       label: "Messages",
@@ -329,28 +311,147 @@ export const menuConfig: MenuConfig = {
       label: "Dashboard",
       path: "/dashboard/service-vendor",
     },
-    { icon: FileText, label: "RFQs", path: "/dashboard/service-vendor-rfqs" },
-    { icon: Quote, label: "My Quotations", path: "/dashboard/vendor/quotations" },
+    {
+      icon: FileText,
+      label: "RFQs",
+      path: "/dashboard/service-vendor-rfqs",
+      submenu: [
+        {
+          icon: Eye,
+          label: "Browse RFQs",
+          path: "/dashboard/service-vendor-rfqs",
+        },
+        {
+          icon: Bookmark,
+          label: "Saved RFQs",
+          path: "/dashboard/rfqs/saved",
+        },
+        {
+          icon: CheckCircle,
+          label: "Applied RFQs",
+          path: "/dashboard/rfqs/applied",
+        },
+      ],
+    },
+    {
+      icon: Quote,
+      label: "My Quotations",
+      path: "/dashboard/vendor/quotations",
+      submenu: [
+        {
+          icon: List,
+          label: "All Quotations",
+          path: "/dashboard/vendor/quotations",
+        },
+        {
+          icon: GitPullRequestDraft,
+          label: "Drafts",
+          path: "/dashboard/vendor/quotations/drafts",
+        },
+        {
+          icon: Clock,
+          label: "Submitted",
+          path: "/dashboard/vendor/quotations/submitted",
+        },
+        {
+          icon: CheckCircle,
+          label: "Accepted",
+          path: "/dashboard/vendor/quotations/accepted",
+        },
+        {
+          icon: XCircle,
+          label: "Rejected",
+          path: "/dashboard/vendor/quotations/rejected",
+        },
+      ],
+    },
     {
       icon: Clipboard,
       label: "Projects",
       path: "/dashboard/service-vendor-projects",
+      submenu: [
+        {
+          icon: Activity,
+          label: "Active Projects",
+          path: "/dashboard/service-vendor-projects/active",
+        },
+        {
+          icon: CheckCircle,
+          label: "Completed Projects",
+          path: "/dashboard/service-vendor-projects/completed",
+        },
+        {
+          icon: Target,
+          label: "Milestones",
+          path: "/dashboard/service-vendor-projects/milestones",
+        },
+      ],
     },
     {
       icon: MessageSquare,
       label: "Messages",
       path: "/dashboard/service-vendor-messages",
     },
-    { icon: Users, label: "Team", path: "/dashboard/team" },
     {
-      icon: Settings,
-      label: "Profile",
-      path: "/dashboard/service-vendor-profile",
+      icon: Users,
+      label: "Team",
+      path: "/dashboard/team",
+      submenu: [
+        {
+          icon: Users,
+          label: "Team Members",
+          path: "/dashboard/team/members",
+        },
+        {
+          icon: Shield,
+          label: "Role Management",
+          path: "/dashboard/team/roles",
+        },
+      ],
     },
     {
       icon: Layers,
       label: "Services",
       path: "/dashboard/service-vendor-services",
+      submenu: [
+        {
+          icon: List,
+          label: "Service Catalog",
+          path: "/dashboard/service-vendor-services/catalog",
+        },
+        {
+          icon: Award,
+          label: "Skills & Expertise",
+          path: "/dashboard/service-vendor-services/skills",
+        },
+      ],
+    },
+    {
+      icon: Settings,
+      label: "Settings",
+      path: "/dashboard/service-vendor-profile",
+      submenu: [
+        {
+          icon: Building,
+          label: "Company Profile",
+          path: "/dashboard/service-vendor-profile",
+        },
+        {
+          icon: Award,
+          label: "Certifications",
+          path: "/dashboard/service-vendor-profile/certifications",
+        },
+        {
+          icon: Briefcase,
+          label: "Projects & Portfolio",
+          path: "/dashboard/service-vendor-profile/portfolio",
+        },
+        {
+          icon: CreditCard,
+          label: "Payment Settings",
+          path: "/dashboard/service-vendor-profile/payment",
+        },
+      ],
     },
   ],
 
@@ -363,13 +464,62 @@ export const menuConfig: MenuConfig = {
     },
     {
       icon: Package,
-      label: "Catalog",
+      label: "Product Catalog",
       path: "/dashboard/product-vendor-catalog",
+      submenu: [
+        {
+          icon: List,
+          label: "All Products",
+          path: "/dashboard/product-vendor-catalog",
+        },
+        {
+          icon: Plus,
+          label: "Add Product",
+          path: "/dashboard/product-vendor-catalog/add",
+        },
+        {
+          icon: Layers,
+          label: "Categories",
+          path: "/dashboard/product-vendor-catalog/categories",
+        },
+        {
+          icon: Database,
+          label: "Inventory",
+          path: "/dashboard/product-vendor-catalog/inventory",
+        },
+      ],
     },
     {
       icon: FileText,
       label: "Orders",
       path: "/dashboard/product-vendor-orders",
+      submenu: [
+        {
+          icon: Clock,
+          label: "New Orders",
+          path: "/dashboard/product-vendor-orders/new",
+        },
+        {
+          icon: Activity,
+          label: "Processing",
+          path: "/dashboard/product-vendor-orders/processing",
+        },
+        {
+          icon: Truck,
+          label: "Shipped",
+          path: "/dashboard/product-vendor-orders/shipped",
+        },
+        {
+          icon: CheckCircle,
+          label: "Completed",
+          path: "/dashboard/product-vendor-orders/completed",
+        },
+        {
+          icon: RotateCcw,
+          label: "Returns",
+          path: "/dashboard/product-vendor-orders/returns",
+        },
+      ],
     },
     {
       icon: MessageSquare,
@@ -377,9 +527,70 @@ export const menuConfig: MenuConfig = {
       path: "/dashboard/product-vendor-messages",
     },
     {
+      icon: Users,
+      label: "Team",
+      path: "/dashboard/team",
+      submenu: [
+        {
+          icon: Users,
+          label: "Team Members",
+          path: "/dashboard/team/members",
+        },
+        {
+          icon: Shield,
+          label: "Role Management",
+          path: "/dashboard/team/roles",
+        },
+      ],
+    },
+    {
+      icon: BarChart3,
+      label: "Analytics",
+      path: "/dashboard/product-vendor-analytics",
+      submenu: [
+        {
+          icon: TrendingUp,
+          label: "Sales Reports",
+          path: "/dashboard/product-vendor-analytics/sales",
+        },
+        {
+          icon: PieChart,
+          label: "Inventory Reports",
+          path: "/dashboard/product-vendor-analytics/inventory",
+        },
+      ],
+    },
+    {
       icon: Settings,
-      label: "Profile",
+      label: "Settings",
       path: "/dashboard/product-vendor-profile",
+      submenu: [
+        {
+          icon: Building,
+          label: "Company Profile",
+          path: "/dashboard/product-vendor-profile",
+        },
+        {
+          icon: Award,
+          label: "Brands & Partners",
+          path: "/dashboard/product-vendor-profile/brands",
+        },
+        {
+          icon: Truck,
+          label: "Shipping & Returns",
+          path: "/dashboard/product-vendor-profile/shipping",
+        },
+        {
+          icon: Award,
+          label: "Certifications",
+          path: "/dashboard/product-vendor-profile/certifications",
+        },
+        {
+          icon: CreditCard,
+          label: "Payment Settings",
+          path: "/dashboard/product-vendor-profile/payment",
+        },
+      ],
     },
   ],
 
@@ -394,16 +605,72 @@ export const menuConfig: MenuConfig = {
       icon: Truck,
       label: "Requests",
       path: "/dashboard/logistics-vendor-requests",
+      submenu: [
+        {
+          icon: Clock,
+          label: "New Requests",
+          path: "/dashboard/logistics-vendor-requests/new",
+        },
+        {
+          icon: Clock,
+          label: "Pending",
+          path: "/dashboard/logistics-vendor-requests/pending",
+        },
+        {
+          icon: CheckCircle,
+          label: "Assigned",
+          path: "/dashboard/logistics-vendor-requests/assigned",
+        },
+        {
+          icon: CheckCircle,
+          label: "Completed",
+          path: "/dashboard/logistics-vendor-requests/completed",
+        },
+      ],
     },
     {
       icon: Clipboard,
       label: "Deliveries",
       path: "/dashboard/logistics-vendor-deliveries",
+      submenu: [
+        {
+          icon: Truck,
+          label: "In Transit",
+          path: "/dashboard/logistics-vendor-deliveries/transit",
+        },
+        {
+          icon: CheckCircle,
+          label: "Completed",
+          path: "/dashboard/logistics-vendor-deliveries/completed",
+        },
+        {
+          icon: XCircle,
+          label: "Failed/Returned",
+          path: "/dashboard/logistics-vendor-deliveries/failed",
+        },
+      ],
     },
     {
       icon: Package,
       label: "Fleet",
       path: "/dashboard/logistics-vendor-fleet",
+      submenu: [
+        {
+          icon: Truck,
+          label: "Vehicles",
+          path: "/dashboard/logistics-vendor-fleet/vehicles",
+        },
+        {
+          icon: Wrench,
+          label: "Maintenance",
+          path: "/dashboard/logistics-vendor-fleet/maintenance",
+        },
+        {
+          icon: Users,
+          label: "Drivers & Personnel",
+          path: "/dashboard/logistics-vendor-fleet/drivers",
+        },
+      ],
     },
     {
       icon: MessageSquare,
@@ -411,9 +678,65 @@ export const menuConfig: MenuConfig = {
       path: "/dashboard/logistics-vendor-messages",
     },
     {
+      icon: Users,
+      label: "Team",
+      path: "/dashboard/team",
+      submenu: [
+        {
+          icon: Users,
+          label: "Team Members",
+          path: "/dashboard/team/members",
+        },
+        {
+          icon: Shield,
+          label: "Role Management",
+          path: "/dashboard/team/roles",
+        },
+      ],
+    },
+    {
+      icon: MapPin,
+      label: "Tracking",
+      path: "/dashboard/logistics-vendor-tracking",
+      submenu: [
+        {
+          icon: MapPin,
+          label: "Live Tracking",
+          path: "/dashboard/logistics-vendor-tracking/live",
+        },
+        {
+          icon: Clock,
+          label: "Route History",
+          path: "/dashboard/logistics-vendor-tracking/history",
+        },
+      ],
+    },
+    {
       icon: Settings,
-      label: "Profile",
+      label: "Settings",
       path: "/dashboard/logistics-vendor-profile",
+      submenu: [
+        {
+          icon: Building,
+          label: "Company Profile",
+          path: "/dashboard/logistics-vendor-profile",
+        },
+        {
+          icon: MapPin,
+          label: "Service Areas",
+          path: "/dashboard/logistics-vendor-profile/service-areas",
+        },
+        {
+          icon: Award,
+          label: "Licenses & Permits",
+          path: "/dashboard/logistics-vendor-profile/licenses",
+        },
+        {
+          icon: CreditCard,
+          label: "Payment Settings",
+          path: "/dashboard/logistics-vendor-profile/payment",
+        },
+      ],
     },
   ],
 };

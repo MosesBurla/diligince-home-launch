@@ -101,8 +101,11 @@ const EnhancedBasicInfoStep: React.FC<EnhancedBasicInfoStepProps> = ({
             Category <span className="text-destructive">*</span>
           </Label>
           <CategorySelector
-            value={formData.category || ""}
-            onChange={(value) => updateFormData({ category: value as any })}
+            value={formData.category || []}
+            onChange={(values) => updateFormData({ 
+              category: values as any,
+              specialization: [] // Clear specialization when categories change
+            })}
             error={stepErrors.category}
           />
         </div>
@@ -197,28 +200,25 @@ const EnhancedBasicInfoStep: React.FC<EnhancedBasicInfoStepProps> = ({
         </div>
       </section>
 
-      {/* Section 3: Budget (Collapsible) */}
-      <Accordion type="single" collapsible className="border border-corporate-gray-200 rounded-lg bg-white shadow-sm">
-        <AccordionItem value="budget" className="border-0">
-          <AccordionTrigger className="px-6 hover:no-underline hover:bg-corporate-gray-50">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-corporate-gray-500" />
-              <span className="text-sm font-medium text-corporate-gray-900">
-                Budget Information
-                {formData.estimatedBudget && (
-                  <span className="ml-2 text-muted-foreground">
-                    (${Number(formData.estimatedBudget).toLocaleString()})
-                  </span>
-                )}
+      {/* Section 3: Budget Information */}
+      <section className="space-y-6 bg-white rounded-lg border border-corporate-gray-200 p-6 shadow-sm">
+        <div className="flex items-center gap-2 pb-2 border-b border-corporate-gray-200">
+          <DollarSign className="w-5 h-5 text-corporate-gray-500" />
+          <h2 className="text-lg font-semibold text-corporate-gray-900">
+            Budget Information
+            {formData.estimatedBudget && (
+              <span className="ml-2 text-muted-foreground font-normal text-sm">
+                (${Number(formData.estimatedBudget).toLocaleString()})
               </span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="px-6 pb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="estimatedBudget" className="text-sm font-medium text-foreground">
-                  Estimated Budget
-                </Label>
+            )}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="estimatedBudget" className="text-sm font-medium text-foreground">
+              Estimated Budget <span className="text-destructive">*</span>
+            </Label>
                 <Input
                   id="estimatedBudget"
                   type="number"
@@ -227,24 +227,22 @@ const EnhancedBasicInfoStep: React.FC<EnhancedBasicInfoStepProps> = ({
                   onChange={(e) => updateFormData({ estimatedBudget: parseFloat(e.target.value) || 0 })}
                   className="h-11"
                 />
-              </div>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="budgetCostCenter" className="text-sm font-medium text-foreground">
-                  Budget Cost Center
-                </Label>
-                <Input
-                  id="budgetCostCenter"
-                  placeholder="e.g., BUDGET-2024-Q1"
-                  value={formData.costCenter || ""}
-                  onChange={(e) => updateFormData({ costCenter: e.target.value })}
-                  className="h-11"
-                />
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+          <div className="space-y-2">
+            <Label htmlFor="budgetCostCenter" className="text-sm font-medium text-foreground">
+              Budget Cost Center
+            </Label>
+            <Input
+              id="budgetCostCenter"
+              placeholder="e.g., BUDGET-2024-Q1"
+              value={formData.costCenter || ""}
+              onChange={(e) => updateFormData({ costCenter: e.target.value })}
+              className="h-11"
+            />
+          </div>
+        </div>
+      </section>
 
       {/* Section 4: Advanced Options */}
       <AdvancedOptions
@@ -257,17 +255,6 @@ const EnhancedBasicInfoStep: React.FC<EnhancedBasicInfoStepProps> = ({
         complianceRequired={formData.complianceRequired || false}
         onComplianceRequiredChange={(value) => updateFormData({ complianceRequired: value })}
       />
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t border-corporate-gray-200">
-        <Button type="button" variant="outline" onClick={handleSaveDraft} className="h-11">
-          Save as Draft
-        </Button>
-        <Button type="button" onClick={handleNext} className="h-11" disabled={isValidating}>
-          {isValidating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isValidating ? "Validating..." : "Continue to Details"}
-        </Button>
-      </div>
     </div>
   );
 };

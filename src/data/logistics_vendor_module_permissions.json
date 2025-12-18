@@ -1,0 +1,357 @@
+{
+  "version": "1.0.0",
+  "roleName": "LogisticsVendorAdmin",
+  "userType": "LogisticsVendor",
+  "modules": [
+    {
+      "id": "lv-dashboard",
+      "name": "Dashboard",
+      "path": "/dashboard/logistics-vendor",
+      "icon": "LayoutDashboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      }
+    },
+    {
+      "id": "lv-requests",
+      "name": "Requests",
+      "path": "/dashboard/logistics-vendor-requests",
+      "icon": "Truck",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "lv-requests-new",
+          "name": "New Requests",
+          "path": "/dashboard/logistics-vendor-requests/new",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-requests-pending",
+          "name": "Pending",
+          "path": "/dashboard/logistics-vendor-requests/pending",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-requests-assigned",
+          "name": "Assigned",
+          "path": "/dashboard/logistics-vendor-requests/assigned",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-requests-completed",
+          "name": "Completed",
+          "path": "/dashboard/logistics-vendor-requests/completed",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "lv-deliveries",
+      "name": "Deliveries",
+      "path": "/dashboard/logistics-vendor-deliveries",
+      "icon": "Clipboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "lv-deliveries-transit",
+          "name": "In Transit",
+          "path": "/dashboard/logistics-vendor-deliveries/transit",
+          "icon": "Truck",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-deliveries-completed",
+          "name": "Completed",
+          "path": "/dashboard/logistics-vendor-deliveries/completed",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-deliveries-failed",
+          "name": "Failed/Returned",
+          "path": "/dashboard/logistics-vendor-deliveries/failed",
+          "icon": "XCircle",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "lv-fleet",
+      "name": "Fleet",
+      "path": "/dashboard/logistics-vendor-fleet",
+      "icon": "Package",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "lv-fleet-vehicles",
+          "name": "Vehicles",
+          "path": "/dashboard/logistics-vendor-fleet/vehicles",
+          "icon": "Truck",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-fleet-maintenance",
+          "name": "Maintenance",
+          "path": "/dashboard/logistics-vendor-fleet/maintenance",
+          "icon": "Wrench",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-fleet-drivers",
+          "name": "Drivers & Personnel",
+          "path": "/dashboard/logistics-vendor-fleet/drivers",
+          "icon": "Users",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "lv-messages",
+      "name": "Messages",
+      "path": "/dashboard/logistics-vendor-messages",
+      "icon": "MessageSquare",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": false
+      }
+    },
+    {
+      "id": "lv-team",
+      "name": "Team",
+      "path": "/dashboard/team",
+      "icon": "Users",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "lv-team-members",
+          "name": "Team Members",
+          "path": "/dashboard/team/members",
+          "icon": "Users",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-team-roles",
+          "name": "Role Management",
+          "path": "/dashboard/team/roles",
+          "icon": "Shield",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "lv-tracking",
+      "name": "Tracking",
+      "path": "/dashboard/logistics-vendor-tracking",
+      "icon": "MapPin",
+      "permissions": {
+        "read": true,
+        "write": false,
+        "edit": false,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "lv-tracking-live",
+          "name": "Live Tracking",
+          "path": "/dashboard/logistics-vendor-tracking/live",
+          "icon": "MapPin",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "lv-tracking-history",
+          "name": "Route History",
+          "path": "/dashboard/logistics-vendor-tracking/history",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "lv-settings",
+      "name": "Settings",
+      "path": "/dashboard/logistics-vendor-profile",
+      "icon": "Settings",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      },
+      "submodules": [
+        {
+          "id": "lv-settings-company",
+          "name": "Company Profile",
+          "path": "/dashboard/logistics-vendor-profile",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "lv-settings-service-areas",
+          "name": "Service Areas",
+          "path": "/dashboard/logistics-vendor-profile/service-areas",
+          "icon": "MapPin",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "lv-settings-licenses",
+          "name": "Licenses & Permits",
+          "path": "/dashboard/logistics-vendor-profile/licenses",
+          "icon": "Award",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "lv-settings-payment",
+          "name": "Payment Settings",
+          "path": "/dashboard/logistics-vendor-profile/payment",
+          "icon": "CreditCard",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        }
+      ]
+    }
+  ]
+}

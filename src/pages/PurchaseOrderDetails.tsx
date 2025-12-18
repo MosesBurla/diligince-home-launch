@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Download, FileText, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { purchaseOrdersService } from '@/services/modules/purchase-orders';
+import { DetailPageSkeleton } from '@/components/shared/loading';
 import { POOverviewTab } from '@/components/purchase-order/POOverviewTab';
 import { POLineItemsTab } from '@/components/purchase-order/POLineItemsTab';
 import { POMilestonesTab } from '@/components/purchase-order/POMilestonesTab';
@@ -54,10 +55,9 @@ const PurchaseOrderDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="h-64 bg-muted rounded"></div>
+      <div className="min-h-screen bg-muted/30">
+        <div className="container mx-auto p-6 space-y-6">
+          <DetailPageSkeleton showTabs tabCount={7} sections={2} />
         </div>
       </div>
     );

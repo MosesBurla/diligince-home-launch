@@ -48,11 +48,6 @@ export const EmailStep: React.FC<EmailStepProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h2>
-        <p className="text-muted-foreground">Enter your email to continue</p>
-      </div>
-
       {error && (
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6 flex items-start space-x-2">
           <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />

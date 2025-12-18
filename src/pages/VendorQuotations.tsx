@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomTable, { ColumnConfig } from '@/components/CustomTable';
+import { TableSkeletonLoader } from '@/components/shared/loading';
 
 import { vendorQuotationsService } from '@/services';
 import type { VendorQuotation } from '@/types/vendor';
@@ -79,8 +80,20 @@ const VendorQuotations: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <Helmet>
+          <title>My Quotations | Vendor Dashboard</title>
+        </Helmet>
+        <main className="container mx-auto p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+          </div>
+          <TableSkeletonLoader rows={8} columns={5} showFilters />
+        </main>
       </div>
     );
   }

@@ -14,6 +14,7 @@ const CustomTable: React.FC<TableProps> = ({
   onRowClick,
   onExport,
   onAdd,
+  additionalFilters,
   loading = false,
   pagination = { enabled: true, pageSize: 10, currentPage: 1 },
   selectable = false,
@@ -23,7 +24,7 @@ const CustomTable: React.FC<TableProps> = ({
 }) => {
   // Ensure data is always an array
   const safeData = Array.isArray(data) ? data : [];
-  
+
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [filters, setFilters] = useState<FilterConfig>({});
   const [globalSearch, setGlobalSearch] = useState('');
@@ -82,11 +83,12 @@ const CustomTable: React.FC<TableProps> = ({
   // Paginate data
   const paginatedData = useMemo(() => {
     if (!pagination.enabled) return sortedData;
+    if (pagination.serverSide) return sortedData; // Skip client-side slicing for server-paginated data
 
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     return sortedData.slice(startIndex, endIndex);
-  }, [sortedData, currentPage, pageSize, pagination.enabled]);
+  }, [sortedData, currentPage, pageSize, pagination.enabled, pagination.serverSide]);
 
   // Handle sort
   const handleSort = (columnName: string) => {
@@ -210,6 +212,7 @@ const CustomTable: React.FC<TableProps> = ({
           columns={columns}
           filters={filters}
           onFiltersChange={handleFiltersChange}
+          additionalFilters={additionalFilters}
         />
 
         <div className="overflow-x-auto">
@@ -298,7 +301,7 @@ const CustomTable: React.FC<TableProps> = ({
         {pagination.enabled && (
           <TablePagination
             currentPage={currentPage}
-            totalItems={sortedData.length}
+            totalItems={pagination.totalItems ?? sortedData.length}
             pageSize={pageSize}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}

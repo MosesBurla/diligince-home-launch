@@ -1,7 +1,7 @@
 // Requirement Draft API Service
 
 import apiService from '../../core/api.service';
-import { RequirementFormData } from "@/contexts/RequirementContext";
+import { RequirementFormData } from "@/types/requirement-form.types";
 import {
   DraftResponse,
   DraftDetailResponse,
@@ -19,6 +19,83 @@ import { requirementsRoutes } from './requirements.routes';
 
 class RequirementDraftService {
   // ============= Helper Methods =============
+
+  /**
+   * Allowed keys from backend validator - sanitize data before sending
+   */
+  private readonly allowedUpdateKeys = [
+    // Step & Status
+    'currentStep', 'completedSteps', 'approvalStatus', 'emergencyPublished',
+    'isValid', 'retryCount', 'savedToCloud', 'termsAccepted',
+    
+    // Timestamps
+    'lastSaved', 'expiresAt', 'createdAt', 'updatedAt', 'lastModifiedBy',
+    
+    // General Details
+    'title', 'category', 'priority', 'description', 'businessJustification',
+    'department', 'costCenter', 'requestedBy',
+    
+    // Budget
+    'estimatedBudget', 'budgetApproved', 'budget',
+    
+    // Urgency & Compliance
+    'urgency', 'isUrgent', 'complianceRequired', 'riskLevel',
+    
+    // Skills/Expertise
+    'specialization', 'certifications', 'technicalStandards',
+    
+    // Time & Duration
+    'duration', 'startDate', 'endDate', 'productDeliveryDate',
+    'serviceStartDate', 'serviceEndDate', 'serviceBudget',
+    
+    // Product fields
+    'productSpecifications', 'quantity',
+    
+    // Service fields
+    'serviceDescription', 'scopeOfWork', 'performanceMetrics',
+    
+    // Locations
+    'location', 'equipmentType', 'pickupLocation', 'deliveryLocation',
+    
+    // Logistics
+    'weight', 'dimensions', 'pickupDate', 'deliveryDate', 'specialHandling',
+    
+    // Approval workflow
+    'approvalWorkflowId', 'emergencyPublish', 'emergencyJustification',
+    'approvalDeadline', 'submissionDeadline',
+    
+    // Evaluation
+    'evaluationCriteria',
+    
+    // Vendor Visibility
+    'visibility', 'selectedVendors',
+    
+    // Notifications
+    'notifyByEmail', 'notifyByApp',
+    
+    // Documents
+    'documents',
+    
+    // Approval Matrix
+    'selectedApprovalMatrix', 'selectedApprovalMatrixId',
+    'isSentForApproval', 'isDeleted', 'status'
+  ];
+
+  /**
+   * Sanitize form data to only include fields allowed by backend validator
+   */
+  private sanitizeForUpdate(data: Partial<RequirementFormData>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
+    
+    for (const key of this.allowedUpdateKeys) {
+      if (key in data && data[key as keyof RequirementFormData] !== undefined) {
+        sanitized[key] = data[key as keyof RequirementFormData];
+      }
+    }
+    
+    console.log("Sanitized draft data keys:", Object.keys(sanitized));
+    return sanitized;
+  }
   
   /**
    * Retry request with exponential backoff
@@ -48,9 +125,12 @@ class RequirementDraftService {
    */
   async createDraft(data?: Partial<RequirementFormData>): Promise<DraftResponse> {
     try {
-      const response = await apiService.post<DraftResponse, Partial<RequirementFormData>>(
+      // Sanitize data to only include backend-allowed fields
+      const sanitizedData = data ? this.sanitizeForUpdate(data) : {};
+      
+      const response = await apiService.post<DraftResponse, Record<string, any>>(
         draftsRoutes.create,
-        data || {}
+        sanitizedData
       );
       console.log("Draft created:", response);
       return response;
@@ -67,12 +147,21 @@ class RequirementDraftService {
     draftId: string,
     data: Partial<RequirementFormData>
   ): Promise<DraftResponse> {
+    // Validate draftId to prevent invalid API calls
+    if (!draftId || draftId === 'undefined' || draftId === 'null') {
+      console.error('Invalid draftId provided to updateDraft:', draftId);
+      throw new Error('Valid draftId is required for update');
+    }
+
+    // Sanitize data to only include backend-allowed fields
+    const sanitizedData = this.sanitizeForUpdate(data);
+
     return this.retryRequest(async () => {
       try {
         // Use POST instead of PUT to match backend implementation
-        const response = await apiService.post<DraftResponse, Partial<RequirementFormData>>(
+        const response = await apiService.post<DraftResponse, Record<string, any>>(
           draftsRoutes.update(draftId),
-          data
+          sanitizedData
         );
         console.log("Draft updated:", response);
         return response;
@@ -169,11 +258,12 @@ class RequirementDraftService {
   ): Promise<DocumentUploadResponse> {
     try {
       const formData = new FormData();
-      files.forEach((file) => {
+      
+      // Append each file with its corresponding documentType
+      // Using singular 'documentType' key to match backend enum expectation
+      files.forEach((file, index) => {
         formData.append("files", file);
-      });
-      documentTypes.forEach((type) => {
-        formData.append("documentTypes", type);
+        formData.append("documentType", documentTypes[index] || 'other');
       });
 
       // Use axios directly for multipart/form-data

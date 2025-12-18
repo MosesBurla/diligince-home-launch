@@ -1,10 +1,36 @@
 export interface RequirementListItem {
   id: string;
+  draftId?: string;
   title: string;
   category: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
   estimatedValue: number;
+  estimatedBudget?: number;
   status: RequirementStatus;
+  createdAt?: string; // Mapped from backend
+  publishedAt?: string;
+  submissionDeadline?: string;
+  budget?: { min: number; max: number; currency: string };
+  approvalProgress?: {
+    currentLevel: number;
+    totalLevels: number;
+    levels: {
+      levelNumber: number;
+      name: string;
+      status: string;
+      approvers: {
+        memberId: string;
+        memberName: string;
+        memberEmail: string;
+        status: string;
+      }[];
+    }[];
+  };
+  currentApprovalLevel?: number;
+  sentForApprovalAt?: string;
+  createdBy?: { id: string; name: string; email: string };
+
+  // Legacy fields
   createdDate: string;
   lastModified?: string;
   submittedDate?: string;
@@ -20,23 +46,26 @@ export interface RequirementListItem {
   finalValue?: number;
 }
 
-export type RequirementStatus = 
-  | 'draft' 
-  | 'pending_approval' 
-  | 'approved' 
-  | 'published' 
-  | 'completed' 
-  | 'cancelled' 
+export type RequirementStatus =
+  | 'draft'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'published'
+  | 'completed'
+  | 'cancelled'
   | 'expired';
 
 export interface RequirementListResponse {
   success: boolean;
   data: {
-    requirements: RequirementListItem[];
+    requirements?: RequirementListItem[];
+    items?: RequirementListItem[];
     pagination: PaginationData;
-    filters: {
+    filters?: {
       applied: Record<string, any>;
       available: Record<string, FilterOption[]>;
+      creators?: { id: string; name: string; email: string; count: number }[]; // Added creators
     };
   };
 }
@@ -62,36 +91,36 @@ export interface RequirementDetail extends RequirementListItem {
   businessJustification: string;
   riskLevel: string;
   complianceRequired: boolean;
-  
+
   // Category-specific fields
   productSpecifications?: string;
   quantity?: number;
   technicalStandards?: string[];
   qualityRequirements?: string;
   productDeliveryDate?: string;
-  
+
   expertSkills?: string[];
   expertQualifications?: string[];
   expertDuration?: string;
-  
+
   serviceDescription?: string;
   serviceSLA?: string;
-  
+
   logisticsDetails?: string;
-  
+
   // Approval workflow
   approvalStatus: 'not_required' | 'pending' | 'approved' | 'rejected';
   approvalSteps: ApprovalStep[];
-  
+
   // Compliance
   complianceChecklist: ComplianceCheckItem[];
-  
+
   // Documents
   documents: DocumentItem[];
-  
+
   // Audit
   auditTrail: AuditEntry[];
-  
+
   // Applicants
   applicants: number;
 }

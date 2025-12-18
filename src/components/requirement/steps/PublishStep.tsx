@@ -1,56 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRequirement } from "@/contexts/RequirementContext";
-import { useStakeholder } from "@/contexts/StakeholderContext";
-import { useApproval } from "@/contexts/ApprovalContext";
-import { useRequirementDraft } from "@/hooks/useRequirementDraft";
+import { useSendForApproval } from "@/hooks/useSendForApproval";
+import { useApprovalStatus, ApprovalProgress } from "@/hooks/useApprovalStatus";
+import { usePublishRequirement } from "@/hooks/usePublishRequirement";
 import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, AlertTriangle, Clock, Shield } from "lucide-react";
+import { CalendarIcon, Send, CheckCircle2, Clock, AlertCircle, Loader2, Rocket } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { parseBackendError } from "@/utils/backend-error-parser";
-import { RequiredFieldsChecklist } from "@/components/requirement/RequiredFieldsChecklist";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PublishStepProps {
   onNext: () => void;
   onPrevious: () => void;
 }
 
-const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
-  console.log("PublishStep rendering...");
-  
+const PublishStep: React.FC<PublishStepProps> = ({ onNext }) => {
   const navigate = useNavigate();
-  const { formData, updateFormData, validateStep, stepErrors, draftId } = useRequirement();
-  const { publish } = useRequirementDraft();
-  const stakeholderContext = useStakeholder();
-  const { canPublishRequirement, getApprovalWorkflow, emergencyPublish } = useApproval();
-  const [isPublishing, setIsPublishing] = useState(false);
+  const { formData, updateFormData, draftId, stopEditing } = useRequirement();
+  const { sendForApproval, isLoading: isSending } = useSendForApproval();
+  const { status: approvalStatus, progress: approvalProgress, isLoading: isLoadingStatus, refetch } = useApprovalStatus(draftId);
+  const { publishRequirement, isLoading: isPublishing } = usePublishRequirement();
 
-  console.log("PublishStep rendered, formData:", formData);
-  console.log("Stakeholder context available:", !!stakeholderContext);
+  // Local state for tracking approval sent status (for UI before API response)
+  const [localApprovalStatus, setLocalApprovalStatus] = useState<'not_sent' | 'pending' | 'approved'>('not_sent');
+  const [localProgress, setLocalProgress] = useState<ApprovalProgress | null>(null);
 
-  // Safe access to notifyStakeholders with fallback
-  const notifyStakeholders = stakeholderContext?.notifyStakeholders || (() => {
-    console.warn("notifyStakeholders not available - using fallback");
-  });
+  // Sync with API status
+  useEffect(() => {
+    if (approvalStatus === 'pending') {
+      setLocalApprovalStatus('pending');
+      setLocalProgress(approvalProgress);
+    } else if (approvalStatus === 'approved') {
+      setLocalApprovalStatus('approved');
+      setLocalProgress(approvalProgress);
+    }
+  }, [approvalStatus, approvalProgress]);
 
-  // Check approval status
-  const approvalCheck = canPublishRequirement(formData);
-  const approvalWorkflow = getApprovalWorkflow(formData.title || 'unknown');
-  
-  // Available evaluation criteria based on ISO 9001 procurement standards
+  // Determine if approval is required
+  const requiresApproval = !!formData.selectedApprovalMatrixId;
+
+  // Available evaluation criteria
   const availableEvaluationCriteria = [
     "Price/Cost Competitiveness",
     "Technical Compliance",
@@ -58,10 +61,6 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
     "Delivery Timeline",
     "Past Performance/Experience",
     "Technical Capability",
-    "Financial Stability",
-    "Compliance & Certifications",
-    "Risk Assessment",
-    "Sustainability Practices"
   ];
 
   const handleEvaluationCriteriaChange = (criterion: string, checked: boolean) => {
@@ -74,267 +73,248 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
     updateFormData({ evaluationCriteria: updatedCriteria });
   };
 
-  const handleEmergencyPublish = async () => {
-    if (!formData.isUrgent) {
-      toast.error("Emergency publish is only available for urgent requirements");
-      return;
-    }
-    
-    try {
-      setIsPublishing(true);
-      const success = await emergencyPublish(formData.title || 'unknown');
-      if (success) {
-        // Safely notify stakeholders with error handling
-        try {
-          notifyStakeholders(formData);
-        } catch (error) {
-          console.warn("Failed to notify stakeholders:", error);
-          // Don't block the publish process for notification failures
-        }
-        toast.success("Requirement published under emergency protocol!");
-        onNext();
-      }
-    } catch (error) {
-      console.error("Emergency publish failed:", error);
-      toast.error("Emergency publish failed. Please try again.");
-    } finally {
-      setIsPublishing(false);
-    }
-  };
-
-  // Validate all required fields before publishing
-  const validateAllRequiredFields = () => {
-    const errors: { step: number; field: string }[] = [];
-    
-    // Step 1: Basic Info
-    if (!formData.title?.trim()) {
-      errors.push({ step: 1, field: 'Title' });
-    }
-    if (!formData.category) {
-      errors.push({ step: 1, field: 'Category' });
-    }
-    
-    // Step 2: Category-specific fields
-    if (formData.category === 'product') {
-      if (!formData.productSpecifications?.trim()) {
-        errors.push({ step: 2, field: 'Product Specifications' });
-      }
-      if (!formData.quantity || formData.quantity <= 0) {
-        errors.push({ step: 2, field: 'Quantity' });
-      }
-    } else if (formData.category === 'expert') {
-      if (!formData.specialization?.trim()) {
-        errors.push({ step: 2, field: 'Specialization' });
-      }
-      if (!formData.description?.trim()) {
-        errors.push({ step: 2, field: 'Description' });
-      }
-    } else if (formData.category === 'service') {
-      if (!formData.serviceDescription?.trim()) {
-        errors.push({ step: 2, field: 'Service Description' });
-      }
-      if (!formData.scopeOfWork?.trim()) {
-        errors.push({ step: 2, field: 'Scope of Work' });
-      }
-    } else if (formData.category === 'logistics') {
-      if (!formData.equipmentType?.trim()) {
-        errors.push({ step: 2, field: 'Equipment Type' });
-      }
-      if (!formData.pickupLocation?.trim()) {
-        errors.push({ step: 2, field: 'Pickup Location' });
-      }
-      if (!formData.deliveryLocation?.trim()) {
-        errors.push({ step: 2, field: 'Delivery Location' });
-      }
-    }
-    
-    // Step 4: Budget
-    if (!formData.estimatedBudget || formData.estimatedBudget <= 0) {
-      errors.push({ step: 4, field: 'Estimated Budget' });
-    }
-    
-    // Step 5: Timeline/Deadline
-    if (!formData.deadline) {
-      errors.push({ step: 5, field: 'Deadline' });
-    }
-    
+  // Validate required fields for sending/publishing
+  const validateRequiredFields = () => {
+    const errors: string[] = [];
+    if (!formData.title?.trim()) errors.push('Title');
+    if (!formData.category) errors.push('Category');
+    if (!formData.estimatedBudget || formData.estimatedBudget <= 0) errors.push('Budget');
+    if (!formData.submissionDeadline) errors.push('Submission Deadline');
+    if (!formData.evaluationCriteria || formData.evaluationCriteria.length === 0) errors.push('Evaluation Criteria (at least one)');
+    if (!formData.termsAccepted) errors.push('Terms acceptance');
     return errors;
   };
 
-  const handlePublish = async () => {
-    try {
-      console.log("Starting publish process...");
-      setIsPublishing(true);
-      
-      // First, validate all required fields across all steps
-      const fieldErrors = validateAllRequiredFields();
-      if (fieldErrors.length > 0) {
-        const errorMessage = `Missing required fields: ${fieldErrors.map(e => e.field).join(', ')}`;
-        const firstErrorStep = Math.min(...fieldErrors.map(e => e.step));
-        toast.error(errorMessage, {
-          description: `Please go back to Step ${firstErrorStep} and complete the required fields.`,
-          duration: 6000,
-        });
-        return;
-      }
-      
-      if (!validateStep(6)) {
-        console.log("Step 6 validation failed:", stepErrors);
-        toast.error("Please fill in all required fields on this step");
-        return;
-      }
+  // Handle Send for Approval
+  const handleSendForApproval = async () => {
+    const errors = validateRequiredFields();
+    if (errors.length > 0) {
+      toast.error(`Please complete: ${errors.join(', ')}`);
+      return;
+    }
 
-      // Check approval status
-      if (!approvalCheck.canPublish) {
-        toast.error(approvalCheck.reason || "Approval required before publishing");
-        return;
-      }
+    if (!draftId) {
+      toast.error("Please save the requirement first");
+      return;
+    }
 
-      if (!draftId) {
-        toast.error("No draft ID available. Please save the requirement first.");
-        return;
-      }
-      
-      console.log("Validation and approval checks passed, proceeding with publish...");
-      
-      // Call API to publish requirement
-      const response = await publish({
-        draftId,
-        submissionDeadline: formData.submissionDeadline!,
-        evaluationCriteria: formData.evaluationCriteria!,
-        visibility: formData.visibility!,
-        selectedVendors: formData.visibility === "selected" ? formData.selectedVendors : undefined,
-        notifyByEmail: formData.notifyByEmail!,
-        notifyByApp: formData.notifyByApp!,
-        termsAccepted: formData.termsAccepted!,
+    if (!formData.selectedApprovalMatrixId) {
+      toast.error("Please select an approval matrix");
+      return;
+    }
+
+    const response = await sendForApproval({
+      draftId,
+      selectedApprovalMatrixId: formData.selectedApprovalMatrixId,
+      submissionDeadline: formData.submissionDeadline,
+      evaluationCriteria: formData.evaluationCriteria,
+    });
+
+    if (response) {
+      setLocalApprovalStatus('pending');
+      setLocalProgress(response.approvalProgress || null);
+      updateFormData({
+        approvalStatus: 'pending',
+        status: 'pending',
+        isSentForApproval: true,
+        approvalProgress: response.approvalProgress,
       });
-
-      // Display success message and navigate based on status
-      if (response.status === "published") {
-        toast.success(`Requirement published! ${response.vendorsNotified} vendors notified.`);
-        // Navigate to success screen
-        onNext();
-      } else if (response.status === "pending_approval") {
-        toast.success("Requirement submitted for approval");
-        // Navigate to pending approvals page
-        navigate("/pending-approvals");
-      }
-      
-      // Safely notify relevant stakeholders about the new requirement
-      try {
-        notifyStakeholders(formData);
-      } catch (error) {
-        console.warn("Failed to notify stakeholders:", error);
-        // Don't block the publish process for notification failures
-      }
-      
-      console.log("Publish successful");
-    } catch (error: any) {
-      console.error("Error during publish:", error);
-      
-      // Parse backend error and show user-friendly message
-      const parsedError = parseBackendError(error);
-      
-      if (parsedError.type === 'validation' && parsedError.step) {
-        toast.error(parsedError.message, {
-          description: `Please go back to Step ${parsedError.step} and complete this field.`,
-          duration: 6000,
-        });
-      } else {
-        toast.error(parsedError.message, {
-          description: "Please check all fields and try again.",
-          duration: 5000,
-        });
-      }
-    } finally {
-      setIsPublishing(false);
+      // Stop auto-save after sending for approval
+      stopEditing();
+      // Refetch to get latest status
+      setTimeout(() => refetch(), 1000);
     }
   };
 
-  const handleSaveDraft = () => {
-    toast.success("Requirement saved as draft");
+  // Handle Direct Publish (no approval required)
+  const handlePublish = async () => {
+    const errors = validateRequiredFields();
+    if (errors.length > 0) {
+      toast.error(`Please complete: ${errors.join(', ')}`);
+      return;
+    }
+
+    if (!draftId) {
+      toast.error("Please save the requirement first");
+      return;
+    }
+
+    const response = await publishRequirement({
+      requirementId: draftId,
+      visibility: formData.visibility,
+      selectedVendors: formData.selectedVendors,
+      notifyByEmail: formData.notifyByEmail,
+      notifyByApp: formData.notifyByApp,
+    });
+
+    if (response) {
+      // Stop auto-save after publishing
+      stopEditing();
+      updateFormData({ status: 'published' });
+      onNext(); // Navigate to success screen
+    }
   };
 
-  return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">{steps[5].name}</h2>
-        <p className="text-gray-600">
-          {steps[5].description}
-        </p>
-        
-        {/* Approval Status Display */}
-        {approvalWorkflow && (
-          <div className={cn(
-            "p-4 rounded-lg border",
-            approvalCheck.canPublish 
-              ? "bg-green-50 border-green-200" 
-              : "bg-yellow-50 border-yellow-200"
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              {approvalCheck.canPublish ? (
-                <Shield className="h-5 w-5 text-green-600" />
-              ) : (
-                <Clock className="h-5 w-5 text-yellow-600" />
-              )}
-              <h3 className="font-medium">
-                {approvalCheck.canPublish ? "Approval Completed" : "Approval Required"}
-              </h3>
-            </div>
-            {!approvalCheck.canPublish && (
-              <p className="text-sm text-gray-600 mb-3">{approvalCheck.reason}</p>
+  // Render approval progress levels
+  const renderApprovalProgress = () => {
+    if (!localProgress?.levels) return null;
+
+    return (
+      <div className="space-y-3">
+        {localProgress.levels.map((level, index) => (
+          <div
+            key={level.levelNumber}
+            className={cn(
+              "flex items-center gap-3 p-3 rounded-lg border",
+              level.status === 'approved' ? "bg-emerald-50 border-emerald-200" :
+                level.status === 'pending' && level.levelNumber === localProgress.currentLevel ? "bg-amber-50 border-amber-200" :
+                  "bg-muted/30 border-border/50"
             )}
-            <div className="text-sm">
-              <p>Workflow Status: <span className="font-medium">{approvalWorkflow.status}</span></p>
-              <p>Completed Approvals: {approvalWorkflow.completedApprovals}/{approvalWorkflow.totalApprovals}</p>
-              {approvalWorkflow.isUrgent && approvalWorkflow.emergencyPublishDeadline && (
-                <p className="text-orange-600 font-medium">
-                  Emergency Deadline: {format(new Date(approvalWorkflow.emergencyPublishDeadline), "PPp")}
-                </p>
-              )}
+          >
+            <div className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium",
+              level.status === 'approved' ? "bg-emerald-600 text-white" :
+                level.status === 'pending' && level.levelNumber === localProgress.currentLevel ? "bg-amber-500 text-white" :
+                  "bg-muted text-muted-foreground"
+            )}>
+              {level.status === 'approved' ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
             </div>
+            <div className="flex-1">
+              <p className="font-medium text-sm">{level.name || `Level ${level.levelNumber}`}</p>
+              <p className="text-xs text-muted-foreground">
+                {level.approvers?.length || 0} approver(s) •
+                {level.status === 'approved' ? ' Approved' :
+                  level.status === 'pending' ? ' Awaiting approval' : ' Pending'}
+              </p>
+            </div>
+            {level.status === 'approved' && (
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            )}
+            {level.status === 'pending' && level.levelNumber === localProgress.currentLevel && (
+              <Clock className="h-5 w-5 text-amber-500" />
+            )}
           </div>
-        )}
+        ))}
+      </div>
+    );
+  };
+
+  // Determine which UI state to show
+  const getUIState = () => {
+    if (isLoadingStatus) return 'loading';
+    if (!requiresApproval) return 'no_approval';
+    if (localApprovalStatus === 'approved') return 'approved';
+    if (localApprovalStatus === 'pending') return 'pending';
+    return 'not_sent';
+  };
+
+  const uiState = getUIState();
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">{steps[5].name}</h2>
+        <p className="text-sm text-muted-foreground">
+          Configure publishing options and submit your requirement
+        </p>
       </div>
 
-      {/* Required Fields Checklist */}
-      <RequiredFieldsChecklist />
+      {/* Loading State */}
+      {uiState === 'loading' && (
+        <Card>
+          <CardContent className="p-6 space-y-3">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      )}
 
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <Label className="text-base">Requirement Visibility</Label>
+      {/* Approval Status Card */}
+      {uiState !== 'loading' && (
+        <Card className={cn(
+          "border",
+          uiState === 'approved' ? "border-emerald-200 bg-emerald-50/50" :
+            uiState === 'pending' ? "border-amber-200 bg-amber-50/50" :
+              uiState === 'no_approval' ? "border-emerald-200 bg-emerald-50/50" :
+                "border-border"
+        )}>
+          <CardHeader className="py-3 px-4">
+            <div className="flex items-center gap-2">
+              {uiState === 'approved' || uiState === 'no_approval' ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              ) : uiState === 'pending' ? (
+                <Clock className="h-5 w-5 text-amber-500" />
+              ) : (
+                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+              )}
+              <CardTitle className="text-base font-medium">
+                {uiState === 'approved' ? "All Approvals Complete" :
+                  uiState === 'pending' ? "Awaiting Approvals" :
+                    uiState === 'no_approval' ? "Ready to Publish" :
+                      "Approval Required"}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 pt-0">
+            {uiState === 'pending' && renderApprovalProgress()}
+
+            {uiState === 'pending' && localProgress?.estimatedPublishDate && (
+              <p className="text-sm text-muted-foreground mt-3">
+                Estimated publish date: {format(new Date(localProgress.estimatedPublishDate), "PPP")}
+              </p>
+            )}
+
+            {uiState === 'approved' && (
+              <p className="text-sm text-emerald-700">
+                All approval levels completed. You can now publish this requirement.
+              </p>
+            )}
+
+            {uiState === 'no_approval' && (
+              <p className="text-sm text-emerald-700">
+                No approval matrix selected. You can publish directly.
+              </p>
+            )}
+
+            {uiState === 'not_sent' && (
+              <p className="text-sm text-muted-foreground">
+                Selected approval matrix requires review before publishing.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Publishing Options */}
+      <div className="space-y-5">
+        {/* Visibility */}
+        {/* <div className="space-y-3">
+          <Label className="text-sm font-medium">Requirement Visibility</Label>
           <RadioGroup
             value={formData.visibility || "all"}
             onValueChange={(value: "all" | "selected") => updateFormData({ visibility: value })}
-            className="space-y-3"
+            className="flex gap-4"
           >
-            <div className="flex items-start space-x-3 rounded-md border p-3">
+            <div className="flex items-center space-x-2">
               <RadioGroupItem value="all" id="all-vendors" />
-              <div className="space-y-1">
-                <Label htmlFor="all-vendors" className="font-medium">
-                  All Relevant Vendors
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Your requirement will be visible to all approved vendors that match the category.
-                </p>
-              </div>
+              <Label htmlFor="all-vendors" className="text-sm font-normal cursor-pointer">
+                All Vendors
+              </Label>
             </div>
-            <div className="flex items-start space-x-3 rounded-md border p-3">
+            <div className="flex items-center space-x-2">
               <RadioGroupItem value="selected" id="selected-vendors" />
-              <div className="space-y-1">
-                <Label htmlFor="selected-vendors" className="font-medium">
-                  Selected Vendors Only
-                </Label>
-                <p className="text-sm text-gray-500">
-                  Only vendors you specifically invite will see your requirement.
-                </p>
-              </div>
+              <Label htmlFor="selected-vendors" className="text-sm font-normal cursor-pointer">
+                Selected Only
+              </Label>
             </div>
           </RadioGroup>
-        </div>
+        </div> */}
 
-        <div className="space-y-3">
-          <Label className="text-base">
+        {/* Submission Deadline */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
             Submission Deadline <span className="text-red-500">*</span>
           </Label>
           <Popover>
@@ -342,7 +322,7 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full max-w-sm justify-start text-left font-normal h-9",
                   !formData.submissionDeadline && "text-muted-foreground"
                 )}
               >
@@ -350,7 +330,7 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
                 {formData.submissionDeadline ? (
                   format(formData.submissionDeadline, "PPP")
                 ) : (
-                  <span>Select deadline date</span>
+                  <span>Select deadline</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -364,150 +344,126 @@ const PublishStep: React.FC<PublishStepProps> = ({ onNext, onPrevious }) => {
               />
             </PopoverContent>
           </Popover>
-          {stepErrors?.submissionDeadline && (
-            <p className="text-sm text-red-500">{stepErrors.submissionDeadline}</p>
-          )}
         </div>
 
-        <div className="space-y-4">
-          <Label className="text-base">
-            Evaluation Criteria <span className="text-red-500">*</span>
-          </Label>
-          <p className="text-sm text-gray-600">
-            Select the criteria that will be used to evaluate vendor proposals (ISO 9001 compliant)
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Evaluation Criteria */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Evaluation Criteria <span className="text-red-500">*</span></Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {availableEvaluationCriteria.map((criterion) => (
               <div key={criterion} className="flex items-center space-x-2">
                 <Checkbox
                   id={criterion}
                   checked={(formData.evaluationCriteria || []).includes(criterion)}
                   onCheckedChange={(checked) => handleEvaluationCriteriaChange(criterion, !!checked)}
+                  className="h-4 w-4"
                 />
-                <Label htmlFor={criterion} className="text-sm font-normal cursor-pointer">
+                <Label htmlFor={criterion} className="text-xs font-normal cursor-pointer">
                   {criterion}
                 </Label>
               </div>
             ))}
           </div>
-          {stepErrors?.evaluationCriteria && (
-            <p className="text-sm text-red-500">{stepErrors.evaluationCriteria}</p>
-          )}
         </div>
 
-        <div className="space-y-4">
-          <Label className="text-base">Notification Preferences</Label>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notify-email" className="cursor-pointer">Email Notifications</Label>
-                <p className="text-sm text-gray-500">
-                  Receive updates about proposals via email
-                </p>
-              </div>
-              <Switch
-                id="notify-email"
-                checked={formData.notifyByEmail || false}
-                onCheckedChange={(checked) => updateFormData({ notifyByEmail: checked })}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notify-app" className="cursor-pointer">In-App Notifications</Label>
-                <p className="text-sm text-gray-500">
-                  Receive updates within the platform
-                </p>
-              </div>
-              <Switch
-                id="notify-app"
-                checked={formData.notifyByApp || true}
-                onCheckedChange={(checked) => updateFormData({ notifyByApp: checked })}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-start space-x-3">
-            <Checkbox
-              id="terms"
-              checked={formData.termsAccepted || false}
-              onCheckedChange={(checked) => updateFormData({ termsAccepted: !!checked })}
-            />
-            <div className="space-y-1">
-              <Label
-                htmlFor="terms"
-                className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Terms and Conditions <span className="text-red-500">*</span>
-              </Label>
-              <p className="text-sm text-gray-500">
-                I acknowledge that I have read and agree to the{" "}
-                <a href="/terms" className="text-primary hover:underline">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </a>
-                .
-              </p>
-            </div>
-          </div>
-          {stepErrors?.termsAccepted && (
-            <p className="text-sm text-red-500">{stepErrors.termsAccepted}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 pt-6">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={onPrevious}
-            disabled={isPublishing}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={isPublishing}
-          >
-            Save as Draft
-          </Button>
-        </div>
-        <div className="flex items-center gap-3">
-          {formData.isUrgent && !approvalCheck.canPublish && (
-            <Button 
-              onClick={handleEmergencyPublish}
-              disabled={isPublishing}
-              variant="outline"
-              className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100"
-            >
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Emergency Publish
-            </Button>
-          )}
-          <Button 
-            onClick={handlePublish}
-            disabled={isPublishing || !approvalCheck.canPublish}
-          >
-            {isPublishing ? "Publishing..." : "Publish & Notify Stakeholders"}
-          </Button>
-        </div>
-      </div>
-      
-      {!approvalCheck.canPublish && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        {/* Notifications */}
+        {/* <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-yellow-600" />
-            <p className="text-sm text-yellow-800">
-              {approvalCheck.reason}
-            </p>
+            <Switch
+              id="notify-email"
+              checked={formData.notifyByEmail || false}
+              onCheckedChange={(checked) => updateFormData({ notifyByEmail: checked })}
+            />
+            <Label htmlFor="notify-email" className="text-sm font-normal cursor-pointer">
+              Email notifications
+            </Label>
           </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="notify-app"
+              checked={formData.notifyByApp !== false}
+              onCheckedChange={(checked) => updateFormData({ notifyByApp: checked })}
+            />
+            <Label htmlFor="notify-app" className="text-sm font-normal cursor-pointer">
+              In-app notifications
+            </Label>
+          </div>
+        </div> */}
+
+        {/* Terms */}
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
+          <Checkbox
+            id="terms"
+            checked={formData.termsAccepted || false}
+            onCheckedChange={(checked) => updateFormData({ termsAccepted: !!checked })}
+            className="mt-0.5"
+          />
+          <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
+            I agree to the{" "}
+            <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+            {" "}and{" "}
+            <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
+            <span className="text-red-500"> *</span>
+          </Label>
         </div>
-      )}
+      </div>
+
+      {/* Action Button */}
+      <div className="pt-4 border-t">
+        {/* Show Send for Approval button if approval is required and not yet sent */}
+        {uiState === 'not_sent' && (
+          <Button
+            onClick={handleSendForApproval}
+            disabled={isSending || !formData.termsAccepted}
+            className="w-full sm:w-auto gap-2"
+            size="lg"
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" />
+                Send for Approval
+              </>
+            )}
+          </Button>
+        )}
+
+        {/* Show waiting message when pending */}
+        {uiState === 'pending' && (
+          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-3 rounded-lg">
+            <Clock className="h-5 w-5" />
+            <span className="text-sm font-medium">
+              Waiting for approvals. You will be notified when ready to publish.
+            </span>
+          </div>
+        )}
+
+        {/* Show Publish button when approved or no approval required */}
+        {(uiState === 'approved' || uiState === 'no_approval') && (
+          <Button
+            onClick={handlePublish}
+            disabled={isPublishing || !formData.termsAccepted}
+            className="w-full sm:w-auto gap-2"
+            size="lg"
+          >
+            {isPublishing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Rocket className="h-4 w-4" />
+                Publish Requirement
+              </>
+            )}
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

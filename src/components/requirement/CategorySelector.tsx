@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { User, Package, Wrench, Truck } from "lucide-react";
+import { User, Package, Wrench, Truck, Check } from "lucide-react";
 
 interface Category {
   id: string;
@@ -36,14 +36,26 @@ const categories: Category[] = [
 ];
 
 interface CategorySelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
   error?: string;
 }
 
-export function CategorySelector({ value, onChange, error }: CategorySelectorProps) {
-  const getCategoryColor = (categoryId: string, isSelected: boolean) => {
-    if (!isSelected) return "border-2 border-corporate-gray-200 bg-white hover:border-corporate-gray-300 text-corporate-gray-700";
+export function CategorySelector({ value = [], onChange, error }: CategorySelectorProps) {
+  const isSelected = (categoryId: string) => value.includes(categoryId);
+
+  const handleToggle = (categoryId: string) => {
+    if (isSelected(categoryId)) {
+      // Remove if already selected
+      onChange(value.filter(id => id !== categoryId));
+    } else {
+      // Add to selection
+      onChange([...value, categoryId]);
+    }
+  };
+
+  const getCategoryColor = (categoryId: string, selected: boolean) => {
+    if (!selected) return "border-2 border-corporate-gray-200 bg-white hover:border-corporate-gray-300 text-corporate-gray-700";
     
     switch (categoryId) {
       case "product":
@@ -62,21 +74,32 @@ export function CategorySelector({ value, onChange, error }: CategorySelectorPro
   return (
     <div className="space-y-2">
       <div className="flex overflow-x-auto pb-2 -mx-1 px-1 gap-2 scrollbar-hide">
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            onClick={() => onChange(category.id)}
-            className={cn(
-              "flex items-center gap-2 px-4 h-12 rounded-lg transition-all whitespace-nowrap touch-manipulation min-w-[140px]",
-              getCategoryColor(category.id, value === category.id)
-            )}
-          >
-            {category.icon}
-            <span className="text-sm font-medium">{category.title}</span>
-          </button>
-        ))}
+        {categories.map((category) => {
+          const selected = isSelected(category.id);
+          return (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => handleToggle(category.id)}
+              className={cn(
+                "relative flex items-center gap-2 px-4 h-12 rounded-lg transition-all whitespace-nowrap touch-manipulation min-w-[140px]",
+                getCategoryColor(category.id, selected)
+              )}
+            >
+              {category.icon}
+              <span className="text-sm font-medium">{category.title}</span>
+              {selected && (
+                <Check className="w-4 h-4 ml-auto" />
+              )}
+            </button>
+          );
+        })}
       </div>
+      {value.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {value.length} categor{value.length === 1 ? 'y' : 'ies'} selected
+        </p>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

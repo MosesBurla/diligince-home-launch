@@ -1,361 +1,598 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload, FileText, CheckCircle, XCircle, Clock } from "lucide-react";
-import { ConsentDialog } from "@/components/verification/ConsentDialog";
-import { getRequiredDocuments, getDocumentDisplayName } from "@/utils/vendorDocumentRequirements";
-import { useUser } from "@/contexts/UserContext";
-import { VerificationStatus } from "@/types/verification";
-import { toast } from "sonner";
+import React, { useState, useMemo, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle2, XCircle, AlertCircle, Save, Send } from 'lucide-react';
+import { SettingsPageSkeleton } from '@/components/shared/loading';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import toast from '@/utils/toast.utils';
+import errorHandler from '@/utils/errorHandler.utils';
+import { VendorProfile, VerificationStatus, VerificationDocument, VendorDocumentType } from '@/types/verification';
+import { VendorProfileCompletionBanner } from '@/components/vendor/shared/VendorProfileCompletionBanner';
+import { VendorDocumentUploadField } from '@/components/vendor/shared/VendorDocumentUploadField';
+import { 
+  calculateVendorProfileCompletion, 
+  canVendorSubmitForVerification,
+  getVendorRequiredDocuments,
+  getDocumentDisplayName
+} from '@/utils/vendorProfileValidation';
+import { ConsentDialog } from '@/components/verification/ConsentDialog';
 
-export default function VendorSettings() {
-  const { user } = useUser();
-  const [isConsentOpen, setIsConsentOpen] = useState(false);
+const VENDOR_CATEGORIES = ['Service Vendor', 'Product Vendor', 'Logistics Vendor'] as const;
+
+const VendorSettings = () => {
+  const navigate = useNavigate();
+  const { user, refreshVerificationStatus } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Mock vendor profile data - replace with real data from context
-  const [profile, setProfile] = useState({
-    businessName: user?.profile?.businessName || "",
-    vendorCategory: user?.profile?.vendorCategory || "Service Vendor",
-    specialization: user?.profile?.specialization || "",
-    panNumber: "",
-    gstNumber: "",
-    registrationNumber: "",
-    email: user?.email || "",
-    mobile: user?.profile?.mobile || "",
-    telephone: "",
-    website: "",
-    documents: [] as any[],
-    verificationStatus: VerificationStatus.INCOMPLETE
-  });
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isConsentOpen, setIsConsentOpen] = useState(false);
 
-  const requiredDocs = getRequiredDocuments(profile.vendorCategory);
-  const uploadedDocTypes = profile.documents.map(doc => doc.documentType);
-  const missingDocs = requiredDocs.filter(doc => !uploadedDocTypes.includes(doc.type));
-  
-  const isProfileComplete = 
-    profile.businessName &&
-    profile.panNumber &&
-    profile.gstNumber &&
-    profile.registrationNumber &&
-    profile.email &&
-    profile.mobile &&
-    missingDocs.length === 0;
+  // Vendor Profile State
+  const [profile, setProfile] = useState<Partial<VendorProfile>>({});
 
-  const handleFileUpload = (documentType: string, file: File) => {
-    // Mock file upload - replace with real API call
-    const mockDoc = {
-      id: Date.now().toString(),
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      url: URL.createObjectURL(file),
-      documentType,
-      uploadedAt: new Date(),
-      status: 'pending' as const
+  // Calculate profile completion
+  const completion = useMemo(() => {
+    return calculateVendorProfileCompletion(profile);
+  }, [profile]);
+
+  const submitStatus = useMemo(() => {
+    return canVendorSubmitForVerification(profile);
+  }, [profile]);
+
+  const isProfileLocked = useMemo(() => {
+    return profile.verificationStatus === VerificationStatus.PENDING ||
+      profile.verificationStatus === VerificationStatus.APPROVED;
+  }, [profile.verificationStatus]);
+
+  // Get required documents for this vendor type
+  const requiredDocuments = useMemo(() => {
+    return getVendorRequiredDocuments(profile.vendorCategory || 'Service Vendor');
+  }, [profile.vendorCategory]);
+
+  // Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoadingProfile(true);
+        // TODO: Replace with actual vendorProfileService.getProfile()
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Mock profile from user context
+        setProfile({
+          businessName: user?.profile?.businessName || '',
+          vendorCategory: user?.profile?.vendorCategory || 'Service Vendor',
+          specialization: user?.profile?.specialization || '',
+          panNumber: '',
+          gstNumber: '',
+          registrationNumber: '',
+          email: user?.email || '',
+          mobile: user?.profile?.mobile || '',
+          telephone: '',
+          website: '',
+          primaryIndustry: '',
+          yearsInBusiness: '',
+          businessLocation: '',
+          documents: [],
+          verificationStatus: VerificationStatus.INCOMPLETE,
+        });
+      } catch (error: any) {
+        console.error('Error fetching profile:', error);
+        toast.error('Failed to load profile');
+      } finally {
+        setIsLoadingProfile(false);
+      }
     };
-    
-    setProfile(prev => ({
-      ...prev,
-      documents: [...prev.documents, mockDoc]
-    }));
-    
-    toast.success(`${getDocumentDisplayName(documentType)} uploaded successfully`);
+
+    fetchProfile();
+  }, [user]);
+
+  // Field validation helpers
+  const getFieldStatus = (fieldValue: any, required: boolean = true) => {
+    if (!required) return 'optional';
+    if (!fieldValue || String(fieldValue).trim() === '') return 'empty';
+    return 'filled';
   };
 
-  const handleDeleteDocument = (docId: string) => {
-    setProfile(prev => ({
-      ...prev,
-      documents: prev.documents.filter(doc => doc.id !== docId)
-    }));
-    toast.success('Document deleted successfully');
+  const getFieldClassName = (status: string) => {
+    if (status === 'empty') return 'border-red-300 focus:border-red-500';
+    if (status === 'filled') return 'border-green-300 focus:border-green-500';
+    return '';
   };
 
-  const handleSubmitForVerification = async () => {
-    if (!isProfileComplete) {
-      toast.error('Please complete all required fields and upload all documents');
+  // Form handlers
+  const handleChange = (field: keyof VendorProfile, value: any) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (isProfileLocked) {
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification and cannot be edited.',
+      });
       return;
     }
-    
-    setIsConsentOpen(true);
-  };
 
-  const handleConsentConfirm = async () => {
     setIsSubmitting(true);
-    
+    const loadingToast = errorHandler.showLoading('Saving profile...');
+
     try {
-      // Mock API call - replace with real vendorProfileService.submitForVerification
+      // TODO: Replace with actual vendorProfileService.saveProfile(profile)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      setProfile(prev => ({
-        ...prev,
-        verificationStatus: VerificationStatus.PENDING
-      }));
-      
-      toast.success('Profile submitted for verification!');
-      setIsConsentOpen(false);
-      
-      // Redirect to pending page
-      window.location.href = '/verification-pending';
+      errorHandler.updateSuccess(loadingToast, 'Profile saved successfully');
     } catch (error) {
-      toast.error('Failed to submit profile. Please try again.');
+      errorHandler.updateError(loadingToast, 'Failed to save profile');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const renderVerificationBadge = () => {
-    switch (profile.verificationStatus) {
-      case VerificationStatus.APPROVED:
-        return (
-          <div className="flex items-center gap-2 text-green-600">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-semibold">Verified</span>
-          </div>
-        );
-      case VerificationStatus.PENDING:
-        return (
-          <div className="flex items-center gap-2 text-yellow-600">
-            <Clock className="h-5 w-5" />
-            <span className="font-semibold">Pending Verification</span>
-          </div>
-        );
-      case VerificationStatus.REJECTED:
-        return (
-          <div className="flex items-center gap-2 text-red-600">
-            <XCircle className="h-5 w-5" />
-            <span className="font-semibold">Verification Rejected</span>
-          </div>
-        );
-      default:
-        return (
-          <div className="flex items-center gap-2 text-gray-600">
-            <Clock className="h-5 w-5" />
-            <span className="font-semibold">Not Verified</span>
-          </div>
-        );
+  const handleSubmitForVerification = async () => {
+    if (!submitStatus.canSubmit) {
+      toast.warning('Incomplete Profile', {
+        description: submitStatus.reason,
+        duration: 5000,
+      });
+      return;
+    }
+
+    if (isProfileLocked) {
+      toast.info('Already Submitted', {
+        description: 'Profile has already been submitted for verification.',
+      });
+      return;
+    }
+
+    setIsConsentOpen(true);
+  };
+
+  const handleConsentConfirm = async () => {
+    setIsSubmitting(true);
+    const loadingToast = errorHandler.showLoading('Submitting for verification...');
+
+    try {
+      // TODO: Replace with actual vendorProfileService.submitForVerification()
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      setProfile(prev => ({
+        ...prev,
+        verificationStatus: VerificationStatus.PENDING,
+        verificationSubmittedAt: new Date().toISOString(),
+      }));
+
+      errorHandler.updateSuccess(loadingToast, 'Profile submitted for verification!');
+      setIsConsentOpen(false);
+
+      await refreshVerificationStatus();
+
+      setTimeout(() => {
+        navigate('/verification-pending');
+      }, 1500);
+    } catch (error) {
+      errorHandler.updateError(loadingToast, 'Failed to submit for verification');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Vendor Profile Settings</h1>
-            <p className="text-muted-foreground mt-1">Complete your profile to get verified</p>
-          </div>
-          {renderVerificationBadge()}
+  // Document handlers
+  const handleDocumentUpload = async (file: File, documentType: string): Promise<VerificationDocument> => {
+    if (isProfileLocked) {
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification. Documents cannot be modified.',
+      });
+      throw new Error('Profile locked');
+    }
+
+    // TODO: Replace with actual vendorProfileService.uploadDocument()
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const uploadedDoc: VerificationDocument = {
+      id: Date.now().toString(),
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      url: URL.createObjectURL(file),
+      documentType: documentType as VerificationDocument['documentType'],
+      uploadedAt: new Date(),
+      status: 'pending',
+    };
+
+    setProfile(prev => {
+      const existingDocs = prev.documents || [];
+      const filteredDocs = existingDocs.filter(doc => doc.documentType !== documentType);
+      return {
+        ...prev,
+        documents: [...filteredDocs, uploadedDoc]
+      };
+    });
+
+    return uploadedDoc;
+  };
+
+  const handleDocumentDelete = async (documentId: string): Promise<void> => {
+    if (isProfileLocked) {
+      toast.warning('Profile is locked', {
+        description: 'Profile is locked for verification. Documents cannot be deleted.',
+      });
+      return;
+    }
+
+    // TODO: Replace with actual vendorProfileService.deleteDocument()
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    setProfile(prev => ({
+      ...prev,
+      documents: (prev.documents || []).filter(doc => doc.id !== documentId)
+    }));
+  };
+
+  const getDocumentByType = (type: VendorDocumentType) => {
+    return profile.documents?.find(doc => doc.documentType === type);
+  };
+
+    return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Business Profile</h1>
+          <p className="text-muted-foreground">Manage your business profile and company details</p>
         </div>
+      </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="legal">Legal Information</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-          </TabsList>
+      {isLoadingProfile ? (
+        <SettingsPageSkeleton showTabs={false} sections={4} />
+      ) : (
+        <div className="space-y-6">
 
-          <TabsContent value="profile" className="space-y-6">
+          <>
+            {/* Profile Lock Warning */}
+            {isProfileLocked && (
+              <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-800 dark:text-yellow-400">
+                        Profile Locked
+                      </h3>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-500 mt-1">
+                        {profile.verificationStatus === VerificationStatus.PENDING
+                          ? 'Your profile has been submitted for verification and is currently under review. No changes can be made during this period.'
+                          : 'Your profile has been verified and is permanently locked. Please contact support if you need to make changes.'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Profile Completion Banner */}
+            <VendorProfileCompletionBanner
+              profile={profile}
+              onSubmitForVerification={handleSubmitForVerification}
+              isSubmitting={isSubmitting}
+            />
+
+            {/* Business Information Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Business Information</CardTitle>
-                <CardDescription>Your basic business details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="businessName">Business Name *</Label>
-                  <Input
-                    id="businessName"
-                    value={profile.businessName}
-                    onChange={(e) => setProfile(prev => ({ ...prev, businessName: e.target.value }))}
-                    placeholder="Enter business name"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Business Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="businessName" className="flex items-center gap-2">
+                      Business Name <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.businessName) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                      {getFieldStatus(profile.businessName) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="businessName"
+                      value={profile.businessName || ''}
+                      onChange={(e) => handleChange('businessName', e.target.value)}
+                      placeholder="Enter business name"
+                      className={getFieldClassName(getFieldStatus(profile.businessName))}
+                      disabled={isProfileLocked}
+                    />
+                    {getFieldStatus(profile.businessName) === 'empty' && (
+                      <p className="text-xs text-red-600 mt-1">This field is required</p>
+                    )}
+                  </div>
+
+                  {/* Vendor Category */}
+                  <div className="space-y-2">
+                    <Label htmlFor="vendorCategory" className="flex items-center gap-2">
+                      Vendor Category
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    </Label>
+                    <Select
+                      value={profile.vendorCategory || 'Service Vendor'}
+                      onValueChange={(value) => handleChange('vendorCategory', value)}
+                      disabled={isProfileLocked}
+                    >
+                      <SelectTrigger className="border-green-300">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VENDOR_CATEGORIES.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Specialization */}
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization" className="flex items-center gap-2">
+                      Specialization
+                      {profile.specialization && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="specialization"
+                      value={profile.specialization || ''}
+                      onChange={(e) => handleChange('specialization', e.target.value)}
+                      placeholder="Enter specialization"
+                      disabled={isProfileLocked}
+                    />
+                  </div>
+
+                  {/* Years in Business */}
+                  <div className="space-y-2">
+                    <Label htmlFor="yearsInBusiness" className="flex items-center gap-2">
+                      Years in Business
+                      {profile.yearsInBusiness && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="yearsInBusiness"
+                      value={profile.yearsInBusiness || ''}
+                      onChange={(e) => handleChange('yearsInBusiness', e.target.value)}
+                      placeholder="e.g., 5"
+                      disabled={isProfileLocked}
+                    />
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      Email <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.email) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                      {getFieldStatus(profile.email) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
                     <Input
                       id="email"
                       type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
+                      value={profile.email || ''}
+                      onChange={(e) => handleChange('email', e.target.value)}
                       placeholder="business@example.com"
+                      className={getFieldClassName(getFieldStatus(profile.email))}
+                      disabled={isProfileLocked}
                     />
+                    {getFieldStatus(profile.email) === 'empty' && (
+                      <p className="text-xs text-red-600 mt-1">This field is required</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="mobile">Mobile *</Label>
+
+                  {/* Mobile */}
+                  <div className="space-y-2">
+                    <Label htmlFor="mobile" className="flex items-center gap-2">
+                      Mobile <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.mobile) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                      {getFieldStatus(profile.mobile) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
                     <Input
                       id="mobile"
-                      value={profile.mobile}
-                      onChange={(e) => setProfile(prev => ({ ...prev, mobile: e.target.value }))}
+                      value={profile.mobile || ''}
+                      onChange={(e) => handleChange('mobile', e.target.value)}
                       placeholder="9876543210"
+                      className={getFieldClassName(getFieldStatus(profile.mobile))}
+                      disabled={isProfileLocked}
                     />
+                    {getFieldStatus(profile.mobile) === 'empty' && (
+                      <p className="text-xs text-red-600 mt-1">This field is required</p>
+                    )}
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="telephone">Telephone (Optional)</Label>
+                  {/* Telephone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="telephone" className="flex items-center gap-2">
+                      Telephone (Optional)
+                      {profile.telephone && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </Label>
                     <Input
                       id="telephone"
-                      value={profile.telephone}
-                      onChange={(e) => setProfile(prev => ({ ...prev, telephone: e.target.value }))}
+                      value={profile.telephone || ''}
+                      onChange={(e) => handleChange('telephone', e.target.value)}
                       placeholder="044-12345678"
+                      disabled={isProfileLocked}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="website">Website (Optional)</Label>
+
+                  {/* Website */}
+                  <div className="space-y-2">
+                    <Label htmlFor="website" className="flex items-center gap-2">
+                      Website (Optional)
+                      {profile.website && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                    </Label>
                     <Input
                       id="website"
-                      value={profile.website}
-                      onChange={(e) => setProfile(prev => ({ ...prev, website: e.target.value }))}
+                      value={profile.website || ''}
+                      onChange={(e) => handleChange('website', e.target.value)}
                       placeholder="www.example.com"
+                      disabled={isProfileLocked}
                     />
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="legal" className="space-y-6">
+            {/* Legal Information & Documents Section (Combined) */}
             <Card>
               <CardHeader>
                 <CardTitle>Legal Information</CardTitle>
-                <CardDescription>Required for verification</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="panNumber">PAN Number *</Label>
-                  <Input
-                    id="panNumber"
-                    value={profile.panNumber}
-                    onChange={(e) => setProfile(prev => ({ ...prev, panNumber: e.target.value.toUpperCase() }))}
-                    placeholder="ABCDE1234F"
-                    maxLength={10}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="gstNumber">GST Number *</Label>
-                  <Input
-                    id="gstNumber"
-                    value={profile.gstNumber}
-                    onChange={(e) => setProfile(prev => ({ ...prev, gstNumber: e.target.value.toUpperCase() }))}
-                    placeholder="22ABCDE1234F1Z5"
-                    maxLength={15}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="registrationNumber">Registration Number *</Label>
-                  <Input
-                    id="registrationNumber"
-                    value={profile.registrationNumber}
-                    onChange={(e) => setProfile(prev => ({ ...prev, registrationNumber: e.target.value }))}
-                    placeholder="Enter registration number"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="documents" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Required Documents</CardTitle>
-                <CardDescription>
-                  Upload all required documents for {profile.vendorCategory}
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {requiredDocs.map(doc => {
-                  const uploaded = profile.documents.find(d => d.documentType === doc.type);
-                  
-                  return (
-                    <div key={doc.type} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-muted-foreground" />
-                          <span className="font-medium">{doc.name}</span>
-                        </div>
-                        {uploaded ? (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-600" />
-                        )}
-                      </div>
-                      
-                      {uploaded ? (
-                        <div className="flex items-center justify-between bg-muted rounded p-2">
-                          <span className="text-sm text-muted-foreground">{uploaded.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDocument(uploaded.id)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ) : (
-                        <div>
-                          <Input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload(doc.type, file);
-                            }}
-                            className="cursor-pointer"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Accepted formats: PDF, JPG, PNG (Max 5MB)
-                          </p>
-                        </div>
+                {/* Input Fields Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* PAN Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="panNumber" className="flex items-center gap-2">
+                      PAN Number <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.panNumber) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
                       )}
-                    </div>
-                  );
-                })}
+                      {getFieldStatus(profile.panNumber) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="panNumber"
+                      value={profile.panNumber || ''}
+                      onChange={(e) => handleChange('panNumber', e.target.value.toUpperCase())}
+                      placeholder="ABCDE1234F"
+                      maxLength={10}
+                      className={getFieldClassName(getFieldStatus(profile.panNumber))}
+                      disabled={isProfileLocked}
+                    />
+                  </div>
+
+                  {/* GST Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="gstNumber" className="flex items-center gap-2">
+                      GST Number <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.gstNumber) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                      {getFieldStatus(profile.gstNumber) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="gstNumber"
+                      value={profile.gstNumber || ''}
+                      onChange={(e) => handleChange('gstNumber', e.target.value.toUpperCase())}
+                      placeholder="22ABCDE1234F1Z5"
+                      maxLength={15}
+                      className={getFieldClassName(getFieldStatus(profile.gstNumber))}
+                      disabled={isProfileLocked}
+                    />
+                  </div>
+
+                  {/* Registration Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="registrationNumber" className="flex items-center gap-2">
+                      Registration Number <span className="text-red-500">*</span>
+                      {getFieldStatus(profile.registrationNumber) === 'filled' && (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      )}
+                      {getFieldStatus(profile.registrationNumber) === 'empty' && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </Label>
+                    <Input
+                      id="registrationNumber"
+                      value={profile.registrationNumber || ''}
+                      onChange={(e) => handleChange('registrationNumber', e.target.value)}
+                      placeholder="Enter registration number"
+                      className={getFieldClassName(getFieldStatus(profile.registrationNumber))}
+                      disabled={isProfileLocked}
+                    />
+                  </div>
+                </div>
+
+                {/* Document Upload Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {requiredDocuments.map((docType) => (
+                    <VendorDocumentUploadField
+                      key={docType}
+                      label={getDocumentDisplayName(docType)}
+                      documentType={docType}
+                      required={true}
+                      currentDocument={getDocumentByType(docType)}
+                      onUpload={handleDocumentUpload}
+                      onDelete={handleDocumentDelete}
+                      isProfileLocked={isProfileLocked}
+                      vendorCategory={profile.vendorCategory}
+                    />
+                  ))}
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
 
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-foreground">Ready to Submit?</h3>
-                <p className="text-sm text-muted-foreground">
-                  {isProfileComplete 
-                    ? "All requirements met. Submit for verification." 
-                    : `${missingDocs.length} document${missingDocs.length > 1 ? 's' : ''} and required fields pending.`
-                  }
-                </p>
-              </div>
+            {/* Action Buttons - Simple row without card */}
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={handleSave}
+                disabled={isSubmitting || isProfileLocked}
+                className="min-w-[120px]"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSubmitting ? 'Saving...' : 'Save Profile'}
+              </Button>
               <Button
                 onClick={handleSubmitForVerification}
-                disabled={!isProfileComplete || profile.verificationStatus === VerificationStatus.PENDING}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={isSubmitting || isProfileLocked || !completion.canSubmitForVerification}
+                className={completion.canSubmitForVerification && !isProfileLocked
+                  ? 'bg-emerald-600 hover:bg-emerald-700 min-w-[180px]'
+                  : 'min-w-[180px]'
+                }
               >
-                Submit for Verification
+                <Send className="w-4 h-4 mr-2" />
+                {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </>
+        </div>
+      )}
 
-        <ConsentDialog
-          isOpen={isConsentOpen}
-          onClose={() => setIsConsentOpen(false)}
-          onConfirm={handleConsentConfirm}
-          userType="vendor"
-          documentsToSubmit={requiredDocs.map(doc => doc.name)}
-          isLoading={isSubmitting}
-        />
-      </div>
+      {/* Consent Dialog */}
+      <ConsentDialog
+        isOpen={isConsentOpen}
+        onClose={() => setIsConsentOpen(false)}
+        onConfirm={handleConsentConfirm}
+        userType="vendor"
+        documentsToSubmit={requiredDocuments.map(getDocumentDisplayName)}
+        isLoading={isSubmitting}
+      />
     </div>
   );
-}
+};
+
+export default VendorSettings;

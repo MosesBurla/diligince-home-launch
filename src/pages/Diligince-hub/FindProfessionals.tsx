@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { UserCheck, Search, Sparkles, TrendingUp, Award } from "lucide-react";
+import { UserCheck, Search, Sparkles } from "lucide-react";
 import { ProfessionalCard } from "@/components/Diligince-hub/ProfessionalCard";
 import { SearchFilterBar } from "@/components/Diligince-hub/SearchFilterBar";
 import { EmptyState } from "@/components/Diligince-hub/EmptyState";
+import { CardGridSkeletonLoader } from "@/components/shared/loading";
 import type { ProfessionalListItem, ProfessionalSearchFilters } from "@/types/professional";
 
 // Mock data for development
@@ -10,7 +11,7 @@ const mockProfessionals: ProfessionalListItem[] = [
   {
     id: "prof_001",
     name: "Dr. Vikram Singh",
-    expertise: "Quality Control & Assurance",
+    expertise: ["Quality Control & Assurance", "Six Sigma"],
     experience: 15,
     location: "Pune, Maharashtra",
     city: "Pune",
@@ -31,7 +32,7 @@ const mockProfessionals: ProfessionalListItem[] = [
   {
     id: "prof_002",
     name: "Sneha Deshmukh",
-    expertise: "Manufacturing Quality Engineer",
+    expertise: ["Manufacturing Quality Engineer"],
     experience: 10,
     location: "Mumbai, Maharashtra",
     city: "Mumbai",
@@ -51,7 +52,7 @@ const mockProfessionals: ProfessionalListItem[] = [
   {
     id: "prof_003",
     name: "Arjun Mehta",
-    expertise: "Quality Control Specialist",
+    expertise: ["Quality Control Specialist"],
     experience: 8,
     location: "Bengaluru, Karnataka",
     city: "Bengaluru",
@@ -89,7 +90,7 @@ const FindProfessionals: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(p =>
         p.name.toLowerCase().includes(term) ||
-        p.expertise.toLowerCase().includes(term) ||
+        p.expertise.some(e => e.toLowerCase().includes(term)) ||
         p.skills.some(s => s.toLowerCase().includes(term))
       );
     }
@@ -100,8 +101,12 @@ const FindProfessionals: React.FC = () => {
     }
 
     // Expertise filter
-    if (filters.expertise) {
-      result = result.filter(p => p.expertise === filters.expertise);
+    if (filters.expertise && filters.expertise.length > 0) {
+      result = result.filter(p => 
+        filters.expertise!.some(filterExp => 
+          p.expertise.some(pExp => pExp.toLowerCase().includes(filterExp.toLowerCase()))
+        )
+      );
     }
 
     // Location filter
@@ -173,14 +178,7 @@ const FindProfessionals: React.FC = () => {
         )}
 
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Search className="w-5 h-5 text-primary" />
-              </div>
-            </div>
-          </div>
+          <CardGridSkeletonLoader count={6} columns={3} />
         )}
       </div>
     </div>

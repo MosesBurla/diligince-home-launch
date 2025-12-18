@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { FormPageSkeleton } from '@/components/shared/loading';
 
 import { vendorRFQsService, vendorQuotationsService } from '@/services';
 import { vendorQuotationFormSchema, type VendorQuotationFormData } from '@/schemas/vendor-quotation-form.schema';
@@ -95,11 +96,7 @@ const VendorSubmitQuotation: React.FC = () => {
   };
 
   if (loadingRFQ) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <FormPageSkeleton sections={3} fieldsPerSection={4} />;
   }
 
   return (

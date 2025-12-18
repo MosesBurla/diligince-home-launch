@@ -1,87 +1,11 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useRequirementDraft } from '@/hooks/useRequirementDraft';
+import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
+import { RequirementFormData } from '@/types/requirement-form.types';
 
-export interface RequirementFormData {
-  id?: string;
-  title?: string;
-  category?: "product" | "service" | "expert" | "logistics";
-  priority?: "low" | "medium" | "high" | "critical";
-  description?: string;
-  specialization?: string;
-  productSpecifications?: string;
-  quantity?: number;
-  serviceDescription?: string;
-  scopeOfWork?: string;
-  equipmentType?: string;
-  pickupLocation?: string;
-  deliveryLocation?: string;
-  documents?: { 
-    id: string;
-    name: string; 
-    url: string;
-    type: string;
-    size: number;
-    documentType: "specification" | "drawing" | "reference" | "compliance" | "other";
-    version: number;
-    uploadedAt: Date;
-    uploadedBy: string;
-  }[];
-  submissionDeadline?: Date;
-  evaluationCriteria?: string[];
-  visibility?: "all" | "selected";
-  selectedVendors?: string[];
-  notifyByEmail?: boolean;
-  notifyByApp?: boolean;
-  termsAccepted?: boolean;
-  budget?: number;
-  createdDate?: string;
-  deadline?: string;
-  applicants?: number;
-  complianceRequired?: boolean;
-  riskLevel?: "low" | "medium" | "high" | "critical";
-  
-  // Add new approval-related fields
-  isUrgent?: boolean;
-  approvalWorkflowId?: string;
-  approvalStatus?: 'not_required' | 'pending' | 'approved' | 'rejected';
-  emergencyPublished?: boolean;
-  approvalDeadline?: Date;
-  
-  // Expert-specific fields
-  certifications?: string[];
-  duration?: number;
-  startDate?: Date;
-  endDate?: Date;
-  
-  // Product-specific fields
-  technicalStandards?: string[];
-  productDeliveryDate?: Date;
-  qualityRequirements?: string;
-  
-  // Service-specific fields
-  performanceMetrics?: string;
-  serviceStartDate?: Date;
-  serviceEndDate?: Date;
-  serviceBudget?: number;
-  location?: string;
-  
-  // Logistics-specific fields
-  weight?: number;
-  dimensions?: string;
-  pickupDate?: Date;
-  deliveryDate?: Date;
-  specialHandling?: string;
-  
-  // Additional fields for EnhancedBasicInfoStep
-  businessJustification?: string;
-  department?: string;
-  costCenter?: string;
-  requestedBy?: string;
-  urgency?: boolean;
-  estimatedBudget?: number;
-  budgetApproved?: boolean;
-}
+// Re-export for backward compatibility
+export type { RequirementFormData } from '@/types/requirement-form.types';
 
 interface RequirementContextType {
   formData: RequirementFormData;
@@ -95,6 +19,11 @@ interface RequirementContextType {
   draftId: string | null;
   isSaving: boolean;
   lastSaved: Date | null;
+  loadDraftById: (draftId: string) => Promise<RequirementFormData | null>;
+  // Auto-save control
+  isActivelyEditing: boolean;
+  startEditing: () => void;
+  stopEditing: () => void;
 }
 
 const RequirementContext = createContext<RequirementContextType | undefined>(undefined);
@@ -113,7 +42,7 @@ const getDefaultFormData = (): RequirementFormData => ({
   budgetApproved: false,
   isUrgent: false,
   urgency: false,
-  specialization: '',
+  specialization: [],
   productSpecifications: '',
   quantity: 0,
   serviceDescription: '',
@@ -136,7 +65,63 @@ const getDefaultFormData = (): RequirementFormData => ({
 export const RequirementProvider = ({ children }: { children: React.ReactNode }) => {
   const [formData, setFormData] = useState<RequirementFormData>(getDefaultFormData());
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
-  const { draftId, isSaving, lastSaved, initializeDraft, forceSave } = useRequirementDraft();
+  const [isActivelyEditing, setIsActivelyEditing] = useState(false);
+  const { draftId, draftIdRef, isSaving, lastSaved, initializeDraft, forceSave, clearDraftState, loadDraft } = useRequirementDraft();
+  const { isAuthenticated } = useUser();
+
+  // Start editing mode - enables auto-save
+  const startEditing = useCallback(() => {
+    console.log("🟢 Auto-save: Started editing mode");
+    setIsActivelyEditing(true);
+  }, []);
+
+  // Stop editing mode - disables auto-save
+  const stopEditing = useCallback(() => {
+    console.log("🔴 Auto-save: Stopped editing mode");
+    setIsActivelyEditing(false);
+  }, []);
+
+  // Check if auto-save should run
+  // IMPORTANT: Auto-save must work for ALL editable statuses per user requirement
+  // Only blocked when already sent for approval
+  const shouldAutoSave = useCallback(() => {
+    if (!isAuthenticated) return false;
+    if (!isActivelyEditing) return false;
+
+    // Don't auto-save if already sent for approval
+    // This is the ONLY blocker - user can edit at any status otherwise
+    if (formData.isSentForApproval) return false;
+
+    // Allow auto-save for all editable statuses
+    // Previously limited to 'draft' and 'rejected', now expanded per user requirement
+    const status = formData.status || 'draft';
+    const editableStatuses = ['draft', 'rejected', 'approved', 'published'];
+
+    // Don't auto-save archived requirements
+    if (status === 'archived') return false;
+
+    return editableStatuses.includes(status);
+  }, [isAuthenticated, isActivelyEditing, formData.status, formData.isSentForApproval]);
+
+  // Load draft by ID and update form data (single source of truth)
+  const loadDraftById = useCallback(async (draftIdToLoad: string): Promise<RequirementFormData | null> => {
+    try {
+      console.log("🟡 Context: Loading draft by ID:", draftIdToLoad);
+      const draftData = await loadDraft(draftIdToLoad);
+
+      if (draftData && Object.keys(draftData).length > 0) {
+        console.log("🟢 Context: Draft loaded, updating form data");
+        setFormData(draftData);
+        setStepErrors({});
+        return draftData;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("🔴 Context: Failed to load draft:", error);
+      throw error;
+    }
+  }, [loadDraft]);
 
   const updateFormData = useCallback((data: Partial<RequirementFormData>) => {
     console.log("Updating form data:", data);
@@ -158,27 +143,46 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
 
   // Check if form is empty (at least one field should be filled)
   const isFormEmpty = useCallback(() => {
-    const hasData = 
+    const hasData =
       formData.title?.trim() ||
       formData.description?.trim() ||
       formData.businessJustification?.trim() ||
       formData.category ||
       formData.priority;
-    
+
     return !hasData;
   }, [formData]);
 
-  // Auto-save every 30 seconds if form has data
+  // Cleanup on logout - reset form and clear draft state
   useEffect(() => {
-    if (isFormEmpty()) {
-      return; // Don't auto-save empty forms
+    if (!isAuthenticated) {
+      console.log("User logged out, resetting requirement form...");
+      resetForm();
+      clearDraftState();
+    }
+  }, [isAuthenticated, resetForm, clearDraftState]);
+
+  // Auto-save every 30 seconds only when actively editing
+  useEffect(() => {
+    // Skip if auto-save conditions not met
+    if (!shouldAutoSave() || isFormEmpty()) {
+      return;
     }
 
     const autoSaveInterval = setInterval(async () => {
+      // Double-check conditions before each save attempt
+      if (!shouldAutoSave()) {
+        console.log("Auto-save: Conditions not met, skipping...");
+        return;
+      }
+
       try {
-        if (!draftId) {
+        // Use ref for immediate value check to avoid stale closure
+        if (!draftIdRef.current) {
+          console.log("Auto-save: Creating new draft...");
           await initializeDraft(formData);
         } else {
+          console.log("Auto-save: Updating existing draft:", draftIdRef.current);
           await forceSave(formData, false); // Silent save
         }
       } catch (error) {
@@ -187,7 +191,7 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
     }, 30000); // 30 seconds
 
     return () => clearInterval(autoSaveInterval);
-  }, [formData, draftId, initializeDraft, forceSave, isFormEmpty]);
+  }, [formData, draftIdRef, initializeDraft, forceSave, isFormEmpty, shouldAutoSave]);
 
   const saveAsDraft = useCallback(async () => {
     if (isFormEmpty()) {
@@ -197,39 +201,45 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
 
     console.log("Saving draft:", formData);
     try {
-      if (!draftId) {
+      // Use draftIdRef for reliable synchronous check
+      if (!draftIdRef.current) {
         await initializeDraft(formData);
         toast.success("Draft created successfully");
       } else {
-        await forceSave(formData, true); // Show toast
+        await forceSave(formData, false); // Silent save, we show toast below
         toast.success("Draft saved successfully");
       }
       localStorage.setItem('requirement-draft', JSON.stringify(formData));
     } catch (error: any) {
       console.error("Failed to save draft:", error);
-      
+
       if (!navigator.onLine) {
         toast.error("You're offline. Changes saved locally.");
       } else {
-        toast.error("Failed to save to server. Retrying...");
+        // Check if it's a validation error (422) and show the specific message
+        if (error?.response?.status === 422 && error?.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to save draft");
+        }
       }
-      
+
       localStorage.setItem('requirement-draft', JSON.stringify(formData));
     }
-  }, [formData, draftId, initializeDraft, forceSave, isFormEmpty]);
+  }, [formData, draftIdRef, initializeDraft, forceSave, isFormEmpty]);
 
   const validateStep = useCallback((step: number) => {
     console.log("Validating step:", step, "with formData:", formData);
     const errors: Record<string, string> = {};
-    
+
     try {
       switch (step) {
         case 1: // Basic Info
           if (!formData.title || formData.title.trim() === '') {
             errors.title = "Title is required";
           }
-          if (!formData.category) {
-            errors.category = "Category is required";
+          if (!formData.category || formData.category.length === 0) {
+            errors.category = "At least one category is required";
           }
           if (!formData.priority) {
             errors.priority = "Priority is required";
@@ -247,23 +257,25 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
             errors.estimatedBudget = "Valid estimated budget is required";
           }
           break;
-          
+
         case 2: // Details
-          if (formData.category === "expert") {
-            if (!formData.specialization || formData.specialization.trim() === '') {
-              errors.specialization = "Specialization is required";
+          if (formData.category?.includes("expert")) {
+            if (!formData.specialization || formData.specialization.length === 0) {
+              errors.specialization = "At least one specialization is required";
             }
             if (!formData.description || formData.description.trim() === '') {
               errors.description = "Description is required";
             }
-          } else if (formData.category === "product") {
+          }
+          if (formData.category?.includes("product")) {
             if (!formData.productSpecifications || formData.productSpecifications.trim() === '') {
               errors.productSpecifications = "Product specifications are required";
             }
             if (!formData.quantity || formData.quantity <= 0) {
               errors.quantity = "Valid quantity is required";
             }
-          } else if (formData.category === "service") {
+          }
+          if (formData.category?.includes("service")) {
             if (!formData.serviceDescription || formData.serviceDescription.trim() === '') {
               errors.serviceDescription = "Service description is required";
             }
@@ -276,7 +288,8 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
             if (!formData.location || formData.location.trim() === '') {
               errors.location = "Location is required";
             }
-          } else if (formData.category === "logistics") {
+          }
+          if (formData.category?.includes("logistics")) {
             if (!formData.equipmentType || formData.equipmentType.trim() === '') {
               errors.equipmentType = "Equipment type is required";
             }
@@ -288,17 +301,24 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
             }
           }
           break;
-          
+
         case 3: // Documents (optional)
           break;
-          
+
         case 4: // Approval Workflow
-          // Validation handled by approval context
+          const requiresApproval = (formData.estimatedBudget || 0) > 10000 ||
+            formData.priority === 'critical' ||
+            formData.priority === 'high' ||
+            formData.complianceRequired;
+
+          if (requiresApproval && !formData.selectedApprovalMatrixId) {
+            errors.selectedApprovalMatrix = "Please select an approval matrix to proceed";
+          }
           break;
-          
+
         case 5: // Preview
           break;
-          
+
         case 6: // Publish
           if (!formData.submissionDeadline) {
             errors.submissionDeadline = "Submission deadline is required";
@@ -344,7 +364,11 @@ export const RequirementProvider = ({ children }: { children: React.ReactNode })
       saveAsDraft,
       draftId,
       isSaving,
-      lastSaved
+      lastSaved,
+      loadDraftById,
+      isActivelyEditing,
+      startEditing,
+      stopEditing,
     }}>
       {children}
     </RequirementContext.Provider>

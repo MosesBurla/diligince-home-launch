@@ -92,19 +92,6 @@
             "delete": false,
             "download": true
           }
-        },
-        {
-          "id": "requirements-archived",
-          "name": "Archived",
-          "path": "/dashboard/requirements/archived",
-          "icon": "Archive",
-          "permissions": {
-            "read": true,
-            "write": false,
-            "edit": false,
-            "delete": true,
-            "download": true
-          }
         }
       ]
     },

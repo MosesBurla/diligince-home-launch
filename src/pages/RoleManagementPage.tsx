@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useRoles } from "@/hooks/useRoles";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PermissionGate } from "@/components/shared/PermissionGate";
-import { LoadingSpinner } from "@/components/shared/loading";
+import { CardGridSkeletonLoader, StatisticsBarSkeleton } from "@/components/shared/loading";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   RoleListHeader,
@@ -86,8 +86,18 @@ export default function RoleManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto py-8 px-4 max-w-7xl space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+          </div>
+          <StatisticsBarSkeleton count={4} />
+          <CardGridSkeletonLoader count={6} columns={3} />
+        </div>
       </div>
     );
   }

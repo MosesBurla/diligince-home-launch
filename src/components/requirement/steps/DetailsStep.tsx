@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { useRequirement } from "@/contexts/RequirementContext";
-import { useRequirementDraft } from "@/hooks/useRequirementDraft";
 import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,8 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { useSpecializationOptions } from "@/hooks/useSpecializationOptions";
 
 interface DetailsStepProps {
   onNext: () => void;
@@ -34,6 +35,18 @@ interface DetailsStepProps {
 const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
   const { formData, updateFormData, validateStep, stepErrors } = useRequirement();
 
+  // Fetch specializations from API based on selected categories (comma-separated modules)
+  const { options: specializationOptions, isLoading: isLoadingSpecializations } = useSpecializationOptions(
+    formData.category,
+    { enabled: (formData.category?.length || 0) > 0 }
+  );
+
+  // Transform options for MultiSelect component
+  const multiSelectOptions = specializationOptions.map(opt => ({
+    label: opt.label,
+    value: opt.value
+  }));
+
   const handleNext = () => {
     if (!validateStep(2)) {
       toast.error("Please fill in all required fields");
@@ -41,16 +54,6 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
     }
     onNext();
   };
-
-  const expertSpecializations = [
-    "Automation Engineer", 
-    "Electrical Engineer", 
-    "Mechanical Engineer",
-    "Process Engineer",
-    "Quality Control Engineer",
-    "Safety Engineer",
-    "Environmental Engineer"
-  ];
 
   const equipmentTypes = [
     "Crane",
@@ -95,6 +98,9 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
     "Professional Engineer"
   ];
 
+  // Helper to check if a category is selected
+  const hasCategory = (cat: string) => formData.category?.includes(cat as any);
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -104,35 +110,43 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
         </p>
       </div>
 
+      {/* Unified Specialization Section - Shows for all selected categories */}
+      {(formData.category?.length || 0) > 0 && (
+        <Card className="bg-white border border-gray-100 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg text-gray-900">Specialization</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="specialization" className="text-base font-medium text-gray-700">
+                Select Specialization(s) <span className="text-red-500">*</span>
+              </Label>
+              <MultiSelect
+                options={multiSelectOptions}
+                selected={formData.specialization || []}
+                onChange={(values) => updateFormData({ specialization: values })}
+                placeholder="Search and select specialization(s)..."
+                isLoading={isLoadingSpecializations}
+                disabled={(formData.category?.length || 0) === 0}
+              />
+              <p className="text-xs text-muted-foreground">
+                Options shown are based on your selected categories: {formData.category?.join(', ')}
+              </p>
+              {stepErrors.specialization && (
+                <p className="text-sm text-red-500">{stepErrors.specialization}</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Expert Fields */}
-      {formData.category === "expert" && (
+      {hasCategory("expert") && (
         <Card className="bg-white border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-gray-900">Expert Services Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="specialization" className="text-base font-medium text-gray-700">
-                Specialization <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.specialization}
-                onValueChange={(value) => updateFormData({ specialization: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select specialization" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expertSpecializations.map((spec) => (
-                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {stepErrors.specialization && (
-                <p className="text-sm text-red-500">{stepErrors.specialization}</p>
-              )}
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="description" className="text-base font-medium text-gray-700">
                 Detailed Description <span className="text-red-500">*</span>
@@ -273,7 +287,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
       )}
 
       {/* Product Fields */}
-      {formData.category === "product" && (
+      {hasCategory("product") && (
         <Card className="bg-white border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-gray-900">Product Details</CardTitle>
@@ -428,7 +442,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
       )}
 
       {/* Service Fields */}
-      {formData.category === "service" && (
+      {hasCategory("service") && (
         <Card className="bg-white border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-gray-900">Service Details</CardTitle>
@@ -580,7 +594,7 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
       )}
 
       {/* Logistics Fields */}
-      {formData.category === "logistics" && (
+      {hasCategory("logistics") && (
         <Card className="bg-white border border-gray-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg text-gray-900">Logistics Details</CardTitle>
@@ -739,17 +753,6 @@ const DetailsStep: React.FC<DetailsStepProps> = ({ onNext, onPrevious }) => {
         </Card>
       )}
 
-      <div className="flex justify-between pt-6">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious}
-        >
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Next
-        </Button>
-      </div>
     </div>
   );
 };

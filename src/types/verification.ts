@@ -1,27 +1,35 @@
 export enum VerificationStatus {
   INCOMPLETE = 'incomplete',
-  PENDING = 'pending', 
+  PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected'
 }
 
-export type VendorDocumentType = 
+export interface VerificationStep {
+  step: 'profile_submitted' | 'digital_verification' | 'manual_review' | 'final_approval';
+  status: 'pending' | 'in_progress' | 'completed' | 'rejected';
+  startedAt?: string;
+  completedAt?: string;
+  remarks?: string;
+}
+
+export type VendorDocumentType =
   // Mandatory for all vendors
-  | 'gst_certificate' 
+  | 'gst_certificate'
   | 'pan_card'
   | 'registration_certificate'
-  
+
   // Service Vendor specific
   | 'service_certifications'
   | 'insurance_certificate'
   | 'technical_qualifications'
-  
+
   // Product Vendor specific
   | 'product_certifications'
   | 'quality_certificates'
   | 'manufacturer_authorization'
   | 'product_catalog'
-  
+
   // Logistics Vendor specific
   | 'transport_license'
   | 'vehicle_registration'
@@ -54,30 +62,31 @@ export interface CompanyProfile {
   industryType: string;
   companyDescription: string;
   yearEstablished: string;
-  
+
   // Legal
   panNumber: string;
   gstNumber: string;
   registrationNumber: string;
-  
+
   // Contact
   email: string;
   mobile: string;
   telephone?: string;
   website?: string;
-  
+
   // Address
   addresses: Address[];
-  
+
   // Documents
   documents?: VerificationDocument[];
-  
+
   // Verification
   verificationStatus: VerificationStatus;
   verificationSubmittedAt?: string;
   verificationCompletedAt?: string;
   verificationRemarks?: string;
-  
+  verificationSteps?: VerificationStep[];
+
   // Completion
   isProfileComplete: boolean;
   profileCompletionPercentage: number;
@@ -102,37 +111,38 @@ export interface VendorProfile {
   businessName: string;
   vendorCategory: 'Service Vendor' | 'Product Vendor' | 'Logistics Vendor';
   specialization: string;
-  
+
   // Legal
   panNumber: string;
   gstNumber: string;
   registrationNumber: string;
-  
+
   // Contact
   email: string;
   mobile: string;
   telephone?: string;
   website?: string;
-  
+
   // Business Details
   primaryIndustry?: string;
   yearsInBusiness?: string;
   businessLocation?: string;
   serviceAreas?: string[];
-  
+
   // Documents
   documents?: VerificationDocument[];
-  
+
   // Verification
   verificationStatus: VerificationStatus;
   verificationSubmittedAt?: string;
   verificationCompletedAt?: string;
   verificationRemarks?: string;
-  
+  verificationSteps?: VerificationStep[];
+
   // Consent
   consentGiven: boolean;
   consentTimestamp?: string;
-  
+
   // Completion
   isProfileComplete: boolean;
   profileCompletionPercentage: number;
@@ -140,7 +150,7 @@ export interface VendorProfile {
 
 export const VENDOR_MANDATORY_DOCUMENTS = [
   'gst_certificate',
-  'pan_card', 
+  'pan_card',
   'registration_certificate'
 ] as const;
 

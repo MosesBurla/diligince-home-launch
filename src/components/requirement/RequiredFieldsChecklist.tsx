@@ -18,22 +18,25 @@ export const RequiredFieldsChecklist = ({ onNavigateToStep }: RequiredFieldsChec
     ];
     
     // Add category-specific required fields
-    if (formData.category === 'product') {
+    if (formData.category?.includes('product')) {
       fields.push(
         { name: 'Product Specifications', completed: !!formData.productSpecifications?.trim(), step: 2 },
         { name: 'Quantity', completed: !!formData.quantity && formData.quantity > 0, step: 2 }
       );
-    } else if (formData.category === 'expert') {
+    }
+    if (formData.category?.includes('expert')) {
       fields.push(
-        { name: 'Specialization', completed: !!formData.specialization?.trim(), step: 2 },
+        { name: 'Specialization', completed: !!formData.specialization?.length, step: 2 },
         { name: 'Description', completed: !!formData.description?.trim(), step: 2 }
       );
-    } else if (formData.category === 'service') {
+    }
+    if (formData.category?.includes('service')) {
       fields.push(
         { name: 'Service Description', completed: !!formData.serviceDescription?.trim(), step: 2 },
         { name: 'Scope of Work', completed: !!formData.scopeOfWork?.trim(), step: 2 }
       );
-    } else if (formData.category === 'logistics') {
+    }
+    if (formData.category?.includes('logistics')) {
       fields.push(
         { name: 'Equipment Type', completed: !!formData.equipmentType?.trim(), step: 2 },
         { name: 'Pickup Location', completed: !!formData.pickupLocation?.trim(), step: 2 },

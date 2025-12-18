@@ -41,10 +41,10 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src={location.pathname === '/signup' || location.pathname === '/signin' 
+              src={location.pathname === '/signup' || location.pathname === '/signin' || location.pathname === '/login'
                 ? "/diligence-no-bg-white.svg" 
                 : "/logo-main-no-bg.svg"
-              } 
+              }
               alt="Diligince.ai" 
               className="h-8 w-8" 
             />

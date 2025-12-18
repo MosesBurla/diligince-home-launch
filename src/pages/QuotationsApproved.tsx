@@ -6,7 +6,7 @@ import { ColumnConfig, FilterConfig } from "@/types/table";
 import { quotationService } from "@/services/modules/quotations";
 import type { Quotation } from "@/types/quotation";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { TableSkeletonLoader } from "@/components/shared/loading";
 
 const QuotationsApproved = () => {
   const [selectedRows, setSelectedRows] = useState<Quotation[]>([]);
@@ -169,9 +169,7 @@ const QuotationsApproved = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <TableSkeletonLoader rows={8} columns={6} showFilters showActions />
       ) : (
         <CustomTable
           columns={columns}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRoles } from "@/hooks/useRoles";
 import { PermissionGate } from "@/components/shared/PermissionGate";
-import { LoadingSpinner } from "@/components/shared/loading";
+import { FormPageSkeleton } from "@/components/shared/loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,11 +62,7 @@ export default function CreateRolePage() {
   };
 
   if (isTemplateLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
+    return <FormPageSkeleton showSidebar sections={2} fieldsPerSection={3} />;
   }
 
   return (

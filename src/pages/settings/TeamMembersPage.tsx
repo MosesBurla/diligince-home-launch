@@ -20,7 +20,8 @@ import {
   StatisticsCards,
   TeamMembersTable,
 } from "@/components/settings/team-members";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { TableSkeletonLoader, StatisticsBarSkeleton } from "@/components/shared/loading";
 
 export default function TeamMembersPage() {
   const [editMember, setEditMember] = useState<TeamMember | null>(null);
@@ -91,8 +92,13 @@ export default function TeamMembersPage() {
 
   if (loading && members.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto py-8 space-y-8">
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-80 bg-muted animate-pulse rounded" />
+        </div>
+        <StatisticsBarSkeleton count={4} />
+        <TableSkeletonLoader rows={6} columns={5} showFilters showActions />
       </div>
     );
   }

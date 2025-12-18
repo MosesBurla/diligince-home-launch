@@ -63,17 +63,6 @@ export function AdvancedOptions({
 
           {/* Toggles */}
           <div className="space-y-4 pt-2">
-            {/* Urgent Requirement */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-corporate-gray-500" />
-                <Label htmlFor="urgent" className="text-sm font-medium cursor-pointer text-corporate-gray-900">
-                  Urgent Requirement
-                </Label>
-              </div>
-              <Switch id="urgent" checked={isUrgent} onCheckedChange={onUrgentChange} />
-            </div>
-
             {/* Budget Pre-approved */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

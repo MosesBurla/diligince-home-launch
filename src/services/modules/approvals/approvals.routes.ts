@@ -1,9 +1,48 @@
 import { buildQueryString, API_BASE_PATH } from '../../core/api.config';
 
-const BASE_PATH = `${API_BASE_PATH}/industry/approvals`;
+const BASE_PATH = `${API_BASE_PATH}/industry/requirements`;
+const APPROVALS_BASE = `${API_BASE_PATH}/industry/approvals`;
+
+export interface PendingListParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  createdById?: string;
+  category?: string;
+  priority?: string;
+  department?: string;
+  approvalLevel?: number;
+  search?: string;
+}
 
 export const approvalsRoutes = {
-  // Get pending approvals for current user
+  // Pending list (with creator filter support)
+  pending: {
+    list: (params?: PendingListParams) => `${BASE_PATH}/pending${buildQueryString(params)}`,
+    export: (format: 'csv' | 'xlsx') => `${BASE_PATH}/pending/export/${format}`,
+  },
+  
+  // Approved list
+  approved: {
+    list: (params?: PendingListParams) => `${BASE_PATH}/approved${buildQueryString(params)}`,
+    export: (format: 'csv' | 'xlsx') => `${BASE_PATH}/approved/export/${format}`,
+  },
+  
+  // Published list
+  published: {
+    list: (params?: PendingListParams) => `${BASE_PATH}/published${buildQueryString(params)}`,
+    export: (format: 'csv' | 'xlsx') => `${BASE_PATH}/published/export/${format}`,
+  },
+  
+  // Approval actions on requirements
+  approve: (requirementId: string) => `${BASE_PATH}/${requirementId}/approve`,
+  reject: (requirementId: string) => `${BASE_PATH}/${requirementId}/reject`,
+  resubmit: (requirementId: string) => `${BASE_PATH}/${requirementId}/resubmit`,
+  publish: (requirementId: string) => `${BASE_PATH}/${requirementId}/publish`,
+  emergencyPublish: (draftId: string) => `${BASE_PATH}/${draftId}/emergency-publish`,
+  
+  // Legacy routes for backward compatibility
   getPending: (params?: { 
     userId?: string; 
     role?: string; 
@@ -11,23 +50,10 @@ export const approvalsRoutes = {
     category?: string;
     page?: number; 
     limit?: number 
-  }) => `${BASE_PATH}/pending${buildQueryString(params)}`,
+  }) => `${APPROVALS_BASE}/pending${buildQueryString(params)}`,
   
-  // Approve a requirement
-  approve: (approvalId: string) => `${BASE_PATH}/${approvalId}/approve`,
-  
-  // Reject a requirement
-  reject: (approvalId: string) => `${BASE_PATH}/${approvalId}/reject`,
-  
-  // Get approval history
-  getHistory: (approvalId: string) => `${BASE_PATH}/${approvalId}/history`,
-  
-  // Get approval details
-  getById: (approvalId: string) => `${BASE_PATH}/${approvalId}`,
-  
-  // Delegate approval
-  delegate: (approvalId: string) => `${BASE_PATH}/${approvalId}/delegate`,
-  
-  // Escalate approval
-  escalate: (approvalId: string) => `${BASE_PATH}/${approvalId}/escalate`,
+  getById: (approvalId: string) => `${APPROVALS_BASE}/${approvalId}`,
+  getHistory: (approvalId: string) => `${APPROVALS_BASE}/${approvalId}/history`,
+  delegate: (approvalId: string) => `${APPROVALS_BASE}/${approvalId}/delegate`,
+  escalate: (approvalId: string) => `${APPROVALS_BASE}/${approvalId}/escalate`,
 };

@@ -5,11 +5,25 @@ import { ColumnConfig, FilterConfig } from "@/types/table";
 import requirementListService from "@/services/requirement-list.service";
 import { RequirementListItem } from "@/types/requirement-list";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TableSkeletonLoader } from "@/components/shared/loading";
+import { Eye, Rocket } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useUser } from "@/contexts/UserContext";
+
+
+import { CreatorFilterDropdown, Creator } from "@/components/shared/CreatorFilterDropdown";
+
+const MODULE_ID = 'requirements-approved';
 
 const RequirementsApproved = () => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const { user } = useUser();
+
+  // Permission checks
+  const hasWritePermission = hasPermission(MODULE_ID, 'write');
+
   const [data, setData] = useState<RequirementListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState<RequirementListItem[]>([]);
@@ -23,6 +37,8 @@ const RequirementsApproved = () => {
   const [sortBy, setSortBy] = useState<string>("approvedDate");
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [createdBy, setCreatedBy] = useState<string>("all");
+  const [teamMembers, setTeamMembers] = useState<Creator[]>([]);
 
   const fetchApproved = async () => {
     try {
@@ -34,15 +50,21 @@ const RequirementsApproved = () => {
         order: sortOrder,
         search: searchTerm,
         filters,
+        createdById: createdBy === 'me' ? user?.id : createdBy === 'all' ? undefined : createdBy,
       });
-      
+
       // Defensive check to ensure requirements is an array
-      const requirements = Array.isArray(response.data?.requirements) 
-        ? response.data.requirements 
+      const requirements = Array.isArray(response.data?.requirements)
+        ? response.data.requirements
         : [];
-      
+
       setData(requirements);
       setPagination(response.data.pagination);
+
+      // Update creators from response filters
+      if (response.data.filters && response.data.filters.creators) {
+        setTeamMembers(response.data.filters.creators);
+      }
     } catch (error: any) {
       console.error("Failed to fetch approved requirements:", error);
       toast.error(error.message || "Failed to load approved requirements");
@@ -55,7 +77,7 @@ const RequirementsApproved = () => {
 
   useEffect(() => {
     fetchApproved();
-  }, [pagination.currentPage, pagination.pageSize, sortBy, sortOrder, searchTerm, filters]);
+  }, [pagination.currentPage, pagination.pageSize, sortBy, sortOrder, searchTerm, filters, createdBy]);
 
   const columns: ColumnConfig[] = [
     {
@@ -104,22 +126,94 @@ const RequirementsApproved = () => {
       label: "Est. Value",
       isSortable: true,
       align: "right",
+      render: (value) => {
+        if (!value) return '-';
+        return `₹${Number(value).toLocaleString()}`;
+      },
     },
     {
       name: "approvedBy",
       label: "Approved By",
       isSortable: true,
       isSearchable: true,
+      render: (value, row) => {
+        // Handle object format: { id, name, email }
+        if (typeof value === 'object' && value?.name) {
+          return value.name;
+        }
+        // Fallback: get from last approval level
+        const lastLevel = (row as any).approvalProgress?.levels?.find(
+          (l: any) => l.levelNumber === (row as any).approvalProgress?.totalLevels
+        );
+        const lastApprover = lastLevel?.approvers?.find((a: any) => a.status === 'approved');
+        return lastApprover?.memberName || value || 'N/A';
+      },
     },
     {
       name: "approvedDate",
       label: "Approved Date",
       isSortable: true,
+      render: (value, row) => {
+        // Try direct field first, then fallback to last approval timestamp
+        const date = value || (row as any).approvalProgress?.levels?.[(row as any).approvalProgress?.totalLevels - 1]?.completedAt;
+        if (!date) return '-';
+        return new Date(date).toLocaleDateString();
+      },
     },
     {
       name: "publishDate",
-      label: "Publish Date",
+      label: "Scheduled Publish",
       isSortable: true,
+      render: (value) => {
+        if (!value) return <span className="text-muted-foreground">Not scheduled</span>;
+        return new Date(value).toLocaleDateString();
+      },
+    },
+    {
+      name: "actions",
+      label: "Actions",
+      render: (value, row) => {
+        // Check if current user is the creator (can publish)
+        const isCreator = row.submittedBy === user?.email ||
+          (row as any).createdBy?.id === user?.id ||
+          (row as any).createdBy === user?.id;
+
+        return (
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+            {/* View - Always visible - opens read-only approved view */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const reqId = row.id;
+                if (!reqId) {
+                  toast.error('Cannot view: Invalid ID');
+                  return;
+                }
+                navigate(`/dashboard/requirements/approved/${reqId}`);
+              }}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              View
+            </Button>
+
+            {/* Publish - Only for creators with write permission - opens view with publish action */}
+            {isCreator && hasWritePermission && (
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  navigate(`/dashboard/requirements/approved/${row.id}?action=publish`);
+                }}
+              >
+                <Rocket className="h-4 w-4 mr-1" />
+                Publish
+              </Button>
+            )}
+          </div>
+        );
+      },
+      width: "220px",
     },
   ];
 
@@ -176,13 +270,13 @@ const RequirementsApproved = () => {
     const confirmed = window.confirm(
       `Are you sure you want to publish ${selectedRows.length} requirement(s)?`
     );
-    
+
     if (!confirmed) return;
 
     try {
       const requirementIds = selectedRows.map(row => row.id);
       await requirementListService.publishApproved(requirementIds);
-      
+
       toast.success(`${selectedRows.length} requirement(s) published`);
       setSelectedRows([]);
       fetchApproved();
@@ -193,8 +287,12 @@ const RequirementsApproved = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="p-6 bg-background min-h-screen">
+        <div className="mb-6">
+          <div className="h-8 w-56 bg-muted rounded animate-pulse mb-2" />
+          <div className="h-4 w-96 bg-muted rounded animate-pulse" />
+        </div>
+        <TableSkeletonLoader rows={5} columns={7} />
       </div>
     );
   }
@@ -221,13 +319,24 @@ const RequirementsApproved = () => {
       <CustomTable
         columns={columns}
         data={data}
-        onRowClick={(row) => navigate(`/dashboard/requirements/${row.id}`)}
+        onRowClick={(row) => navigate(`/dashboard/requirements/approved/${row.id}`)}
         filterCallback={handleFilter}
         searchCallback={handleSearch}
         onExport={{
           xlsx: handleExportXLSX,
           csv: handleExportCSV,
         }}
+        additionalFilters={
+          <CreatorFilterDropdown
+            creators={teamMembers}
+            selectedCreatorId={createdBy}
+            currentUserId={user?.id || ''}
+            onSelect={(val) => {
+              setCreatedBy(val);
+              setPagination(prev => ({ ...prev, currentPage: 1 }));
+            }}
+          />
+        }
         selectable={true}
         onSelectionChange={setSelectedRows}
         globalSearchPlaceholder="Search approved requirements..."

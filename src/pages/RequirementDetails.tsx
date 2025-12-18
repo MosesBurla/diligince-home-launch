@@ -9,7 +9,7 @@ import { QuotationsByRequirementResponse } from "@/types/quotation";
 import { DraftDetailResponse } from "@/types/requirement-draft";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { DetailPageSkeleton } from "@/components/shared/loading";
 import IndustryHeader from "@/components/industry/IndustryHeader";
 import {
   Card,
@@ -53,7 +53,7 @@ const RequirementDetails = () => {
     return {
       id: metadata.draftId,
       title: formData.title || 'Untitled Draft',
-      category: formData.category || 'N/A',
+      category: Array.isArray(formData.category) ? formData.category.join(', ') : (formData.category || 'N/A'),
       priority: (formData.priority as any) || 'medium',
       status: 'draft' as any,
       estimatedValue: formData.estimatedBudget || 0,
@@ -161,11 +161,7 @@ const RequirementDetails = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <DetailPageSkeleton showTabs={true} tabCount={8} sections={3} />;
   }
 
   if (!requirement) {
@@ -376,7 +372,7 @@ const RequirementDetails = () => {
         {/* Back and Actions */}
         <div className="flex items-center justify-between mb-4">
           <Link
-            to={`/dashboard/requirements/${requirement.status === 'draft' ? 'drafts' : requirement.status === 'pending_approval' ? 'pending' : requirement.status === 'approved' ? 'approved' : requirement.status === 'published' ? 'published' : 'archived'}`}
+            to={`/dashboard/requirements/${requirement.status === 'draft' ? 'drafts' : requirement.status === 'pending' ? 'pending' : requirement.status === 'approved' ? 'approved' : requirement.status === 'published' ? 'published' : 'archived'}`}
             className="text-blue-600 hover:text-blue-700 text-sm"
           >
             ← Back to Requirements
@@ -557,7 +553,7 @@ const RequirementDetails = () => {
                 <div>
                   <h4 className="font-medium">Technical Standards</h4>
                   <div className="flex flex-wrap gap-2">
-                    {requirement.technicalStandards.map((std, i) => (
+                    {(requirement.technicalStandards || []).map((std, i) => (
                       <Badge key={i} variant="outline">
                         {std}
                       </Badge>
@@ -586,7 +582,7 @@ const RequirementDetails = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {requirement.complianceChecklist.map((item, i) => (
+                {(requirement.complianceChecklist || []).map((item, i) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-3 rounded-lg border"
@@ -626,7 +622,7 @@ const RequirementDetails = () => {
                 <CardTitle>Approval Workflow</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {requirement.approvalSteps.map((step, i) => (
+                {(requirement.approvalSteps || []).map((step, i) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-4 rounded-lg border"
@@ -670,7 +666,7 @@ const RequirementDetails = () => {
                 <CardTitle>Attached Documents</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {requirement.documents.map((doc, i) => (
+                {(requirement.documents || []).map((doc, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between p-3 border rounded-lg"
@@ -713,7 +709,7 @@ const RequirementDetails = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                {requirement.auditTrail.map((entry, i) => (
+                {(requirement.auditTrail || []).map((entry, i) => (
                   <div
                     key={i}
                     className="flex gap-3 p-3 border-l-2 border-blue-200 bg-blue-50/50"

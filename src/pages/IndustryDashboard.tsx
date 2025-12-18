@@ -33,7 +33,7 @@ import { DashboardStats } from "@/components/industry/dashboard/DashboardStats";
 import { ProcurementAnalytics } from "@/components/industry/dashboard/ProcurementAnalytics";
 import { BudgetUtilization } from "@/components/industry/dashboard/BudgetUtilization";
 import { VendorPerformance } from "@/components/industry/dashboard/VendorPerformance";
-import { LoadingSpinner } from "@/components/shared/loading/LoadingSpinner";
+import { DashboardSkeleton } from "@/components/shared/loading/DashboardSkeleton";
 
 // ---------------- Helpers ----------------
 const getStatusColor = (status: string) => {
@@ -123,13 +123,7 @@ const DashboardContainer = memo(() => {
 
   // Show loading state
   if (isLoading) {
-    return (
-      <main className="p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
-          <LoadingSpinner size="lg" />
-        </div>
-      </main>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Show error state

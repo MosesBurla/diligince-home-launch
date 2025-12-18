@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { menuConfig } from '@/config/menuConfig';
@@ -61,6 +61,20 @@ const Sidebar: React.FC = () => {
         return hasAccess || hasAccessibleSubmenus;
       });
   }, [rawMenuItems, permissionsMap, pathToModuleMap, hierarchicalConfig]);
+
+  // Auto-expand menu containing active route on mount/route change
+  useEffect(() => {
+    if (!isCollapsed && menuItems.length > 0) {
+      const activeParent = menuItems.find(item => 
+        item.submenu?.some(sub => 
+          location.pathname === sub.path || location.pathname.startsWith(sub.path + '/')
+        )
+      );
+      if (activeParent && !expandedMenus.includes(activeParent.path)) {
+        setExpandedMenus(prev => [...prev, activeParent.path]);
+      }
+    }
+  }, [location.pathname, menuItems, isCollapsed]);
 
   const handleLogout = () => {
     logout();
@@ -149,8 +163,18 @@ const Sidebar: React.FC = () => {
               const hasSubmenu = item.submenu && item.submenu.length > 0;
               const isSubmenuActive = activeSubmenu === item.path;
               
+              // Check if any child route is currently active
+              const hasActiveChild = hasSubmenu && item.submenu!.some(
+                subItem => location.pathname === subItem.path || location.pathname.startsWith(subItem.path + '/')
+              );
+              
               // Check if this item should be locked during verification
-              const isSettingsPage = item.path.includes('industry-settings');
+              // Allow access to settings pages for both industry and vendor users
+              const isSettingsPage = item.path.includes('industry-settings') || 
+                                     item.path.includes('vendor-settings') ||
+                                     item.path.includes('service-vendor-profile') ||
+                                     item.path.includes('product-vendor-profile') ||
+                                     item.path.includes('logistics-vendor-profile');
               const isLocked = !canAccessFeature && !isSettingsPage;
 
               return (
@@ -173,7 +197,7 @@ const Sidebar: React.FC = () => {
                     className={`flex items-center ${
                       isCollapsed ? 'justify-center h-10 w-10 mx-auto' : 'space-x-3 px-3 py-3'
                     } rounded-md transition-colors relative ${
-                      isActive || isSubmenuActive
+                      isActive || isSubmenuActive || hasActiveChild
                         ? 'bg-primary-foreground text-primary'
                         : 'text-primary-foreground hover:bg-primary-foreground hover:text-primary'
                     } ${hasSubmenu || isLocked ? 'cursor-pointer' : ''} ${isLocked ? 'opacity-50' : ''}`}

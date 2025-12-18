@@ -12,7 +12,16 @@ export function buildQueryString(params?: Record<string, any>): string {
   for (const key in params) {
     const value = params[key];
     if (value !== null && value !== undefined && value !== '') {
-      queryParams.append(key, String(value));
+      // If value is an object/array, serialize as JSON
+      if (typeof value === 'object') {
+        const serialized = JSON.stringify(value);
+        // Only add if object has keys or array has items
+        if (serialized !== '{}' && serialized !== '[]') {
+          queryParams.append(key, serialized);
+        }
+      } else {
+        queryParams.append(key, String(value));
+      }
     }
   }
   

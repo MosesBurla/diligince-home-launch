@@ -25,11 +25,11 @@ import {
   Mail,
   Phone,
   User,
-  Loader2,
   Shield,
   TrendingUp,
   AlertCircle,
 } from "lucide-react";
+import { DetailPageSkeleton } from "@/components/shared/loading";
 import { quotationService } from "@/services/quotation.service";
 import type { QuotationDetail, QuotationActivity, QuotationStatus } from "@/types/quotation";
 import { toast } from "sonner";
@@ -214,11 +214,7 @@ export default function QuotationDetails() {
 
   // Render loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <DetailPageSkeleton showTabs tabCount={5} sections={3} />;
   }
 
   if (!quotation) {

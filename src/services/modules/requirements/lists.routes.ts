@@ -14,6 +14,7 @@ export const requirementListsRoutes = {
   
   pending: {
     list: (params?: any) => `${BASE_PATH}/pending${buildQueryString(params)}`,
+    getById: (id: string) => `${BASE_PATH}/${id}`,
     export: {
       xlsx: (params?: any) => `${BASE_PATH}/pending/export/xlsx${buildQueryString(params)}`,
       csv: (params?: any) => `${BASE_PATH}/pending/export/csv${buildQueryString(params)}`,

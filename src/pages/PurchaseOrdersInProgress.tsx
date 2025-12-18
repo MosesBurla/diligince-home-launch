@@ -12,6 +12,7 @@ import { POFilters } from '@/components/purchase-order/POFilters';
 import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { TableSkeletonLoader } from '@/components/shared/loading';
 
 const PurchaseOrdersInProgress = () => {
   const navigate = useNavigate();
@@ -116,13 +117,15 @@ const PurchaseOrdersInProgress = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-background min-h-screen">
-        <Card className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
+      <div className="p-6 bg-background min-h-screen space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-64 bg-muted animate-pulse rounded" />
+            <div className="h-4 w-80 bg-muted animate-pulse rounded" />
           </div>
-        </Card>
+          <div className="h-10 w-40 bg-muted animate-pulse rounded" />
+        </div>
+        <TableSkeletonLoader rows={8} columns={7} showFilters showActions />
       </div>
     );
   }

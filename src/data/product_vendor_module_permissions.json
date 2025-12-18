@@ -1,0 +1,342 @@
+{
+  "version": "1.0.0",
+  "roleName": "ProductVendorAdmin",
+  "userType": "ProductVendor",
+  "modules": [
+    {
+      "id": "pv-dashboard",
+      "name": "Dashboard",
+      "path": "/dashboard/product-vendor",
+      "icon": "LayoutDashboard",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      }
+    },
+    {
+      "id": "pv-catalog",
+      "name": "Product Catalog",
+      "path": "/dashboard/product-vendor-catalog",
+      "icon": "Package",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "pv-catalog-all",
+          "name": "All Products",
+          "path": "/dashboard/product-vendor-catalog",
+          "icon": "List",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-catalog-add",
+          "name": "Add Product",
+          "path": "/dashboard/product-vendor-catalog/add",
+          "icon": "Plus",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "pv-catalog-categories",
+          "name": "Categories",
+          "path": "/dashboard/product-vendor-catalog/categories",
+          "icon": "Layers",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "pv-catalog-inventory",
+          "name": "Inventory",
+          "path": "/dashboard/product-vendor-catalog/inventory",
+          "icon": "Database",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "pv-orders",
+      "name": "Orders",
+      "path": "/dashboard/product-vendor-orders",
+      "icon": "FileText",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "pv-orders-new",
+          "name": "New Orders",
+          "path": "/dashboard/product-vendor-orders/new",
+          "icon": "Clock",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-orders-processing",
+          "name": "Processing",
+          "path": "/dashboard/product-vendor-orders/processing",
+          "icon": "Activity",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-orders-shipped",
+          "name": "Shipped",
+          "path": "/dashboard/product-vendor-orders/shipped",
+          "icon": "Truck",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-orders-completed",
+          "name": "Completed",
+          "path": "/dashboard/product-vendor-orders/completed",
+          "icon": "CheckCircle",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-orders-returns",
+          "name": "Returns",
+          "path": "/dashboard/product-vendor-orders/returns",
+          "icon": "RotateCcw",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "pv-messages",
+      "name": "Messages",
+      "path": "/dashboard/product-vendor-messages",
+      "icon": "MessageSquare",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": false
+      }
+    },
+    {
+      "id": "pv-team",
+      "name": "Team",
+      "path": "/dashboard/team",
+      "icon": "Users",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": true,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "pv-team-members",
+          "name": "Team Members",
+          "path": "/dashboard/team/members",
+          "icon": "Users",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-team-roles",
+          "name": "Role Management",
+          "path": "/dashboard/team/roles",
+          "icon": "Shield",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "pv-analytics",
+      "name": "Analytics",
+      "path": "/dashboard/product-vendor-analytics",
+      "icon": "BarChart3",
+      "permissions": {
+        "read": true,
+        "write": false,
+        "edit": false,
+        "delete": false,
+        "download": true
+      },
+      "submodules": [
+        {
+          "id": "pv-analytics-sales",
+          "name": "Sales Reports",
+          "path": "/dashboard/product-vendor-analytics/sales",
+          "icon": "TrendingUp",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-analytics-inventory",
+          "name": "Inventory Reports",
+          "path": "/dashboard/product-vendor-analytics/inventory",
+          "icon": "PieChart",
+          "permissions": {
+            "read": true,
+            "write": false,
+            "edit": false,
+            "delete": false,
+            "download": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "pv-settings",
+      "name": "Settings",
+      "path": "/dashboard/product-vendor-profile",
+      "icon": "Settings",
+      "permissions": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "delete": false,
+        "download": false
+      },
+      "submodules": [
+        {
+          "id": "pv-settings-company",
+          "name": "Company Profile",
+          "path": "/dashboard/product-vendor-profile",
+          "icon": "Building",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "pv-settings-brands",
+          "name": "Brands & Partners",
+          "path": "/dashboard/product-vendor-profile/brands",
+          "icon": "Award",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": false
+          }
+        },
+        {
+          "id": "pv-settings-shipping",
+          "name": "Shipping & Returns",
+          "path": "/dashboard/product-vendor-profile/shipping",
+          "icon": "Truck",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        },
+        {
+          "id": "pv-settings-certifications",
+          "name": "Certifications",
+          "path": "/dashboard/product-vendor-profile/certifications",
+          "icon": "Award",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": true,
+            "download": true
+          }
+        },
+        {
+          "id": "pv-settings-payment",
+          "name": "Payment Settings",
+          "path": "/dashboard/product-vendor-profile/payment",
+          "icon": "CreditCard",
+          "permissions": {
+            "read": true,
+            "write": true,
+            "edit": true,
+            "delete": false,
+            "download": false
+          }
+        }
+      ]
+    }
+  ]
+}

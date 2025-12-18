@@ -238,9 +238,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           id: apiUser.id,
           name: apiUser.profile ? `${apiUser.profile.firstName} ${apiUser.profile.lastName}` : apiUser.email,
           email: apiUser.email,
-          role: mapApiRoleToUserRole(apiUser.role),
+          role: mapApiRoleToUserRole(apiUser.role, apiUser.userType),
+          userType: apiUser.userType,
+          userSubType: apiUser.userSubType,
           profile: {
-            vendorCategory: apiUser.profile?.vendorCategory,
+            vendorCategory: apiUser.userSubType 
+              ? (apiUser.userSubType === 'ServiceVendor' ? 'service' 
+                : apiUser.userSubType === 'ProductVendor' ? 'product' 
+                : apiUser.userSubType === 'LogisticVendor' ? 'logistics' 
+                : apiUser.profile?.vendorCategory)
+              : apiUser.profile?.vendorCategory,
             companyName: apiUser.profile?.companyName,
             firstName: apiUser.profile?.firstName,
             lastName: apiUser.profile?.lastName,
@@ -333,9 +340,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           id: apiUser.id,
           name: apiUser.profile ? `${apiUser.profile.firstName} ${apiUser.profile.lastName}` : apiUser.email,
           email: apiUser.email,
-          role: mapApiRoleToUserRole(apiUser.role),
+          role: mapApiRoleToUserRole(apiUser.role, apiUser.userType),
+          userType: apiUser.userType,
+          userSubType: apiUser.userSubType,
           profile: {
-            vendorCategory: apiUser.profile?.vendorCategory,
+            vendorCategory: apiUser.userSubType 
+              ? (apiUser.userSubType === 'ServiceVendor' ? 'service' 
+                : apiUser.userSubType === 'ProductVendor' ? 'product' 
+                : apiUser.userSubType === 'LogisticVendor' ? 'logistics' 
+                : apiUser.profile?.vendorCategory)
+              : apiUser.profile?.vendorCategory,
             companyName: apiUser.profile?.companyName,
             firstName: apiUser.profile?.firstName,
             lastName: apiUser.profile?.lastName,

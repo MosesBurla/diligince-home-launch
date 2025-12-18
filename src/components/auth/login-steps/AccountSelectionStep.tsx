@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, Users, Package, ArrowLeft, Clock } from 'lucide-react';
+import { Building2, Users, Package, ArrowLeft, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -47,8 +47,21 @@ export const AccountSelectionStep: React.FC<AccountSelectionStepProps> = ({
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (firstName?: string, lastName?: string) => {
+    const first = firstName?.charAt(0) || '';
+    const last = lastName?.charAt(0) || '';
+    return (first + last).toUpperCase() || '??';
+  };
+
+  const getDisplayName = (account: AvailableAccount) => {
+    if (account.firstName && account.lastName) {
+      return `${account.firstName} ${account.lastName}`;
+    }
+    return account.email || account.role || 'User';
+  };
+
+  const getAccountId = (account: AvailableAccount) => {
+    return account.id || account.accountId || account.role;
   };
 
   return (
@@ -62,31 +75,32 @@ export const AccountSelectionStep: React.FC<AccountSelectionStepProps> = ({
         Back
       </Button>
 
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">Select Account</h2>
-        <p className="text-muted-foreground">
-          Multiple accounts found for <span className="font-medium text-foreground">{email}</span>
-        </p>
-      </div>
+      <p className="text-center text-muted-foreground mb-6">
+        Multiple accounts found for <span className="font-medium text-foreground">{email}</span>
+      </p>
 
       <div className="grid gap-4">
         {accounts.map((account) => {
           const Icon = getUserTypeIcon(account.userType);
-          const isSelected = selectedAccount?.id === account.id;
+          const accountId = getAccountId(account);
+          const isSelected = selectedAccount?.id === account.id || selectedAccount?.accountId === account.accountId;
+          const isInactive = account.isActive === false;
 
           return (
             <div
-              key={account.id}
-              onClick={() => onSelectAccount(account)}
-              className={`p-6 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
-                isSelected
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+              key={accountId}
+              onClick={() => !isInactive && onSelectAccount(account)}
+              className={`p-6 rounded-xl border-2 transition-all ${
+                isInactive
+                  ? 'border-muted bg-muted/30 cursor-not-allowed opacity-60'
+                  : isSelected
+                  ? 'border-primary bg-primary/5 cursor-pointer hover:shadow-md'
+                  : 'border-border hover:border-primary/50 cursor-pointer hover:shadow-md'
               }`}
             >
               <div className="flex items-start space-x-4">
                 <Avatar className="w-14 h-14">
-                  <AvatarImage src={account.avatar} alt={account.firstName} />
+                  <AvatarImage src={account.avatar} alt={getDisplayName(account)} />
                   <AvatarFallback className="text-lg">
                     {getInitials(account.firstName, account.lastName)}
                   </AvatarFallback>
@@ -96,19 +110,27 @@ export const AccountSelectionStep: React.FC<AccountSelectionStepProps> = ({
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="text-lg font-semibold text-foreground">
-                        {account.firstName} {account.lastName}
+                        {getDisplayName(account)}
                       </h3>
                       {account.companyName && (
                         <p className="text-sm text-muted-foreground">{account.companyName}</p>
                       )}
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={`${getUserTypeColor(account.userType)} flex items-center space-x-1`}
-                    >
-                      <Icon className="w-3 h-3" />
-                      <span className="capitalize">{account.userType}</span>
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {isInactive && (
+                        <Badge variant="destructive" className="flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          Inactive
+                        </Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={`${getUserTypeColor(account.userType)} flex items-center space-x-1`}
+                      >
+                        <Icon className="w-3 h-3" />
+                        <span className="capitalize">{account.userType}</span>
+                      </Badge>
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-4 text-sm">

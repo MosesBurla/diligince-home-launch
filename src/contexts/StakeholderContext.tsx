@@ -143,10 +143,10 @@ export const StakeholderProvider = ({ children }: { children: React.ReactNode })
     const notifyStakeholders = useCallback((requirement: RequirementFormData) => {
       // Match stakeholders based on requirement category and specializations
       const relevantStakeholders = stakeholderProfiles.filter(profile => {
-        if (requirement.category === 'product' && profile.type === 'product_vendor') return true;
-        if (requirement.category === 'service' && profile.type === 'service_vendor') return true;
-        if (requirement.category === 'logistics' && profile.type === 'logistics_vendor') return true;
-        if (requirement.category === 'expert' && profile.type === 'expert') return true;
+        if (requirement.category?.includes('product') && profile.type === 'product_vendor') return true;
+        if (requirement.category?.includes('service') && profile.type === 'service_vendor') return true;
+        if (requirement.category?.includes('logistics') && profile.type === 'logistics_vendor') return true;
+        if (requirement.category?.includes('expert') && profile.type === 'expert') return true;
         return false;
       });
 

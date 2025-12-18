@@ -6,12 +6,14 @@ interface TableFiltersProps {
   columns: ColumnConfig[];
   filters: FilterConfig;
   onFiltersChange: (filters: FilterConfig) => void;
+  additionalFilters?: React.ReactNode;
 }
 
 const TableFilters: React.FC<TableFiltersProps> = ({
   columns,
   filters,
   onFiltersChange,
+  additionalFilters,
 }) => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -71,11 +73,10 @@ const TableFilters: React.FC<TableFiltersProps> = ({
         >
           <button
             onClick={() => setOpenDropdown(openDropdown === column.name ? null : column.name)}
-            className={`flex items-center space-x-2 px-3 py-2 border rounded-lg text-sm transition-colors duration-200 ${
-              getActiveFilterCount(column.name) > 0
+            className={`flex items-center space-x-2 px-3 py-2 border rounded-lg text-sm transition-colors duration-200 ${getActiveFilterCount(column.name) > 0
                 ? 'bg-primary text-white border-primary'
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-            }`}
+              }`}
           >
             <Filter className="w-4 h-4" />
             <span>{column.label}</span>
@@ -126,6 +127,11 @@ const TableFilters: React.FC<TableFiltersProps> = ({
           )}
         </div>
       ))}
+      {additionalFilters && (
+        <div className="flex items-center">
+          {additionalFilters}
+        </div>
+      )}
     </div>
   );
 };

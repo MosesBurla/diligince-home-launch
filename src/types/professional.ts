@@ -6,7 +6,7 @@ export interface ProfessionalProfile {
   name: string;
   email: string;
   phone?: string;
-  expertise: string;
+  expertise: string[];
   experience: number;
   location: string;
   rating: number;
@@ -52,7 +52,7 @@ export type ProjectStatus = 'ongoing' | 'completed' | 'paused' | 'cancelled';
 export interface ProfessionalListItem {
   id: string;
   name: string;
-  expertise: string;
+  expertise: string[];
   experience: number;
   location: string;
   city: string;
@@ -74,7 +74,7 @@ export interface ProfessionalListItem {
 export interface ProfessionalSearchFilters {
   search?: string;
   rating?: number;
-  expertise?: string;
+  expertise?: string[];
   skills?: string[];
   location?: string;
   minExperience?: number;

@@ -5,7 +5,7 @@ import CustomTable, { ColumnConfig, FilterConfig } from '@/components/CustomTabl
 import { quotationService } from '@/services/modules/quotations';
 import type { Quotation } from '@/types/quotation';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { TableSkeletonLoader } from '@/components/shared/loading';
 
 const IndustryQuotes = () => {
   const [selectedRows, setSelectedRows] = useState<Quotation[]>([]);
@@ -178,9 +178,7 @@ const IndustryQuotes = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <TableSkeletonLoader rows={6} columns={8} />
       ) : (
         <CustomTable
           columns={columns}

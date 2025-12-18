@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { authService, type AvailableAccount } from '@/services/modules/auth';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 import { EmailStep } from '@/components/auth/login-steps/EmailStep';
 import { AccountSelectionStep } from '@/components/auth/login-steps/AccountSelectionStep';
 import { PasswordStep } from '@/components/auth/login-steps/PasswordStep';
 import { TwoFactorStep } from '@/components/auth/login-steps/TwoFactorStep';
 import { toast } from 'sonner';
+import { VerificationStatus } from '@/types/verification';
 
 type LoginStep = 'email' | 'account-selection' | 'password' | '2fa';
 
@@ -24,7 +26,7 @@ interface LoginState {
 
 const MultiStepLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { login: contextLogin, verify2FA: contextVerify2FA } = useUser();
+  const { login: contextLogin, verify2FA: contextVerify2FA, getDashboardUrl, verificationStatus } = useUser();
 
   const [state, setState] = useState<LoginState>({
     step: 'email',
@@ -44,6 +46,47 @@ const MultiStepLogin: React.FC = () => {
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | undefined>();
   const [resendCooldown, setResendCooldown] = useState(60);
 
+  // Dynamic titles based on current step
+  const stepContent = useMemo(() => {
+    switch (state.step) {
+      case 'email':
+        return { title: 'Welcome Back', subtitle: 'Enter your email to continue' };
+      case 'account-selection':
+        return { title: 'Select Account', subtitle: 'Choose the account you want to sign in with' };
+      case 'password':
+        return { title: 'Enter Password', subtitle: 'Sign in to your selected account' };
+      case '2fa':
+        return { title: 'Verification Required', subtitle: 'Complete two-factor authentication' };
+      default:
+        return { title: 'Welcome Back', subtitle: 'Sign in to your account' };
+    }
+  }, [state.step]);
+
+  // Get redirect path based on verification status and user role
+  const getRedirectPath = (userVerificationStatus?: string, selectedAccount?: AvailableAccount | null): string => {
+    const status = userVerificationStatus || verificationStatus;
+    const account = selectedAccount || state.selectedAccount;
+    const userType = account?.userType?.toLowerCase() || '';
+    const isVendor = userType.includes('vendor') || userType === 'vendor';
+    
+    switch (status) {
+      case VerificationStatus.APPROVED:
+      case 'approved':
+        return getDashboardUrl();
+      case VerificationStatus.PENDING:
+      case 'pending':
+        return '/verification-pending';
+      case VerificationStatus.REJECTED:
+      case 'rejected':
+        toast.error('Your profile verification was rejected. Please update your profile.');
+        return isVendor ? '/vendor-settings' : '/dashboard/industry-settings';
+      case VerificationStatus.INCOMPLETE:
+      case 'incomplete':
+      default:
+        return isVendor ? '/vendor-settings' : '/dashboard/industry-settings';
+    }
+  };
+
   // Step 1: Email lookup
   const handleEmailContinue = async () => {
     setLoading(true);
@@ -53,11 +96,19 @@ const MultiStepLogin: React.FC = () => {
       const response = await authService.lookupAccounts(state.email);
 
       if (response.success && response.data.accounts.length > 0) {
+        // Filter out inactive accounts and check for active ones
+        const activeAccounts = response.data.accounts.filter(acc => acc.isActive !== false);
+        
+        if (activeAccounts.length === 0) {
+          setError('No active accounts found. Please contact support.');
+          return;
+        }
+
         setState(prev => ({
           ...prev,
-          accounts: response.data.accounts,
-          step: response.data.accounts.length === 1 ? 'password' : 'account-selection',
-          selectedAccount: response.data.accounts.length === 1 ? response.data.accounts[0] : null,
+          accounts: activeAccounts,
+          step: activeAccounts.length === 1 ? 'password' : 'account-selection',
+          selectedAccount: activeAccounts.length === 1 ? activeAccounts[0] : null,
         }));
       } else {
         setError('No accounts found with this email address');
@@ -71,6 +122,12 @@ const MultiStepLogin: React.FC = () => {
 
   // Step 2: Account selection
   const handleAccountSelect = (account: AvailableAccount) => {
+    // Check if account is active
+    if (account.isActive === false) {
+      setError('This account is currently inactive. Please contact support.');
+      return;
+    }
+
     setState(prev => ({
       ...prev,
       selectedAccount: account,
@@ -109,7 +166,10 @@ const MultiStepLogin: React.FC = () => {
           const result = await contextLogin(state.email, state.password);
           if (result.success) {
             toast.success('Login successful');
-            navigate('/dashboard');
+            // Use verification status from selected account or fetch from context
+            const accountVerificationStatus = state.selectedAccount?.verificationStatus;
+            const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
+            navigate(redirectPath);
           } else {
             setError(result.error || 'Login failed');
           }
@@ -140,7 +200,10 @@ const MultiStepLogin: React.FC = () => {
         const result = await contextVerify2FA(state.twoFactorToken, state.twoFactorCode);
         if (result.success) {
           toast.success('Authentication successful');
-          navigate('/dashboard');
+          // Use verification status from selected account or fetch from context
+          const accountVerificationStatus = state.selectedAccount?.verificationStatus;
+          const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
+          navigate(redirectPath);
         } else {
           setError(result.error || 'Verification failed');
         }
@@ -209,97 +272,100 @@ const MultiStepLogin: React.FC = () => {
     }
   };
 
+  // Removed unused STEPS constant reference
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-800 to-purple-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl">
-        <div className="rounded-2xl shadow-xl p-8 bg-white/95 backdrop-blur-lg border border-white/20">
-          {/* Progress Indicator */}
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-2">
-              {['email', 'account-selection', 'password', '2fa'].map((step, index) => {
-                const stepIndex = ['email', 'account-selection', 'password', '2fa'].indexOf(state.step);
-                const currentIndex = ['email', 'account-selection', 'password', '2fa'].indexOf(step);
-                const isActive = currentIndex <= stepIndex;
-                const isCurrent = step === state.step;
+    <AuthLayout title={stepContent.title} subtitle={stepContent.subtitle}>
+      {/* Progress Indicator - Commented out to hide multi-step display */}
+      {/*
+      <div className="mb-8">
+        <div className="flex items-center justify-center space-x-2">
+          {STEPS.map((step, index) => {
+            const isActive = index <= currentStepIndex;
+            const isCurrent = step === state.step;
 
-                return (
-                  <React.Fragment key={step}>
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                        isCurrent
-                          ? 'bg-primary text-primary-foreground'
-                          : isActive
-                          ? 'bg-primary/20 text-primary'
-                          : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    {index < 3 && (
-                      <div
-                        className={`w-12 h-1 rounded transition-all ${
-                          isActive ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step Content */}
-          {state.step === 'email' && (
-            <EmailStep
-              email={state.email}
-              onEmailChange={(email) => setState(prev => ({ ...prev, email }))}
-              onContinue={handleEmailContinue}
-              loading={loading}
-              error={error}
-            />
-          )}
-
-          {state.step === 'account-selection' && (
-            <AccountSelectionStep
-              accounts={state.accounts}
-              selectedAccount={state.selectedAccount}
-              onSelectAccount={handleAccountSelect}
-              onBack={handleBack}
-              email={state.email}
-            />
-          )}
-
-          {state.step === 'password' && state.selectedAccount && (
-            <PasswordStep
-              selectedAccount={state.selectedAccount}
-              password={state.password}
-              onPasswordChange={(password) => setState(prev => ({ ...prev, password }))}
-              onLogin={handleLogin}
-              onBack={handleBack}
-              loading={loading}
-              error={error}
-            />
-          )}
-
-          {state.step === '2fa' && state.selectedAccount && state.twoFactorMethod && (
-            <TwoFactorStep
-              selectedAccount={state.selectedAccount}
-              twoFactorMethod={state.twoFactorMethod}
-              code={state.twoFactorCode}
-              onCodeChange={(code) => setState(prev => ({ ...prev, twoFactorCode: code }))}
-              onVerify={handleVerify2FA}
-              onResend={handleResend2FA}
-              onBack={handleBack}
-              loading={loading}
-              resending={resending}
-              error={error}
-              attemptsRemaining={attemptsRemaining}
-              resendCooldown={resendCooldown}
-            />
-          )}
+            return (
+              <React.Fragment key={step}>
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                      isCurrent
+                        ? 'bg-primary text-primary-foreground'
+                        : isActive
+                        ? 'bg-primary/20 text-primary'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span className={`text-xs mt-1 ${isCurrent ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                    {STEP_LABELS[index]}
+                  </span>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div
+                    className={`w-12 h-1 rounded transition-all mb-5 ${
+                      isActive && index < currentStepIndex ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
-    </div>
+      */}
+
+      {/* Step Content */}
+      {state.step === 'email' && (
+        <EmailStep
+          email={state.email}
+          onEmailChange={(email) => setState(prev => ({ ...prev, email }))}
+          onContinue={handleEmailContinue}
+          loading={loading}
+          error={error}
+        />
+      )}
+
+      {state.step === 'account-selection' && (
+        <AccountSelectionStep
+          accounts={state.accounts}
+          selectedAccount={state.selectedAccount}
+          onSelectAccount={handleAccountSelect}
+          onBack={handleBack}
+          email={state.email}
+        />
+      )}
+
+      {state.step === 'password' && state.selectedAccount && (
+        <PasswordStep
+          selectedAccount={state.selectedAccount}
+          password={state.password}
+          onPasswordChange={(password) => setState(prev => ({ ...prev, password }))}
+          onLogin={handleLogin}
+          onBack={handleBack}
+          loading={loading}
+          error={error}
+        />
+      )}
+
+      {state.step === '2fa' && state.selectedAccount && state.twoFactorMethod && (
+        <TwoFactorStep
+          selectedAccount={state.selectedAccount}
+          twoFactorMethod={state.twoFactorMethod}
+          code={state.twoFactorCode}
+          onCodeChange={(code) => setState(prev => ({ ...prev, twoFactorCode: code }))}
+          onVerify={handleVerify2FA}
+          onResend={handleResend2FA}
+          onBack={handleBack}
+          loading={loading}
+          resending={resending}
+          error={error}
+          attemptsRemaining={attemptsRemaining}
+          resendCooldown={resendCooldown}
+        />
+      )}
+    </AuthLayout>
   );
 };
 

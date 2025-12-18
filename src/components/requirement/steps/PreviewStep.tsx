@@ -1,14 +1,11 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useRequirement } from "@/contexts/RequirementContext";
-import { useRequirementDraft } from "@/hooks/useRequirementDraft";
 import { steps } from "@/components/requirement/RequirementStepIndicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-import { Package, User, Wrench, Truck, Edit, File } from "lucide-react";
+import { Package, User, Wrench, Truck, Edit, File, CheckCircle2, AlertCircle, FileText, Workflow } from "lucide-react";
 import { StepType } from "@/pages/CreateRequirement";
-import { toast } from "sonner";
 
 interface PreviewStepProps {
   onNext: () => void;
@@ -17,47 +14,29 @@ interface PreviewStepProps {
 }
 
 const PreviewStep: React.FC<PreviewStepProps> = ({ 
-  onNext, 
-  onPrevious,
   onEdit 
 }) => {
   const { formData } = useRequirement();
-  const { forceSave } = useRequirementDraft();
-  const navigate = useNavigate();
-
-  const handleSendForApproval = async () => {
-    try {
-      // Auto-save will handle saving in background
-      onNext(); // Navigate to approval workflow step
-      toast.success("Proceeding to approval configuration");
-    } catch (error) {
-      console.error("Failed to proceed:", error);
-      toast.error("Failed to proceed. Please try again.");
-    }
-  };
-
-  const handleClose = () => {
-    navigate("/industry");
-  };
 
   const getCategoryIcon = () => {
-    switch (formData.category) {
-      case "expert":
-        return <User className="h-5 w-5 text-primary" />;
-      case "product":
-        return <Package className="h-5 w-5 text-green-600" />;
-      case "service":
-        return <Wrench className="h-5 w-5 text-purple-600" />;
-      case "logistics":
-        return <Truck className="h-5 w-5 text-orange-600" />;
-      default:
-        return null;
-    }
+    const categories = formData.category || [];
+    // Return icon for first category, or null if none
+    if (categories.includes("expert")) return <User className="h-5 w-5 text-primary" />;
+    if (categories.includes("product")) return <Package className="h-5 w-5 text-emerald-600" />;
+    if (categories.includes("service")) return <Wrench className="h-5 w-5 text-purple-600" />;
+    if (categories.includes("logistics")) return <Truck className="h-5 w-5 text-orange-600" />;
+    return null;
   };
 
-  const formatDate = (date: Date | null) => {
+  const formatCategories = () => {
+    const categories = formData.category || [];
+    if (categories.length === 0) return "No category";
+    return categories.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(", ");
+  };
+
+  const formatDate = (date: Date | null | undefined) => {
     if (!date) return "Not specified";
-    return format(date, "MMM dd, yyyy");
+    return format(new Date(date), "MMM dd, yyyy");
   };
 
   const formatList = (list: string[] | undefined) => {
@@ -65,202 +44,182 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
     return list.join(", ");
   };
 
+  const formatCurrency = (value: number | undefined) => {
+    if (!value) return "Not specified";
+    return `₹${value.toLocaleString()}`;
+  };
+
+  // Check completion status for each section
+  const isSectionComplete = (section: 'basic' | 'details' | 'documents' | 'approval') => {
+    const categories = formData.category || [];
+    switch (section) {
+      case 'basic':
+        return !!(formData.title && categories.length > 0 && formData.priority);
+      case 'details':
+        let detailsComplete = categories.length > 0;
+        if (categories.includes('product') && !(formData.productSpecifications && formData.quantity)) detailsComplete = false;
+        if (categories.includes('expert') && !(formData.specialization?.length && formData.description)) detailsComplete = false;
+        if (categories.includes('service') && !(formData.serviceDescription && formData.scopeOfWork)) detailsComplete = false;
+        if (categories.includes('logistics') && !(formData.equipmentType && formData.pickupLocation)) detailsComplete = false;
+        return detailsComplete;
+      case 'documents':
+        return (formData.documents?.length || 0) > 0;
+      case 'approval':
+        return !!(formData.estimatedBudget && formData.estimatedBudget > 0);
+      default:
+        return false;
+    }
+  };
+
+  const SectionStatus = ({ complete }: { complete: boolean }) => (
+    complete ? (
+      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+    ) : (
+      <AlertCircle className="h-4 w-4 text-amber-500" />
+    )
+  );
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-900">{steps[4].name}</h2>
-        <p className="text-gray-600">
-          {steps[4].description}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">{steps[4].name}</h2>
+        <p className="text-sm text-muted-foreground">
+          Review all information before proceeding to publish
         </p>
       </div>
 
       {/* Basic Info Summary */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium">Basic Information</CardTitle>
+      <Card className="border-border/60">
+        <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-2">
+            <SectionStatus complete={isSectionComplete('basic')} />
+            <CardTitle className="text-base font-medium">Basic Information</CardTitle>
+          </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1 text-gray-500 hover:text-primary"
+            className="h-7 gap-1 text-muted-foreground hover:text-primary"
             onClick={() => onEdit(1)}
           >
-            <Edit className="h-4 w-4" />
-            <span>Edit</span>
+            <Edit className="h-3.5 w-3.5" />
+            <span className="text-xs">Edit</span>
           </Button>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="space-y-3">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">
-                {formData.title}
+              <h3 className="text-lg font-semibold text-foreground">
+                {formData.title || "Untitled Requirement"}
               </h3>
             </div>
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-              {getCategoryIcon()}
-              <span className="capitalize">{formData.category}</span>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div className="flex items-center gap-1.5">
+                {getCategoryIcon()}
+                <span className="text-muted-foreground">{formatCategories()}</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                formData.priority === 'critical' ? 'bg-red-100 text-red-700' :
+                formData.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                formData.priority === 'medium' ? 'bg-amber-100 text-amber-700' :
+                'bg-slate-100 text-slate-700'
+              }`}>
+                {formData.priority || "No priority"}
+              </span>
             </div>
+            {formData.businessJustification && (
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                {formData.businessJustification}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Details Summary */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium">Requirement Details</CardTitle>
+      <Card className="border-border/60">
+        <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-2">
+            <SectionStatus complete={isSectionComplete('details')} />
+            <CardTitle className="text-base font-medium">Requirement Details</CardTitle>
+          </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1 text-gray-500 hover:text-primary"
+            className="h-7 gap-1 text-muted-foreground hover:text-primary"
             onClick={() => onEdit(2)}
           >
-            <Edit className="h-4 w-4" />
-            <span>Edit</span>
+            <Edit className="h-3.5 w-3.5" />
+            <span className="text-xs">Edit</span>
           </Button>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {formData.category === "expert" && (
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            {formData.category?.includes("expert") && (
               <>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Specialization</p>
-                    <p className="mt-1">{formData.specialization || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Budget</p>
-                    <p className="mt-1">{formData.budget ? `$${formData.budget.toLocaleString()}` : "Not specified"}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Specialization</p>
+                  <p className="font-medium">{formatList(formData.specialization)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Description</p>
-                  <p className="mt-1 whitespace-pre-line">{formData.description || "Not specified"}</p>
+                  <p className="text-xs text-muted-foreground">Duration</p>
+                  <p className="font-medium">{formData.duration ? `${formData.duration} days` : "Not specified"}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Duration</p>
-                    <p className="mt-1">{formData.duration ? `${formData.duration} days` : "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Certifications</p>
-                    <p className="mt-1">{formatList(formData.certifications)}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Start Date</p>
-                    <p className="mt-1">{formatDate(formData.startDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">End Date</p>
-                    <p className="mt-1">{formatDate(formData.endDate)}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Certifications</p>
+                  <p className="font-medium">{formatList(formData.certifications)}</p>
                 </div>
               </>
             )}
 
-            {formData.category === "product" && (
+            {formData.category?.includes("product") && (
               <>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Product Specifications</p>
-                  <p className="mt-1 whitespace-pre-line">{formData.productSpecifications || "Not specified"}</p>
+                  <p className="text-xs text-muted-foreground">Quantity</p>
+                  <p className="font-medium">{formData.quantity || "Not specified"}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Quantity</p>
-                    <p className="mt-1">{formData.quantity || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Budget</p>
-                    <p className="mt-1">{formData.budget ? `$${formData.budget.toLocaleString()}` : "Not specified"}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Delivery Date</p>
+                  <p className="font-medium">{formatDate(formData.deliveryDate)}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Delivery Date</p>
-                    <p className="mt-1">{formatDate(formData.deliveryDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Quality Requirements</p>
-                    <p className="mt-1">{formData.qualityRequirements || "Not specified"}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Quality</p>
+                  <p className="font-medium">{formData.qualityRequirements || "Standard"}</p>
                 </div>
               </>
             )}
 
-            {formData.category === "service" && (
+            {formData.category?.includes("service") && (
               <>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Service Description</p>
-                  <p className="mt-1 whitespace-pre-line">{formData.serviceDescription || "Not specified"}</p>
+                  <p className="text-xs text-muted-foreground">Location</p>
+                  <p className="font-medium">{formData.location || "Not specified"}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Scope of Work</p>
-                  <p className="mt-1 whitespace-pre-line">{formData.scopeOfWork || "Not specified"}</p>
+                  <p className="text-xs text-muted-foreground">Start Date</p>
+                  <p className="font-medium">{formatDate(formData.serviceStartDate)}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Budget</p>
-                    <p className="mt-1">{formData.serviceBudget ? `$${formData.serviceBudget.toLocaleString()}` : "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Location</p>
-                    <p className="mt-1">{formData.location || "Not specified"}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Start Date</p>
-                    <p className="mt-1">{formatDate(formData.serviceStartDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">End Date</p>
-                    <p className="mt-1">{formatDate(formData.serviceEndDate)}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">End Date</p>
+                  <p className="font-medium">{formatDate(formData.serviceEndDate)}</p>
                 </div>
               </>
             )}
 
-            {formData.category === "logistics" && (
+            {formData.category?.includes("logistics") && (
               <>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Equipment Type</p>
-                    <p className="mt-1">{formData.equipmentType || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Weight</p>
-                    <p className="mt-1">{formData.weight ? `${formData.weight} kg` : "Not specified"}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Equipment</p>
+                  <p className="font-medium">{formData.equipmentType || "Not specified"}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Dimensions</p>
-                    <p className="mt-1">{formData.dimensions || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Special Handling</p>
-                    <p className="mt-1 whitespace-pre-line">{formData.specialHandling || "None"}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pickup</p>
+                  <p className="font-medium truncate">{formData.pickupLocation || "Not specified"}</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Pickup Location</p>
-                    <p className="mt-1">{formData.pickupLocation || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Delivery Location</p>
-                    <p className="mt-1">{formData.deliveryLocation || "Not specified"}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Pickup Date</p>
-                    <p className="mt-1">{formatDate(formData.pickupDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Delivery Date</p>
-                    <p className="mt-1">{formatDate(formData.deliveryDate)}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Delivery</p>
+                  <p className="font-medium truncate">{formData.deliveryLocation || "Not specified"}</p>
                 </div>
               </>
             )}
@@ -269,42 +228,35 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
       </Card>
 
       {/* Documents Summary */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-medium">Documents</CardTitle>
+      <Card className="border-border/60">
+        <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-2">
+            <SectionStatus complete={isSectionComplete('documents')} />
+            <CardTitle className="text-base font-medium">Documents</CardTitle>
+          </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1 text-gray-500 hover:text-primary"
+            className="h-7 gap-1 text-muted-foreground hover:text-primary"
             onClick={() => onEdit(3)}
           >
-            <Edit className="h-4 w-4" />
-            <span>Edit</span>
+            <Edit className="h-3.5 w-3.5" />
+            <span className="text-xs">Edit</span>
           </Button>
         </CardHeader>
-        <CardContent>
-          {formData.documents.length === 0 ? (
-            <p className="text-gray-500">No documents attached</p>
+        <CardContent className="px-4 pb-4 pt-0">
+          {!formData.documents?.length ? (
+            <p className="text-sm text-muted-foreground">No documents attached</p>
           ) : (
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="flex flex-wrap gap-2">
               {formData.documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center gap-3 rounded-md border p-3"
+                  className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm"
                 >
-                  <File className="h-5 w-5 text-primary" />
-                  <div className="flex-1 truncate">
-                    <p className="font-medium text-gray-900 truncate">{doc.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{doc.documentType}</p>
-                  </div>
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs font-medium text-primary hover:underline"
-                  >
-                    View
-                  </a>
+                  <File className="h-3.5 w-3.5 text-primary" />
+                  <span className="font-medium truncate max-w-[150px]">{doc.name}</span>
+                  <span className="text-xs text-muted-foreground capitalize">({doc.documentType})</span>
                 </div>
               ))}
             </div>
@@ -312,21 +264,52 @@ const PreviewStep: React.FC<PreviewStepProps> = ({
         </CardContent>
       </Card>
 
-      <div className="flex justify-between pt-6">
-        <Button 
-          variant="outline" 
-          onClick={onPrevious}
-        >
-          Previous
-        </Button>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleClose}>
-            Close
+      {/* Approval Workflow Summary */}
+      <Card className="border-border/60">
+        <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-2">
+            <SectionStatus complete={isSectionComplete('approval')} />
+            <CardTitle className="text-base font-medium">Budget & Approval</CardTitle>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 gap-1 text-muted-foreground hover:text-primary"
+            onClick={() => onEdit(4)}
+          >
+            <Edit className="h-3.5 w-3.5" />
+            <span className="text-xs">Edit</span>
           </Button>
-          <Button onClick={handleSendForApproval}>
-            Send for Approvals
-          </Button>
-        </div>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-xs text-muted-foreground">Budget</p>
+              <p className="font-semibold text-primary">{formatCurrency(formData.estimatedBudget)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Urgency</p>
+              <p className="font-medium">{formData.isUrgent ? "Urgent" : "Standard"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Compliance</p>
+              <p className="font-medium">{formData.complianceRequired ? "Required" : "Not required"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Approval Matrix</p>
+              <p className="font-medium">{formData.selectedApprovalMatrixId ? "Selected" : "Not selected"}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Info Note */}
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+        <p className="text-muted-foreground">
+          Review all sections carefully. Click <strong>Edit</strong> to make changes. 
+          Proceed to the next step when ready to configure publishing options.
+        </p>
       </div>
     </div>
   );

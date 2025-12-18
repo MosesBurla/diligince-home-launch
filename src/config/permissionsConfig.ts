@@ -5,12 +5,137 @@ import {
   ModulePermissionHierarchy 
 } from '@/types/permissions';
 import industryModulePermissions from '@/data/industry_module_permissions.json';
+import serviceVendorModulePermissions from '@/data/service_vendor_module_permissions.json';
+import productVendorModulePermissions from '@/data/product_vendor_module_permissions.json';
+import logisticsVendorModulePermissions from '@/data/logistics_vendor_module_permissions.json';
+
+// ============================================
+// VENDOR TYPE DEFINITIONS
+// ============================================
+
+export type VendorType = 'service' | 'product' | 'logistics';
+
+// ============================================
+// MASTER CONFIGURATIONS
+// ============================================
 
 /**
- * Master hierarchical configuration imported from JSON
- * This is the single source of truth for all permission structures
+ * Industry (Buyer) - Master hierarchical configuration
  */
 export const INDUSTRY_PERMISSIONS_CONFIG: IndustryPermissionsConfig = industryModulePermissions as IndustryPermissionsConfig;
+
+/**
+ * Service Vendor - Master hierarchical configuration
+ * Modules: Dashboard, RFQs, Quotations, Projects, Messages, Team, Services, Settings
+ */
+export const SERVICE_VENDOR_PERMISSIONS_CONFIG: IndustryPermissionsConfig = serviceVendorModulePermissions as IndustryPermissionsConfig;
+
+/**
+ * Product Vendor - Master hierarchical configuration
+ * Modules: Dashboard, Catalog, Orders, Messages, Team, Analytics, Settings
+ */
+export const PRODUCT_VENDOR_PERMISSIONS_CONFIG: IndustryPermissionsConfig = productVendorModulePermissions as IndustryPermissionsConfig;
+
+/**
+ * Logistics Vendor - Master hierarchical configuration
+ * Modules: Dashboard, Requests, Deliveries, Fleet, Messages, Team, Tracking, Settings
+ */
+export const LOGISTICS_VENDOR_PERMISSIONS_CONFIG: IndustryPermissionsConfig = logisticsVendorModulePermissions as IndustryPermissionsConfig;
+
+// ============================================
+// VENDOR HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Get hierarchical permissions configuration for a specific vendor type
+ * @param vendorType - The type of vendor (service, product, logistics)
+ * @returns The permissions configuration or null if invalid type
+ */
+export const getVendorHierarchicalConfig = (vendorType: VendorType): IndustryPermissionsConfig | null => {
+  switch (vendorType) {
+    case 'service':
+      return SERVICE_VENDOR_PERMISSIONS_CONFIG;
+    case 'product':
+      return PRODUCT_VENDOR_PERMISSIONS_CONFIG;
+    case 'logistics':
+      return LOGISTICS_VENDOR_PERMISSIONS_CONFIG;
+    default:
+      console.warn(`[getVendorHierarchicalConfig] Unknown vendor type: ${vendorType}`);
+      return null;
+  }
+};
+
+/**
+ * Get hierarchical module by ID for a specific vendor type
+ * @param vendorType - The type of vendor
+ * @param moduleId - The module ID to find
+ * @returns The module configuration or undefined
+ */
+export const getVendorHierarchicalModule = (
+  vendorType: VendorType, 
+  moduleId: string
+): ModulePermissionHierarchy | undefined => {
+  const config = getVendorHierarchicalConfig(vendorType);
+  if (!config) return undefined;
+  return config.modules.find((m) => m.id === moduleId);
+};
+
+/**
+ * Get all vendor configurations as a map
+ * Useful for iterating over all vendor types
+ */
+export const getAllVendorConfigs = (): Record<VendorType, IndustryPermissionsConfig> => ({
+  service: SERVICE_VENDOR_PERMISSIONS_CONFIG,
+  product: PRODUCT_VENDOR_PERMISSIONS_CONFIG,
+  logistics: LOGISTICS_VENDOR_PERMISSIONS_CONFIG,
+});
+
+/**
+ * Get the vendor type from a user sub-type string
+ * @param userSubType - The user sub-type (e.g., "ServiceVendor", "ProductVendor", "LogisticsVendor")
+ * @returns The VendorType or null if not a vendor
+ */
+export const getVendorTypeFromUserSubType = (userSubType: string): VendorType | null => {
+  const normalized = userSubType?.toLowerCase().replace(/vendor/g, '').replace(/\s+/g, '');
+  switch (normalized) {
+    case 'service':
+      return 'service';
+    case 'product':
+      return 'product';
+    case 'logistics':
+      return 'logistics';
+    default:
+      return null;
+  }
+};
+
+/**
+ * Get permissions config by user type and sub-type
+ * @param userType - The main user type (e.g., "Industry", "Vendor")
+ * @param userSubType - The user sub-type (e.g., "ServiceVendor")
+ * @returns The appropriate permissions configuration
+ */
+export const getPermissionsConfigByUserType = (
+  userType: string,
+  userSubType?: string
+): IndustryPermissionsConfig | null => {
+  if (userType?.toLowerCase() === 'industry') {
+    return INDUSTRY_PERMISSIONS_CONFIG;
+  }
+  
+  if (userType?.toLowerCase() === 'vendor' && userSubType) {
+    const vendorType = getVendorTypeFromUserSubType(userSubType);
+    if (vendorType) {
+      return getVendorHierarchicalConfig(vendorType);
+    }
+  }
+  
+  return null;
+};
+
+// ============================================
+// INDUSTRY MODULES (Flat Structure - Backward Compatibility)
+// ============================================
 
 /**
  * Complete list of all industry modules and sub-modules (flat structure)
@@ -256,6 +381,10 @@ export const INDUSTRY_MODULES: ModuleDefinition[] = [
   },
 ];
 
+// ============================================
+// DEPRECATED FUNCTIONS
+// ============================================
+
 /**
  * Get default permissions - returns empty permissions
  * Real permissions should come from API only
@@ -265,6 +394,19 @@ export const getDefaultPermissions = (): UserPermissions => {
   console.warn('[DEPRECATED] getDefaultPermissions() should not be used - use API permissions only');
   return { permissions: [] };
 };
+
+/**
+ * Get default permissions for IndustryAdmin role
+ * @deprecated Use API permissions from login response
+ */
+export const getIndustryAdminDefaultPermissions = (): UserPermissions => {
+  console.warn('[DEPRECATED] getIndustryAdminDefaultPermissions() should not be used - use API permissions only');
+  return { permissions: [] };
+};
+
+// ============================================
+// MODULE HELPER FUNCTIONS
+// ============================================
 
 /**
  * Find module definition by ID
@@ -281,16 +423,7 @@ export const getSubModules = (parentModuleId: string): ModuleDefinition[] => {
 };
 
 /**
- * Get default permissions for IndustryAdmin role
- * @deprecated Use API permissions from login response
- */
-export const getIndustryAdminDefaultPermissions = (): UserPermissions => {
-  console.warn('[DEPRECATED] getIndustryAdminDefaultPermissions() should not be used - use API permissions only');
-  return { permissions: [] };
-};
-
-/**
- * Get hierarchical permissions configuration
+ * Get hierarchical permissions configuration (Industry)
  * This is the master template for role management UI and MongoDB storage
  */
 export const getHierarchicalConfig = (): IndustryPermissionsConfig => {
@@ -298,7 +431,7 @@ export const getHierarchicalConfig = (): IndustryPermissionsConfig => {
 };
 
 /**
- * Get hierarchical module by ID
+ * Get hierarchical module by ID (Industry)
  */
 export const getHierarchicalModule = (moduleId: string): ModulePermissionHierarchy | undefined => {
   return INDUSTRY_PERMISSIONS_CONFIG.modules.find((m) => m.id === moduleId);

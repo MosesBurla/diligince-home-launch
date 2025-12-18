@@ -36,6 +36,8 @@ export interface UserProfile {
   name: string;
   email: string;
   role: UserRole;
+  userType?: 'Vendor' | 'Industry' | 'Professional';
+  userSubType?: 'ServiceVendor' | 'ProductVendor' | 'LogisticVendor';
   initials?: string;
   profile?: any;
   preferences?: UserPreferences;
@@ -76,6 +78,19 @@ export interface BaseNotification {
   position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 }
 
+// Helper to map userSubType to vendor category
+export const mapUserSubTypeToVendorCategory = (
+  userSubType?: string
+): VendorCategory | undefined => {
+  if (!userSubType) return undefined;
+  
+  if (userSubType === 'ServiceVendor') return 'service';
+  if (userSubType === 'ProductVendor') return 'product';
+  if (userSubType === 'LogisticVendor') return 'logistics';
+  
+  return undefined;
+};
+
 // Dashboard routing utility
 export const getDashboardRoute = (user: UserProfile): string => {
   switch (user.role) {
@@ -84,15 +99,30 @@ export const getDashboardRoute = (user: UserProfile): string => {
     case 'professional':
       return '/dashboard/professional';
     case 'vendor':
-      if (user.profile?.vendorCategory === 'service') {
-        return '/dashboard/service-vendor';
-      } else if (user.profile?.vendorCategory === 'product') {
-        return '/dashboard/product-vendor';
-      } else if (user.profile?.vendorCategory === 'logistics') {
-        return '/dashboard/logistics-vendor';
-      }
+      // Prefer userSubType, fallback to profile.vendorCategory
+      const vendorCategory = user.userSubType 
+        ? mapUserSubTypeToVendorCategory(user.userSubType)
+        : user.profile?.vendorCategory;
+        
+      if (vendorCategory === 'service') return '/dashboard/service-vendor';
+      if (vendorCategory === 'product') return '/dashboard/product-vendor';
+      if (vendorCategory === 'logistics') return '/dashboard/logistics-vendor';
       return '/dashboard';
     default:
       return '/signin';
+  }
+};
+
+// Settings routing utility based on role
+export const getSettingsRoute = (role: UserRole | string): string => {
+  switch (role) {
+    case 'industry':
+      return '/dashboard/industry-settings';
+    case 'vendor':
+      return '/vendor-settings';
+    case 'professional':
+      return '/professional-settings';
+    default:
+      return '/dashboard/industry-settings';
   }
 };

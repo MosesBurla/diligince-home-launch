@@ -86,25 +86,34 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ onNext }) => {
             Category <span className="text-red-600 font-bold text-lg">*</span>
           </Label>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {categoryOptions.map((category) => (
-              <div
-                key={category.id}
-                className={`flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-blue-400 hover:shadow-md ${
-                  formData.category === category.id
-                    ? "border-2 border-blue-600 bg-blue-50"
-                    : "border-gray-200"
-                }`}
-                onClick={() => updateFormData({ category: category.id as any })}
-              >
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                  <category.icon className="h-6 w-6" />
+            {categoryOptions.map((category) => {
+              const categoryId = category.id as "expert" | "logistics" | "product" | "service";
+              return (
+                <div
+                  key={category.id}
+                  className={`flex cursor-pointer flex-col rounded-lg border p-4 transition-all hover:border-blue-400 hover:shadow-md ${
+                    formData.category?.includes(categoryId)
+                      ? "border-2 border-blue-600 bg-blue-50"
+                      : "border-gray-200"
+                  }`}
+                  onClick={() => {
+                    const currentCategories = formData.category || [];
+                    const newCategories = currentCategories.includes(categoryId)
+                      ? currentCategories.filter(c => c !== categoryId)
+                      : [...currentCategories, categoryId];
+                    updateFormData({ category: newCategories as any });
+                  }}
+                >
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <category.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-medium text-gray-900">{category.title}</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {category.description}
+                  </p>
                 </div>
-                <h3 className="font-medium text-gray-900">{category.title}</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  {category.description}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {stepErrors.category && (
             <p className="text-sm text-red-500">{stepErrors.category}</p>

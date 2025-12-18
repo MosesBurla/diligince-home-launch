@@ -1,6 +1,6 @@
 // TypeScript interfaces for Requirement Draft API
 
-import { RequirementFormData } from "@/contexts/RequirementContext";
+import { RequirementFormData } from "@/types/requirement-form.types";
 
 // ============= Request/Response Types =============
 
