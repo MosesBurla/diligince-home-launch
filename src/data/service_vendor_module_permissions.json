@@ -302,7 +302,7 @@
     {
       "id": "sv-settings",
       "name": "Settings",
-      "path": "/dashboard/service-vendor-profile",
+      "path": "/dashboard/vendor-settings",
       "icon": "Settings",
       "permissions": {
         "read": true,
@@ -315,7 +315,7 @@
         {
           "id": "sv-settings-company",
           "name": "Company Profile",
-          "path": "/dashboard/service-vendor-profile",
+          "path": "/dashboard/vendor-settings",
           "icon": "Building",
           "permissions": {
             "read": true,

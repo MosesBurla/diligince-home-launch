@@ -13,6 +13,7 @@ const FIELD_DISPLAY_NAMES: Record<string, string> = {
   primaryIndustry: 'Primary Industry',
   yearsInBusiness: 'Years in Business',
   businessLocation: 'Business Location',
+  addresses: 'Business Address',
 };
 
 // Required fields for vendor profile completion
@@ -23,6 +24,7 @@ const VENDOR_REQUIRED_FIELDS = [
   'registrationNumber',
   'email',
   'mobile',
+  'addresses', // Required for verification
 ] as const;
 
 // Optional fields that contribute to completion
@@ -114,7 +116,15 @@ export const calculateVendorProfileCompletion = (
   
   for (const field of VENDOR_REQUIRED_FIELDS) {
     const value = profile[field as keyof VendorProfile];
-    if (value && String(value).trim()) {
+    // Special handling for addresses array
+    if (field === 'addresses') {
+      const addresses = profile.addresses;
+      if (addresses && Array.isArray(addresses) && addresses.length > 0 && addresses[0].line1) {
+        completedFields++;
+      } else {
+        missingFields.push(FIELD_DISPLAY_NAMES[field] || 'Business Address');
+      }
+    } else if (value && String(value).trim()) {
       completedFields++;
     } else {
       missingFields.push(FIELD_DISPLAY_NAMES[field] || field);

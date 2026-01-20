@@ -56,7 +56,7 @@ const PublicHeader = () => {
     //             to="/signin"
     //             className="bg-gradient-to-r from-[#1A2A4F] to-[#2F80ED] text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
     //           >
-    //             Start Free Trial
+    //             Sign In
     //           </Link>
     //         </div>
     //       </div>
@@ -64,7 +64,7 @@ const PublicHeader = () => {
     //   </div>
     // </header>
     // {/* Header */ }
-    < header className = "fixed top-4 left-4 right-4 z-50 flex justify-center" >
+    < header className="fixed top-4 left-4 right-4 z-50 flex justify-center" >
       <div className="bg-white/60 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl w-[80%]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -89,16 +89,16 @@ const PublicHeader = () => {
               </nav>
 
               <Link
-                to="/signin"
+                to="/login"
                 className="bg-gradient-to-r from-[#153b60] to-[#1e4976] text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
               >
-                Start Free Trial
+                Sign In
               </Link>
             </div>
           </div>
         </div>
       </div>
-          </header >
+    </header >
   );
 };
 

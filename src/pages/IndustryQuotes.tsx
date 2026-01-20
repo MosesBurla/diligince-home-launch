@@ -1,198 +1,244 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import CustomTable, { ColumnConfig, FilterConfig } from '@/components/CustomTable';
-import { quotationService } from '@/services/modules/quotations';
-import type { Quotation } from '@/types/quotation';
-import { useToast } from '@/hooks/use-toast';
-import { TableSkeletonLoader } from '@/components/shared/loading';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import CustomTable from "@/components/CustomTable";
+import { ColumnConfig, FilterConfig } from "@/types/table";
+import AISearchBar from "@/components/shared/AISearchBar";
+import requirementListService from "@/services/requirement-list.service";
+import { useUser } from "@/contexts/UserContext";
+import { toast } from "sonner";
 
 const IndustryQuotes = () => {
-  const [selectedRows, setSelectedRows] = useState<Quotation[]>([]);
+  const navigate = useNavigate();
+  const { user } = useUser();
+
+  // State
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [filters, setFilters] = useState<Record<string, any>>({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const { data: response, isLoading, error } = useQuery({
-    queryKey: ['quotations', 'all', currentPage, pageSize, filters, searchTerm],
-    queryFn: () => quotationService.getAll({
-      page: currentPage,
+  // Fetch published requirements
+  const {
+    data: response,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      "requirements",
+      "published",
+      currentPage,
       pageSize,
-      search: searchTerm,
-      ...filters,
-    }),
+      searchQuery,
+      filters,
+    ],
+    queryFn: async () => {
+      const result = await requirementListService.getPublished({
+        page: currentPage,
+        limit: pageSize,
+        search: searchQuery || undefined,
+        filters,
+      } as any);
+      return result;
+    },
   });
 
-  const quotations = response?.data.quotations || [];
-  const pagination = response?.data.pagination;
+  const requirements = response?.data?.requirements || [];
+  const pagination = response?.data?.pagination;
 
-  const tableData = quotations.map(q => ({
-    id: q.quotationNumber,
-    vendorName: q.vendorName,
-    requirementTitle: q.requirementTitle,
-    quotedAmount: `${q.currency} ${q.quotedAmount.toLocaleString()}`,
-    validUntil: new Date(q.validUntil).toLocaleDateString(),
-    status: q.status,
-    submittedDate: new Date(q.submittedDate).toLocaleDateString(),
-    responseTime: q.responseTime,
-    vendorRating: q.vendorRating.toFixed(1),
-    deliveryTimeWeeks: `${q.deliveryTimeWeeks} weeks`,
+  // Transform data for table - showing only requirements with quotations
+  const tableData = requirements.map((req: any) => ({
+    id: req.id || req.draftId,
+    draftId: req.draftId || req.id,
+    title: req.title || "Untitled Requirement",
+    category: req.category || "General",
+    priority: req.priority || "Medium",
+    estimatedValue: req.estimatedBudget || req.estimatedValue || 0,
+    publishedDate: req.publishedAt || req.publishedDate,
+    deadline: req.submissionDeadline || req.deadline,
+    quotesReceived: req.quotesReceived || 0,
   }));
 
   const columns: ColumnConfig[] = [
     {
-      name: 'id',
-      label: 'Quote ID',
+      name: "id",
+      label: "Requirement ID",
       isSortable: true,
       isSearchable: true,
-      action: (row) => {
-        const quotation = quotations.find(q => q.quotationNumber === row.id);
-        if (quotation) navigate(`/dashboard/quotations/${quotation.id}`);
-      },
-      width: '120px',
+      render: (value, row) => (
+        <span className="font-mono text-blue-600 font-semibold">
+          {value || row.draftId || "N/A"}
+        </span>
+      ),
+      width: "150px",
     },
     {
-      name: 'vendorName',
-      label: 'Vendor',
-      isSortable: true,
-      isSearchable: true,
-    },
-    {
-      name: 'requirementTitle',
-      label: 'Requirement',
+      name: "title",
+      label: "Title",
       isSortable: true,
       isSearchable: true,
     },
     {
-      name: 'quotedAmount',
-      label: 'Quoted Amount',
-      isSortable: true,
-      align: 'right',
-    },
-    {
-      name: 'validUntil',
-      label: 'Valid Until',
-      isSortable: true,
-    },
-    {
-      name: 'status',
-      label: 'Status',
+      name: "category",
+      label: "Category",
       isSortable: true,
       isFilterable: true,
       filterOptions: [
-        { key: 'pending_review', value: 'Pending Review', color: '#fef3c7' },
-        { key: 'under_evaluation', value: 'Under Evaluation', color: '#fed7aa' },
-        { key: 'awaiting_clarification', value: 'Awaiting Clarification', color: '#ddd6fe' },
-        { key: 'approved', value: 'Approved', color: '#dcfce7' },
-        { key: 'rejected', value: 'Rejected', color: '#fecaca' },
-        { key: 'expired', value: 'Expired', color: '#e5e7eb' },
+        { key: "Software Development", value: "Software Development" },
+        { key: "Operations", value: "Operations" },
+        { key: "Marketing", value: "Marketing" },
+        { key: "Infrastructure", value: "Infrastructure" },
       ],
     },
     {
-      name: 'submittedDate',
-      label: 'Submitted',
+      name: "priority",
+      label: "Priority",
       isSortable: true,
+      isFilterable: true,
+      filterOptions: [
+        { key: "High", value: "High", color: "#fee2e2" },
+        { key: "Medium", value: "Medium", color: "#fef3c7" },
+        { key: "Low", value: "Low", color: "#dcfce7" },
+      ],
     },
     {
-      name: 'responseTime',
-      label: 'Response Time',
+      name: "estimatedValue",
+      label: "Est. Value",
       isSortable: true,
-      align: 'center',
+      align: "right",
+      render: (value) => {
+        if (!value) return "-";
+        return `₹${Number(value).toLocaleString()}`;
+      },
     },
     {
-      name: 'vendorRating',
-      label: 'Vendor Rating',
+      name: "publishedDate",
+      label: "Published Date",
       isSortable: true,
-      align: 'center',
+      render: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleDateString();
+      },
     },
     {
-      name: 'deliveryTimeWeeks',
-      label: 'Delivery Time',
+      name: "deadline",
+      label: "Quote Deadline",
       isSortable: true,
-      align: 'center',
+      render: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleDateString();
+      },
+    },
+    {
+      name: "quotesReceived",
+      label: "Quotations",
+      isSortable: true,
+      align: "center",
+      render: (value) => {
+        const count = value ?? 0;
+        return (
+          <span
+            className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium ${count > 0
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+              : "bg-muted text-muted-foreground"
+              }`}
+          >
+            {count}
+          </span>
+        );
+      },
     },
   ];
+
+  const handleRowClick = (row: any) => {
+    // Navigate to quotations page for this requirement
+    const requirementId = row.draftId || row.id;
+    navigate(`/dashboard/quotations/requirement/${requirementId}`);
+  };
 
   const handleFilterCallback = (appliedFilters: FilterConfig) => {
     setFilters(appliedFilters);
     setCurrentPage(1);
   };
 
-  const handleSearchCallback = (search: string) => {
-    setSearchTerm(search);
-    setCurrentPage(1);
+  const handleRefresh = () => {
+    refetch();
+    toast.success("Requirements refreshed");
   };
-
-  const handleExportXLSX = async () => {
-    try {
-      const blob = await quotationService.exportToXLSX(filters);
-      quotationService.downloadFile(blob, `quotations-${new Date().toISOString().split('T')[0]}.xlsx`);
-      toast({ title: 'Export successful', description: 'Quotations exported to XLSX' });
-    } catch (error) {
-      toast({ title: 'Export failed', description: 'Failed to export quotations', variant: 'destructive' });
-    }
-  };
-
-  const handleExportCSV = async () => {
-    try {
-      const blob = await quotationService.exportToCSV(filters);
-      quotationService.downloadFile(blob, `quotations-${new Date().toISOString().split('T')[0]}.csv`);
-      toast({ title: 'Export successful', description: 'Quotations exported to CSV' });
-    } catch (error) {
-      toast({ title: 'Export failed', description: 'Failed to export quotations', variant: 'destructive' });
-    }
-  };
-
-  const handleRowClick = (row: any) => {
-    const quotation = quotations.find(q => q.quotationNumber === row.id);
-    if (quotation) navigate(`/dashboard/quotations/${quotation.id}`);
-  };
-
-  const handleSelectionChange = (selected: any[]) => {
-    const selectedQuotations = selected.map(row => 
-      quotations.find(q => q.quotationNumber === row.id)
-    ).filter(Boolean) as Quotation[];
-    setSelectedRows(selectedQuotations);
-  };
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <p className="text-destructive">Failed to load quotations. Please try again.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-6 bg-background min-h-screen space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Quotations</h1>
-          <p className="text-muted-foreground">Manage and compare quotes from vendors</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Quotations
+          </h1>
+          <p className="text-muted-foreground">
+            Select a requirement to view and manage vendor quotations
+          </p>
         </div>
+        <Button variant="outline" size="sm" onClick={handleRefresh}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
+      {/* AI Search Bar */}
+      <AISearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder="Search requirements with AI..."
+        isLoading={isLoading}
+      />
+
+      {/* Requirements Table */}
       {isLoading ? (
-        <TableSkeletonLoader rows={6} columns={8} />
+        <div className="space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 p-4 border rounded-lg"
+            >
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-48 flex-1" />
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : requirements.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <RefreshCw className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            No Requirements Found
+          </h3>
+          <p className="text-muted-foreground max-w-md mb-4">
+            {searchQuery
+              ? "No requirements match your search. Try adjusting your query."
+              : "No published requirements found. Create and publish a requirement to receive quotations."}
+          </p>
+          {searchQuery && (
+            <Button
+              variant="outline"
+              onClick={() => setSearchQuery("")}
+            >
+              Clear Search
+            </Button>
+          )}
+        </div>
       ) : (
         <CustomTable
           columns={columns}
           data={tableData}
-          filterCallback={handleFilterCallback}
-          searchCallback={handleSearchCallback}
           onRowClick={handleRowClick}
-          onExport={{
-            xlsx: handleExportXLSX,
-            csv: handleExportCSV,
-          }}
-          selectable={true}
-          onSelectionChange={handleSelectionChange}
-          globalSearchPlaceholder="Search quotations..."
+          filterCallback={handleFilterCallback}
+          hideSearch={true}
           pagination={{
             enabled: true,
             pageSize: pageSize,

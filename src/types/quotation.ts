@@ -1,8 +1,12 @@
 export type QuotationStatus = 
+  | 'draft'
+  | 'submitted'
   | 'pending_review'
   | 'under_evaluation'
+  | 'under_review'
   | 'awaiting_clarification'
   | 'approved'
+  | 'accepted'
   | 'rejected'
   | 'expired'
   | 'withdrawn';
@@ -313,6 +317,38 @@ export interface QuotationDetail extends Quotation {
     pricePercentileVsAverage: number;
     deliveryPercentileVsBest: number;
   };
+  // Vendor quotation specific fields
+  lineItems?: Array<{
+    description: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    amount: number;
+  }>;
+  subtotal?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  proposedStartDate?: string;
+  proposedCompletionDate?: string;
+  milestones?: Array<{
+    name: string;
+    deliverables: string;
+    dueDate: string;
+    amount: number;
+  }>;
+  methodology?: string;
+  technicalSpecifications?: string;
+  qualityAssurance?: string;
+  complianceCertifications?: string[];
+  supportTerms?: string;
+  cancellationPolicy?: string;
+  specialConditions?: string;
+  activityLog?: Array<{
+    action: string;
+    user: string;
+    timestamp: string;
+    details?: string;
+  }>;
 }
 
 // Enhanced request types

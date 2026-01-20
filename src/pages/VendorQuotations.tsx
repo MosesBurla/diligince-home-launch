@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomTable, { ColumnConfig } from '@/components/CustomTable';
 import { TableSkeletonLoader } from '@/components/shared/loading';
+import AISearchBar from '@/components/vendor/shared/AISearchBar';
 
 import { vendorQuotationsService } from '@/services';
 import type { VendorQuotation } from '@/types/vendor';
@@ -16,15 +17,17 @@ const VendorQuotations: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch quotations
   const { data: quotationsData, isLoading } = useQuery({
-    queryKey: ['vendor-quotations', activeTab, page, limit],
+    queryKey: ['vendor-quotations', activeTab, page, limit, searchQuery],
     queryFn: () =>
       vendorQuotationsService.getMyQuotations({
         status: activeTab === 'all' ? undefined : (activeTab as any),
         page,
         limit,
+        search: searchQuery || undefined,
       }),
   });
 
@@ -35,19 +38,21 @@ const VendorQuotations: React.FC = () => {
       name: 'quotationNumber',
       label: 'Quotation #',
       isSortable: true,
-      isSearchable: true,
+    },
+    {
+      name: 'rfqId',
+      label: 'RFQ ID',
+      isSortable: true,
     },
     {
       name: 'rfqTitle',
       label: 'RFQ Title',
       isSortable: true,
-      isSearchable: true,
     },
     {
       name: 'companyName',
       label: 'Company',
       isSortable: true,
-      isSearchable: true,
     },
     {
       name: 'quotedAmount',
@@ -62,14 +67,6 @@ const VendorQuotations: React.FC = () => {
     {
       name: 'status',
       label: 'Status',
-      isFilterable: true,
-      filterOptions: [
-        { key: 'draft', value: 'Draft' },
-        { key: 'submitted', value: 'Submitted' },
-        { key: 'under_review', value: 'Under Review' },
-        { key: 'accepted', value: 'Accepted' },
-        { key: 'rejected', value: 'Rejected' },
-      ],
     },
   ];
 
@@ -113,11 +110,19 @@ const VendorQuotations: React.FC = () => {
               Manage your submitted quotations
             </p>
           </div>
-          <Button onClick={() => navigate('/dashboard/rfqs/browse')}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => navigate('/dashboard/service-vendor-rfqs')}>
+            <ExternalLink className="mr-2 h-4 w-4" />
             Browse RFQs
           </Button>
         </div>
+
+        {/* AI Search Bar */}
+        <AISearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search quotations by number, RFQ title, or company..."
+          isLoading={isLoading}
+        />
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -135,6 +140,8 @@ const VendorQuotations: React.FC = () => {
               columns={columns}
               data={tableData}
               onRowClick={(row) => navigate(`/dashboard/vendor/quotations/${row.id}`)}
+              hideSearch
+              hideFilters
             />
           </TabsContent>
         </Tabs>

@@ -123,11 +123,18 @@ export interface VendorProfile {
   telephone?: string;
   website?: string;
 
+  // Address - Required for verification
+  addresses?: Address[];
+
   // Business Details
   primaryIndustry?: string;
   yearsInBusiness?: string;
   businessLocation?: string;
   serviceAreas?: string[];
+
+  // Additional fields for verification
+  paymentTerms?: string[];
+  qualityStandards?: string[];
 
   // Documents
   documents?: VerificationDocument[];

@@ -29,6 +29,7 @@ class VendorQuotationsService {
   async getMyQuotations(filters?: {
     status?: 'draft' | 'submitted' | 'under_review' | 'accepted' | 'rejected';
     rfqId?: string;
+    search?: string;
     page?: number;
     limit?: number;
   }): Promise<VendorQuotationListResponse> {

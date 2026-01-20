@@ -8,7 +8,9 @@ import type {
   Verify2FARequest,
   Verify2FAResponse,
   Resend2FARequest,
-  Resend2FAResponse
+  Resend2FAResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse
 } from './auth.types';
 
 /**
@@ -56,6 +58,28 @@ export const authService = {
     const response = await api.post<Resend2FAResponse>(
       authRoutes.resend2FA,
       { twoFactorToken } as Resend2FARequest
+    );
+    return response.data;
+  },
+
+  /**
+   * Request password reset email
+   */
+  forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
+    const response = await api.post<ForgotPasswordResponse>(
+      authRoutes.forgotPassword,
+      { email }
+    );
+    return response.data;
+  },
+
+  /**
+   * Reset password with token
+   */
+  resetPassword: async (token: string, password: string): Promise<ResetPasswordResponse> => {
+    const response = await api.post<ResetPasswordResponse>(
+      authRoutes.resetPassword,
+      { token, password }
     );
     return response.data;
   },

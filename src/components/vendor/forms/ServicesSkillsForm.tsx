@@ -1,8 +1,7 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PlusCircle, Edit, Trash, Plus, X } from "lucide-react";
+import { PlusCircle, Edit, Trash, Plus, X, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
+import { vendorServicesService, VendorService } from "@/services/modules/vendor-profile/vendor-services.service";
 
 // Define service schema
 const serviceSchema = z.object({
@@ -23,25 +23,7 @@ const serviceSchema = z.object({
   tags: z.array(z.string()).min(1, { message: "Add at least one service tag" }),
 });
 
-type Service = z.infer<typeof serviceSchema>;
-
-// Mock data for services
-const initialServices: Service[] = [
-  {
-    id: "1",
-    name: "Industrial Automation Solutions",
-    description: "Implementation of advanced automation systems for manufacturing plants, including PLC programming, SCADA integration, and industrial robotics.",
-    pricingModel: "Fixed Price + Materials",
-    tags: ["Automation", "PLC", "SCADA", "Robotics"],
-  },
-  {
-    id: "2",
-    name: "Maintenance & Support Services",
-    description: "Comprehensive maintenance packages for industrial equipment with preventive maintenance schedules, breakdown support, and spare parts management.",
-    pricingModel: "Annual Contract",
-    tags: ["Maintenance", "Support", "24x7", "Spare Parts"],
-  },
-];
+type ServiceFormData = z.infer<typeof serviceSchema>;
 
 // Define pricing model options
 const pricingModelOptions = [
@@ -55,14 +37,21 @@ const pricingModelOptions = [
   "Subscription",
 ];
 
-const ServicesSkillsForm = () => {
-  const [services, setServices] = useState<Service[]>(initialServices);
+interface ServicesSkillsFormProps {
+  isProfileLocked?: boolean;
+  onSaveSuccess?: () => void;
+}
+
+const ServicesSkillsForm = ({ isProfileLocked = false, onSaveSuccess }: ServicesSkillsFormProps) => {
+  const [services, setServices] = useState<VendorService[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editingService, setEditingService] = useState<VendorService | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [currentTag, setCurrentTag] = useState("");
 
-  const form = useForm<Service>({
+  const form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: "",
@@ -72,7 +61,29 @@ const ServicesSkillsForm = () => {
     },
   });
 
+  // Fetch services on mount
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoading(true);
+        const data = await vendorServicesService.getServices();
+        setServices(data);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        toast.error("Failed to load services");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
   const openAddServiceDialog = () => {
+    if (isProfileLocked) {
+      toast.warning("Profile is locked for verification");
+      return;
+    }
     form.reset({
       name: "",
       description: "",
@@ -83,43 +94,103 @@ const ServicesSkillsForm = () => {
     setIsDialogOpen(true);
   };
 
-  const openEditServiceDialog = (service: Service) => {
-    form.reset(service);
+  const openEditServiceDialog = (service: VendorService) => {
+    if (isProfileLocked) {
+      toast.warning("Profile is locked for verification");
+      return;
+    }
+    form.reset({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      pricingModel: service.pricingModel,
+      tags: service.tags,
+    });
     setEditingService(service);
     setIsDialogOpen(true);
   };
 
-  const onSubmit = (values: Service) => {
+  const onSubmit = async (values: ServiceFormData) => {
+    if (isProfileLocked) {
+      toast.warning("Profile is locked for verification");
+      return;
+    }
+
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
       if (editingService) {
         // Update existing service
-        setServices(
-          services.map((service) => 
-            service.id === editingService.id ? { ...values, id: service.id } : service
-          )
-        );
-        toast.success("Service updated successfully!");
+        const response = await vendorServicesService.updateService(editingService.id, {
+          name: values.name,
+          description: values.description,
+          pricingModel: values.pricingModel,
+          tags: values.tags,
+        });
+
+        if (response.success) {
+          setServices(services.map((service) => 
+            service.id === editingService.id ? response.data : service
+          ));
+          toast.success("Service updated successfully!");
+          onSaveSuccess?.();
+        } else {
+          toast.error(response.message || "Failed to update service");
+        }
       } else {
         // Add new service
-        const newService = {
-          ...values,
-          id: `${Date.now()}`,
-        };
-        setServices([...services, newService]);
-        toast.success("Service added successfully!");
+        const response = await vendorServicesService.createService({
+          name: values.name,
+          description: values.description,
+          pricingModel: values.pricingModel,
+          tags: values.tags,
+        });
+
+        if (response.success) {
+          setServices([...services, response.data]);
+          toast.success("Service added successfully!");
+          onSaveSuccess?.();
+        } else {
+          toast.error(response.message || "Failed to add service");
+        }
       }
       
       setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving service:", error);
+      toast.error("Failed to save service");
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
-  const handleDeleteService = (id: string) => {
-    if (confirm("Are you sure you want to delete this service?")) {
-      setServices(services.filter((service) => service.id !== id));
-      toast.success("Service deleted successfully!");
+  const handleDeleteService = async (id: string) => {
+    if (isProfileLocked) {
+      toast.warning("Profile is locked for verification");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this service?")) {
+      return;
+    }
+
+    setIsDeleting(id);
+    
+    try {
+      const response = await vendorServicesService.deleteService(id);
+      
+      if (response.success) {
+        setServices(services.filter((service) => service.id !== id));
+        toast.success("Service deleted successfully!");
+        onSaveSuccess?.();
+      } else {
+        toast.error(response.message || "Failed to delete service");
+      }
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      toast.error("Failed to delete service");
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -148,17 +219,35 @@ const ServicesSkillsForm = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Services & Skills</CardTitle>
+          <CardDescription>Manage your service offerings and specialized skills</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-10">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
-      <Card className="max-w-4xl mx-auto">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-800">Services & Skills</CardTitle>
+            <CardTitle className="text-2xl font-bold">Services & Skills</CardTitle>
             <CardDescription>
               Manage your service offerings and specialized skills
             </CardDescription>
           </div>
-          <Button onClick={openAddServiceDialog} className="bg-orange-600 hover:bg-orange-700">
+          <Button 
+            onClick={openAddServiceDialog} 
+            className="bg-primary hover:bg-primary/90"
+            disabled={isProfileLocked}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Service
           </Button>
@@ -173,7 +262,7 @@ const ServicesSkillsForm = () => {
             <div className="space-y-6">
               {services.map((service) => (
                 <Card key={service.id} className="overflow-hidden">
-                  <CardHeader className="bg-orange-50 pb-2">
+                  <CardHeader className="bg-muted/50 pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg font-bold">{service.name}</CardTitle>
                       <div className="flex space-x-2">
@@ -181,28 +270,34 @@ const ServicesSkillsForm = () => {
                           variant="ghost" 
                           size="icon" 
                           onClick={() => openEditServiceDialog(service)}
-                          className="h-8 w-8 text-blue-600"
+                          className="h-8 w-8 text-primary"
+                          disabled={isProfileLocked}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() => handleDeleteService(service.id!)}
-                          className="h-8 w-8 text-red-600"
+                          onClick={() => handleDeleteService(service.id)}
+                          className="h-8 w-8 text-destructive"
+                          disabled={isProfileLocked || isDeleting === service.id}
                         >
-                          <Trash className="h-4 w-4" />
+                          {isDeleting === service.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-200">
+                      <Badge variant="secondary">
                         {service.pricingModel}
                       </Badge>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4">{service.description}</p>
+                    <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {service.tags.map((tag) => (
                         <Badge key={tag} variant="outline">
@@ -320,7 +415,7 @@ const ServicesSkillsForm = () => {
                         <Button
                           type="button"
                           onClick={addTag}
-                          className="rounded-l-none bg-orange-600 hover:bg-orange-700"
+                          className="rounded-l-none"
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -339,8 +434,13 @@ const ServicesSkillsForm = () => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting} className="bg-orange-600 hover:bg-orange-700">
-                  {isSubmitting ? "Saving..." : editingService ? "Update Service" : "Add Service"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : editingService ? "Update Service" : "Add Service"}
                 </Button>
               </DialogFooter>
             </form>

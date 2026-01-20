@@ -21,6 +21,8 @@ const CustomTable: React.FC<TableProps> = ({
   onSelectionChange,
   globalSearchPlaceholder,
   className = '',
+  hideSearch = false,
+  hideFilters = false,
 }) => {
   // Ensure data is always an array
   const safeData = Array.isArray(data) ? data : [];
@@ -197,23 +199,27 @@ const CustomTable: React.FC<TableProps> = ({
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
       <div className="p-6">
-        <TableHeader
-          globalSearch={globalSearch}
-          onGlobalSearchChange={setGlobalSearch}
-          onSearch={handleSearch}
-          columns={columns}
-          onExport={onExport}
-          onAdd={onAdd}
-          globalSearchPlaceholder={globalSearchPlaceholder}
-          selectedCount={selectedRows.length}
-        />
+        {!hideSearch && (
+          <TableHeader
+            globalSearch={globalSearch}
+            onGlobalSearchChange={setGlobalSearch}
+            onSearch={handleSearch}
+            columns={columns}
+            onExport={onExport}
+            onAdd={onAdd}
+            globalSearchPlaceholder={globalSearchPlaceholder}
+            selectedCount={selectedRows.length}
+          />
+        )}
 
-        <TableFilters
-          columns={columns}
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          additionalFilters={additionalFilters}
-        />
+        {!hideFilters && (
+          <TableFilters
+            columns={columns}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            additionalFilters={additionalFilters}
+          />
+        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">

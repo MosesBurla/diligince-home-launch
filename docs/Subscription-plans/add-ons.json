@@ -1,0 +1,153 @@
+{
+    "addons": [
+        {
+            "code": "DILIGIENCE_HUB",
+            "name": "Diligince Hub",
+            "type": "subscription",
+            "billingCycle": "monthly",
+            "price": 999,
+            "currency": "INR",
+            "icon": "network",
+            "description": "Connect, network, and collaborate across the entire Diligince ecosystem. Access verified vendors, professionals, and industry contacts.",
+            "shortDescription": "Networking & collaboration platform",
+            "features": {
+                "industryVendorNetworking": true,
+                "industryProfessionalNetworking": true,
+                "verifiedProfiles": true,
+                "chatAndCommunication": true
+            },
+            "featureList": [
+                "Industry-vendor networking & discovery",
+                "Professional networking connections",
+                "Verified profiles directory access",
+                "Enhanced messaging & collaboration",
+                "Connection recommendations"
+            ],
+            "compatibleUserTypes": ["industry", "service_vendor", "product_vendor", "logistics", "professional"],
+            "compatiblePlans": [
+                "INDUSTRY_STARTER",
+                "INDUSTRY_GROWTH",
+                "INDUSTRY_ENTERPRISE",
+                "EXPERT_FREE",
+                "EXPERT_PLUS",
+                "EXPERT_PRO",
+                "SERVICE_VENDOR_FREE",
+                "SERVICE_VENDOR_PLUS",
+                "SERVICE_VENDOR_PRO",
+                "PRODUCT_VENDOR_FREE",
+                "PRODUCT_VENDOR_PLUS",
+                "PRODUCT_VENDOR_PRO",
+                "LOGISTICS_FREE",
+                "LOGISTICS_PLUS",
+                "LOGISTICS_PRO"
+            ],
+            "status": "active"
+        },
+        {
+            "code": "AI_RECOMMENDATION_PACK",
+            "name": "AI Recommendation Pack",
+            "type": "usage",
+            "price": 499,
+            "currency": "INR",
+            "icon": "sparkles",
+            "description": "Get 20 AI-powered vendor and product recommendations tailored to your requirements. Smart matching for better procurement decisions.",
+            "shortDescription": "20 AI vendor recommendations",
+            "limits": {
+                "credits": 20,
+                "validityDays": 90
+            },
+            "featureList": [
+                "20 AI recommendation credits",
+                "Smart vendor matching algorithm",
+                "Requirement-based analysis",
+                "Vendor scoring & ranking",
+                "Valid for 90 days"
+            ],
+            "compatibleUserTypes": ["industry"],
+            "compatiblePlans": [
+                "INDUSTRY_STARTER",
+                "INDUSTRY_GROWTH"
+            ],
+            "status": "active"
+        },
+        {
+            "code": "AI_QUOTATION_ANALYSIS_PACK",
+            "name": "AI Quotation Analysis Pack",
+            "type": "usage",
+            "price": 499,
+            "currency": "INR",
+            "icon": "file-search",
+            "description": "Analyze quotations intelligently with AI. Compare prices, identify discrepancies, and make informed procurement decisions.",
+            "shortDescription": "20 AI quotation analyses",
+            "limits": {
+                "credits": 20,
+                "validityDays": 90
+            },
+            "featureList": [
+                "20 quotation analysis credits",
+                "Multi-vendor price comparison",
+                "Terms & conditions analysis",
+                "Discrepancy identification",
+                "Valid for 90 days"
+            ],
+            "compatibleUserTypes": ["industry"],
+            "compatiblePlans": [
+                "INDUSTRY_STARTER",
+                "INDUSTRY_GROWTH"
+            ],
+            "status": "active"
+        },
+        {
+            "code": "BOT_V2_UPGRADE",
+            "name": "Bot V2 Upgrade",
+            "type": "subscription",
+            "billingCycle": "monthly",
+            "price": 499,
+            "currency": "INR",
+            "icon": "bot",
+            "description": "Upgrade your Diligince Bot to V2 for smarter assistance. Generate documents, analyze data, and automate procurement workflows.",
+            "shortDescription": "Advanced AI bot capabilities",
+            "limits": {
+                "generationsPerMonth": 30
+            },
+            "featureList": [
+                "30 AI generations per month",
+                "Document creation & templates",
+                "Procurement data analysis",
+                "Workflow automation assistance",
+                "Smart recommendations"
+            ],
+            "compatibleUserTypes": ["industry"],
+            "compatiblePlans": [
+                "INDUSTRY_STARTER"
+            ],
+            "status": "active"
+        },
+        {
+            "code": "AI_ADVANCED_ANALYTICS_UPGRADE",
+            "name": "AI Advanced Analytics",
+            "type": "subscription",
+            "billingCycle": "monthly",
+            "price": 499,
+            "currency": "INR",
+            "icon": "chart-bar",
+            "description": "Unlock advanced analytics dashboards with AI-powered insights. Trend analysis, predictive reports, and custom procurement dashboards.",
+            "shortDescription": "Advanced analytics & insights",
+            "limits": {
+                "reportsPerMonth": 20
+            },
+            "featureList": [
+                "20 AI-powered reports per month",
+                "Procurement trend analysis",
+                "Predictive spend insights",
+                "Custom dashboard widgets",
+                "Exportable reports"
+            ],
+            "compatibleUserTypes": ["industry"],
+            "compatiblePlans": [
+                "INDUSTRY_STARTER"
+            ],
+            "status": "active"
+        }
+    ]
+}

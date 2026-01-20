@@ -8,7 +8,7 @@ export const getRequiredDocuments = (
     { name: 'PAN Card', type: 'pan_card' },
     { name: 'Registration Certificate', type: 'registration_certificate' }
   ];
-  
+
   // Category-specific documents
   const categoryDocs: Record<string, { name: string; type: string }[]> = {
     'Service Vendor': [
@@ -24,7 +24,7 @@ export const getRequiredDocuments = (
       { name: 'Vehicle Registration', type: 'vehicle_registration' }
     ]
   };
-  
+
   return [
     ...mandatory,
     ...(categoryDocs[vendorCategory] || [])
@@ -48,6 +48,26 @@ export const getDocumentDisplayName = (documentType: string): string => {
     'goods_insurance': 'Goods Insurance',
     'warehouse_license': 'Warehouse License'
   };
-  
+
   return displayNames[documentType] || documentType;
+};
+
+export const getOptionalDocuments = (
+  vendorCategory: string
+): { name: string; type: string }[] => {
+  const optionalDocs: Record<string, { name: string; type: string }[]> = {
+    'Service Vendor': [
+      { name: 'Technical Qualifications', type: 'technical_qualifications' }
+    ],
+    'Product Vendor': [
+      { name: 'Manufacturer Authorization', type: 'manufacturer_authorization' },
+      { name: 'Product Catalog', type: 'product_catalog' }
+    ],
+    'Logistics Vendor': [
+      { name: 'Goods Insurance', type: 'goods_insurance' },
+      { name: 'Warehouse License', type: 'warehouse_license' }
+    ]
+  };
+
+  return optionalDocs[vendorCategory] || [];
 };

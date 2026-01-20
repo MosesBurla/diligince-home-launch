@@ -289,7 +289,7 @@
     {
       "id": "lv-settings",
       "name": "Settings",
-      "path": "/dashboard/logistics-vendor-profile",
+      "path": "/dashboard/vendor-settings",
       "icon": "Settings",
       "permissions": {
         "read": true,
@@ -302,7 +302,7 @@
         {
           "id": "lv-settings-company",
           "name": "Company Profile",
-          "path": "/dashboard/logistics-vendor-profile",
+          "path": "/dashboard/vendor-settings",
           "icon": "Building",
           "permissions": {
             "read": true,

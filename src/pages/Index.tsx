@@ -202,10 +202,10 @@ const Index: React.FC = () => {
                 </nav>
 
                 <Link
-                  to="/signin"
+                  to="/login"
                   className="bg-gradient-to-r from-[#153b60] to-[#1e4976] text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
                 >
-                  Start Free Trial
+                  Sign In
                 </Link>
               </div>
             </div>
@@ -535,19 +535,19 @@ const Index: React.FC = () => {
           ></div>
         </div> */}
         <div className="absolute inset-0 opacity-10">
-  <div
-    className="absolute inset-0"
-    style={{
-      backgroundImage: `
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
         linear-gradient(#153b60 1px, transparent 1px),
         linear-gradient(90deg, #153b60 1px, transparent 1px)
       `,
-      backgroundSize: "50px 50px",
-      WebkitMaskImage: "radial-gradient(circle, white 60%, transparent 100%)",
-      maskImage: "radial-gradient(circle, white 60%, transparent 100%)",
-    }}
-  ></div>
-</div>
+              backgroundSize: "50px 50px",
+              WebkitMaskImage: "radial-gradient(circle, white 60%, transparent 100%)",
+              maskImage: "radial-gradient(circle, white 60%, transparent 100%)",
+            }}
+          ></div>
+        </div>
         {/* Edge Vignette */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(250,250,250,0.6)_100%)]"></div>
 
@@ -776,7 +776,7 @@ const Index: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
               <span className="relative flex items-center justify-center space-x-3">
-                <span>Start Free Trial</span>
+                <span>Sign In</span>
                 <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" />
               </span>
             </Link>

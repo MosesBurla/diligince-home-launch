@@ -54,4 +54,6 @@ export interface TableProps {
   globalSearchPlaceholder?: string;
   className?: string;
   additionalFilters?: React.ReactNode;
+  hideSearch?: boolean;
+  hideFilters?: boolean;
 }

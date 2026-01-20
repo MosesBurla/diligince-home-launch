@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  FileText, 
-  ListChecks, 
+import {
+  FileText,
+  ListChecks,
   Target,
   Package,
   Wrench,
@@ -23,8 +23,9 @@ interface ViewDetailsSectionProps {
 }
 
 export const ViewDetailsSection: React.FC<ViewDetailsSectionProps> = ({ requirement }) => {
-  const getCategoryIcon = (category?: string) => {
-    switch (category?.toLowerCase()) {
+  const getCategoryIcon = (category?: string | any) => {
+    const categoryStr = typeof category === 'string' ? category : String(category || '');
+    switch (categoryStr.toLowerCase()) {
       case 'goods': return <Package className="w-5 h-5 text-primary" />;
       case 'services': return <Briefcase className="w-5 h-5 text-primary" />;
       case 'works': return <Wrench className="w-5 h-5 text-primary" />;
@@ -120,10 +121,10 @@ export const ViewDetailsSection: React.FC<ViewDetailsSectionProps> = ({ requirem
             </div>
           )}
 
-          {!requirement.quantity && !requirement.technicalRequirements && !requirement.qualityStandards && 
-           (!requirement.specifications || Object.keys(requirement.specifications).length === 0) && (
-            <p className="text-muted-foreground text-sm">No specifications provided</p>
-          )}
+          {!requirement.quantity && !requirement.technicalRequirements && !requirement.qualityStandards &&
+            (!requirement.specifications || Object.keys(requirement.specifications).length === 0) && (
+              <p className="text-muted-foreground text-sm">No specifications provided</p>
+            )}
         </CardContent>
       </Card>
     </div>

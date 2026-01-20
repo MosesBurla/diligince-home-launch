@@ -1,0 +1,742 @@
+{
+    "industryPlans": [
+        {
+            "code": "INDUSTRY_STARTER",
+            "name": "Industry Starter",
+            "userType": "INDUSTRY",
+            "billingCycle": "monthly",
+            "price": 3999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Perfect for small manufacturing units starting their digital procurement journey. Get organized with basic AI assistance and essential workflow tools.",
+            "shortDescription": "Start your digital procurement journey",
+            "highlights": [
+                "Team of 3 members",
+                "10 requirements/month",
+                "30 RFQs/month",
+                "Basic AI search",
+                "30-day analytics trial"
+            ],
+            "limits": {
+                "teamSize": 3,
+                "defaultRoles": 3,
+                "customRoles": 2,
+                "approvalLevels": 2,
+                "monthlyCaps": {
+                    "requirementsPublished": 10,
+                    "rfqsIssued": 30,
+                    "posGenerated": 10
+                }
+            },
+            "features": {
+                "requirementsManagement": true,
+                "quotationAnalysis": "limited_ai",
+                "poManagement": true,
+                "chatAndWorkflow": true,
+                "analyticsLevel": "basic",
+                "aiSearch": "basic",
+                "diliginceBot": "helper"
+            },
+            "featureDescriptions": {
+                "requirementsManagement": "Create and manage procurement requirements",
+                "quotationAnalysis": "AI-powered quotation comparison (limited)",
+                "poManagement": "Full purchase order lifecycle management",
+                "chatAndWorkflow": "Team collaboration and approval workflows",
+                "analyticsLevel": "Basic procurement analytics dashboard",
+                "aiSearch": "Basic AI-powered vendor search",
+                "diliginceBot": "Diligince Bot in Helper mode"
+            },
+            "trials": {
+                "advancedAnalyticsDays": 30,
+                "botV2Generations": 5,
+                "aiRecommendationCredits": 5,
+                "aiQuotationAnalysisCredits": 5
+            },
+            "status": "active"
+        },
+        {
+            "code": "INDUSTRY_GROWTH_BASE",
+            "name": "Industry Growth",
+            "userType": "INDUSTRY",
+            "billingCycle": "monthly",
+            "priceRange": {
+                "min": 12000,
+                "max": 20000
+            },
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Scale your procurement operations with advanced AI capabilities, larger team support, and comprehensive analytics for growing businesses.",
+            "shortDescription": "Scale with advanced AI & analytics",
+            "highlights": [
+                "Team of 10-25 members",
+                "50-100 requirements/month",
+                "150-300 RFQs/month",
+                "Advanced AI search",
+                "Bot V2 included",
+                "Advanced analytics"
+            ],
+            "limits": {
+                "teamSize": "10-25 (configurable)",
+                "defaultRoles": 5,
+                "customRoles": 10,
+                "approvalLevels": 5,
+                "monthlyCaps": {
+                    "requirementsPublished": "50-100",
+                    "rfqsIssued": "150-300",
+                    "posGenerated": "50-100"
+                }
+            },
+            "features": {
+                "requirementsManagement": true,
+                "quotationAnalysis": "ai_fair_use",
+                "poManagement": true,
+                "chatAndWorkflow": true,
+                "analyticsLevel": "advanced",
+                "aiSearch": "advanced",
+                "diliginceBot": "v2_fair_use"
+            },
+            "featureDescriptions": {
+                "requirementsManagement": "Full requirements management with templates",
+                "quotationAnalysis": "Unlimited AI quotation analysis (fair use)",
+                "poManagement": "Advanced PO management with tracking",
+                "chatAndWorkflow": "Advanced workflows with 5 approval levels",
+                "analyticsLevel": "Advanced analytics with AI insights",
+                "aiSearch": "Advanced AI vendor matching & recommendations",
+                "diliginceBot": "Diligince Bot V2 with document generation"
+            },
+            "includedAddOns": {
+                "DILIGIENCE_BOT_V2": true,
+                "AI_ADVANCED_ANALYTICS": true
+            },
+            "isPopular": true,
+            "status": "active"
+        },
+        {
+            "code": "INDUSTRY_ENTERPRISE",
+            "name": "Industry Enterprise",
+            "userType": "INDUSTRY",
+            "billingCycle": "monthly",
+            "price": null,
+            "currency": "INR",
+            "isCustomPricing": true,
+            "description": "Enterprise-grade procurement platform with unlimited capabilities, dedicated support, and custom integrations for large organizations.",
+            "shortDescription": "Custom enterprise solution",
+            "highlights": [
+                "Unlimited team size",
+                "Custom usage limits",
+                "Enterprise AI features",
+                "Dedicated support",
+                "All add-ons included",
+                "Custom integrations"
+            ],
+            "limits": {
+                "teamSize": "unlimited",
+                "defaultRoles": "custom",
+                "customRoles": "custom",
+                "approvalLevels": "custom",
+                "monthlyCaps": "contractual"
+            },
+            "features": {
+                "requirementsManagement": true,
+                "quotationAnalysis": "ai_unlimited_contract",
+                "poManagement": true,
+                "chatAndWorkflow": true,
+                "analyticsLevel": "enterprise",
+                "aiSearch": "enterprise",
+                "diliginceBot": "v2_unlimited"
+            },
+            "featureDescriptions": {
+                "requirementsManagement": "Unlimited requirements with custom templates",
+                "quotationAnalysis": "Unlimited AI analysis with custom models",
+                "poManagement": "Enterprise PO with ERP integrations",
+                "chatAndWorkflow": "Custom approval workflows (unlimited levels)",
+                "analyticsLevel": "Enterprise analytics with custom reports",
+                "aiSearch": "Enterprise AI with dedicated models",
+                "diliginceBot": "Unlimited Bot V2 with priority processing"
+            },
+            "includedAddOns": {
+                "ALL": true
+            },
+            "status": "active"
+        }
+    ],
+    "serviceVendorPlans": [
+        {
+            "code": "SERVICE_VENDOR_FREE",
+            "name": "Service Vendor Free",
+            "userType": "SERVICE_VENDOR",
+            "billingCycle": "monthly",
+            "price": 0,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Start winning service contracts at no cost. List your company, respond to RFQs, and build your reputation on the platform.",
+            "shortDescription": "Start winning contracts for free",
+            "highlights": [
+                "1 team member",
+                "10 applications/month",
+                "2 active bids",
+                "Basic company listing",
+                "RFQ participation"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "applications": 10,
+                    "rfqResponses": 10,
+                    "activeBids": 2,
+                    "activeJobs": 1
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": false,
+                "requirementsDiscovery": "limited_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "none",
+                "aiAssistMode": "none"
+            },
+            "featureDescriptions": {
+                "companyListing": "Basic company profile listing",
+                "requirementsDiscovery": "Limited access to requirement feed",
+                "rfqParticipation": "Respond to RFQ invitations",
+                "quotationSubmission": "Submit quotations to industries",
+                "chat": "Communicate with potential clients",
+                "workProgressTracking": "Track job progress and milestones"
+            },
+            "status": "active"
+        },
+        {
+            "code": "SERVICE_VENDOR_PLUS",
+            "name": "Service Vendor Plus",
+            "userType": "SERVICE_VENDOR",
+            "billingCycle": "monthly",
+            "price": 2499,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Expand your reach with verified badge, full requirement access, and basic analytics to track your performance.",
+            "shortDescription": "Expand reach with verified badge",
+            "highlights": [
+                "3 team members",
+                "60 applications/month",
+                "10 active bids",
+                "Verified badge",
+                "Full feed access",
+                "Basic analytics"
+            ],
+            "limits": {
+                "teamSize": 3,
+                "monthlyCaps": {
+                    "applications": 60,
+                    "rfqResponses": 60,
+                    "activeBids": 10,
+                    "activeJobs": 5
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "full_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "basic",
+                "aiAssistMode": "credits_only"
+            },
+            "featureDescriptions": {
+                "companyListing": "Enhanced company profile with verification",
+                "verifiedBadge": "Verified badge for trust & credibility",
+                "requirementsDiscovery": "Full access to all requirements",
+                "rfqParticipation": "Priority RFQ participation",
+                "analyticsLevel": "Basic performance analytics",
+                "aiAssistMode": "AI assistance with credit purchase"
+            },
+            "isPopular": true,
+            "status": "active"
+        },
+        {
+            "code": "SERVICE_VENDOR_PRO",
+            "name": "Service Vendor Pro",
+            "userType": "SERVICE_VENDOR",
+            "billingCycle": "monthly",
+            "price": 6999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Maximize your service business with priority visibility, advanced analytics, and AI-powered assistance for winning more contracts.",
+            "shortDescription": "Maximize wins with AI assistance",
+            "highlights": [
+                "10 team members",
+                "200 applications/month",
+                "30 active bids",
+                "Priority feed access",
+                "Advanced analytics",
+                "50 AI credits/month"
+            ],
+            "limits": {
+                "teamSize": 10,
+                "monthlyCaps": {
+                    "applications": 200,
+                    "rfqResponses": 200,
+                    "activeBids": 30,
+                    "activeJobs": 15
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "priority_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "advanced",
+                "aiAssistMode": "fair_use"
+            },
+            "featureDescriptions": {
+                "requirementsDiscovery": "Priority access to new requirements",
+                "analyticsLevel": "Advanced analytics with insights",
+                "aiAssistMode": "50 AI assist credits per month"
+            },
+            "fairUse": {
+                "aiAssistCreditsPerMonth": 50
+            },
+            "status": "active"
+        }
+    ],
+    "productVendorPlans": [
+        {
+            "code": "PRODUCT_VENDOR_FREE",
+            "name": "Product Vendor Free",
+            "userType": "PRODUCT_VENDOR",
+            "billingCycle": "monthly",
+            "price": 0,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Showcase your products to industries. Create a basic catalog and start receiving RFQ invitations.",
+            "shortDescription": "Showcase products for free",
+            "highlights": [
+                "1 team member",
+                "25 catalog items",
+                "15 RFQ responses/month",
+                "Basic company listing",
+                "Catalog management"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "rfqResponses": 15,
+                    "activeBids": 5,
+                    "activePOs": 1,
+                    "catalogItems": 25
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "catalogEnabled": true,
+                "verifiedBadge": false,
+                "requirementsDiscovery": "limited_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "none",
+                "aiAssistMode": "none"
+            },
+            "featureDescriptions": {
+                "companyListing": "Basic company profile listing",
+                "catalogEnabled": "Product catalog with 25 items",
+                "requirementsDiscovery": "Limited access to requirement feed",
+                "rfqParticipation": "Respond to product RFQs",
+                "quotationSubmission": "Submit product quotations"
+            },
+            "status": "active"
+        },
+        {
+            "code": "PRODUCT_VENDOR_PLUS",
+            "name": "Product Vendor Plus",
+            "userType": "PRODUCT_VENDOR",
+            "billingCycle": "monthly",
+            "price": 1999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Grow your product business with expanded catalog, verified badge, and better visibility to potential buyers.",
+            "shortDescription": "Grow with expanded catalog",
+            "highlights": [
+                "3 team members",
+                "250 catalog items",
+                "100 RFQ responses/month",
+                "Verified badge",
+                "Full feed access",
+                "Basic analytics"
+            ],
+            "limits": {
+                "teamSize": 3,
+                "monthlyCaps": {
+                    "rfqResponses": 100,
+                    "activeBids": 25,
+                    "activePOs": 5,
+                    "catalogItems": 250
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "catalogEnabled": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "full_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "basic",
+                "aiAssistMode": "credits_only"
+            },
+            "featureDescriptions": {
+                "catalogEnabled": "Expanded catalog with 250 items",
+                "verifiedBadge": "Verified badge for trust",
+                "requirementsDiscovery": "Full access to all requirements",
+                "analyticsLevel": "Basic sales analytics"
+            },
+            "isPopular": true,
+            "status": "active"
+        },
+        {
+            "code": "PRODUCT_VENDOR_PRO",
+            "name": "Product Vendor Pro",
+            "userType": "PRODUCT_VENDOR",
+            "billingCycle": "monthly",
+            "price": 4999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Premium product vendor experience with large catalog support, priority placement, and AI-powered sales assistance.",
+            "shortDescription": "Premium with AI-powered sales",
+            "highlights": [
+                "10 team members",
+                "2000 catalog items",
+                "300 RFQ responses/month",
+                "Priority feed access",
+                "Advanced analytics",
+                "50 AI credits/month"
+            ],
+            "limits": {
+                "teamSize": 10,
+                "monthlyCaps": {
+                    "rfqResponses": 300,
+                    "activeBids": 50,
+                    "activePOs": 20,
+                    "catalogItems": 2000
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "catalogEnabled": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "priority_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "advanced",
+                "aiAssistMode": "fair_use"
+            },
+            "featureDescriptions": {
+                "catalogEnabled": "Large catalog with 2000 items",
+                "requirementsDiscovery": "Priority access to requirements",
+                "analyticsLevel": "Advanced sales analytics",
+                "aiAssistMode": "50 AI assist credits per month"
+            },
+            "fairUse": {
+                "aiAssistCreditsPerMonth": 50
+            },
+            "status": "active"
+        }
+    ],
+    "logisticsVendorPlans": [
+        {
+            "code": "LOGISTICS_FREE",
+            "name": "Logistics Free",
+            "userType": "LOGISTICS_VENDOR",
+            "billingCycle": "monthly",
+            "price": 0,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Start your logistics partnership journey. Get listed and respond to transportation requirements.",
+            "shortDescription": "Start logistics partnership",
+            "highlights": [
+                "1 team member",
+                "10 applications/month",
+                "2 active jobs",
+                "Basic company listing",
+                "Job tracking"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "applications": 10,
+                    "activeJobs": 2
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": false,
+                "requirementsDiscovery": "limited_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "none",
+                "aiAssistMode": "none"
+            },
+            "featureDescriptions": {
+                "companyListing": "Basic logistics company listing",
+                "requirementsDiscovery": "Limited access to logistics jobs",
+                "rfqParticipation": "Apply to transportation RFQs",
+                "workProgressTracking": "Track shipments and deliveries"
+            },
+            "status": "active"
+        },
+        {
+            "code": "LOGISTICS_PLUS",
+            "name": "Logistics Plus",
+            "userType": "LOGISTICS_VENDOR",
+            "billingCycle": "monthly",
+            "price": 1499,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Expand your logistics operations with more job capacity, verified badge, and performance tracking.",
+            "shortDescription": "Expand operations with verification",
+            "highlights": [
+                "3 team members",
+                "80 applications/month",
+                "10 active jobs",
+                "Verified badge",
+                "Full feed access",
+                "Basic analytics"
+            ],
+            "limits": {
+                "teamSize": 3,
+                "monthlyCaps": {
+                    "applications": 80,
+                    "activeJobs": 10
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "full_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "basic",
+                "aiAssistMode": "credits_only"
+            },
+            "featureDescriptions": {
+                "verifiedBadge": "Verified logistics partner badge",
+                "requirementsDiscovery": "Full access to logistics requirements",
+                "analyticsLevel": "Basic performance analytics"
+            },
+            "isPopular": true,
+            "status": "active"
+        },
+        {
+            "code": "LOGISTICS_PRO",
+            "name": "Logistics Pro",
+            "userType": "LOGISTICS_VENDOR",
+            "billingCycle": "monthly",
+            "price": 3999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Full-scale logistics operations with priority access to high-value shipments and AI-powered optimization.",
+            "shortDescription": "Scale with AI optimization",
+            "highlights": [
+                "10 team members",
+                "250 applications/month",
+                "25 active jobs",
+                "Priority feed access",
+                "Advanced analytics",
+                "40 AI credits/month"
+            ],
+            "limits": {
+                "teamSize": 10,
+                "monthlyCaps": {
+                    "applications": 250,
+                    "activeJobs": 25
+                }
+            },
+            "features": {
+                "companyListing": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "priority_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "advanced",
+                "aiAssistMode": "fair_use"
+            },
+            "featureDescriptions": {
+                "requirementsDiscovery": "Priority access to high-value shipments",
+                "analyticsLevel": "Advanced logistics analytics",
+                "aiAssistMode": "40 AI assist credits per month"
+            },
+            "fairUse": {
+                "aiAssistCreditsPerMonth": 40
+            },
+            "status": "active"
+        }
+    ],
+    "professionalPlans": [
+        {
+            "code": "EXPERT_FREE",
+            "name": "Expert Free",
+            "userType": "EXPERT_PROFESSIONAL",
+            "billingCycle": "monthly",
+            "price": 0,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Build your professional profile and get discovered by industries seeking expert consultation.",
+            "shortDescription": "Get discovered for free",
+            "highlights": [
+                "5 applications/month",
+                "1 active engagement",
+                "Professional profile",
+                "Limited feed access",
+                "Basic messaging"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "applications": 5,
+                    "rfqResponses": 5,
+                    "activeEngagements": 1
+                }
+            },
+            "features": {
+                "profileListing": true,
+                "verifiedBadge": false,
+                "requirementsDiscovery": "limited_feed",
+                "rfqParticipation": "shortlisted_only",
+                "quotationSubmission": true,
+                "chat": "post_shortlist_only",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "none",
+                "aiAssistMode": "none"
+            },
+            "featureDescriptions": {
+                "profileListing": "Professional profile listing",
+                "requirementsDiscovery": "Limited access to consulting opportunities",
+                "rfqParticipation": "Apply when shortlisted",
+                "chat": "Message after being shortlisted"
+            },
+            "status": "active"
+        },
+        {
+            "code": "EXPERT_PLUS",
+            "name": "Expert Plus",
+            "userType": "EXPERT_PROFESSIONAL",
+            "billingCycle": "monthly",
+            "price": 999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Unlock more opportunities with full requirement access, verified profile option, and basic analytics.",
+            "shortDescription": "Unlock more opportunities",
+            "highlights": [
+                "25 applications/month",
+                "3 active engagements",
+                "Full feed access",
+                "Optional verification",
+                "Basic analytics"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "applications": 25,
+                    "rfqResponses": 25,
+                    "activeEngagements": 3
+                }
+            },
+            "features": {
+                "profileListing": true,
+                "verifiedBadge": "optional",
+                "requirementsDiscovery": "full_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "basic",
+                "aiAssistMode": "credits_only"
+            },
+            "featureDescriptions": {
+                "verifiedBadge": "Optional profile verification",
+                "requirementsDiscovery": "Full access to consulting opportunities",
+                "rfqParticipation": "Apply to any opportunity",
+                "analyticsLevel": "Basic engagement analytics"
+            },
+            "isPopular": true,
+            "status": "active"
+        },
+        {
+            "code": "EXPERT_PRO",
+            "name": "Expert Pro",
+            "userType": "EXPERT_PROFESSIONAL",
+            "billingCycle": "monthly",
+            "price": 2999,
+            "currency": "INR",
+            "isCustomPricing": false,
+            "description": "Premium expert access with priority visibility, advanced analytics, and AI-powered proposal assistance.",
+            "shortDescription": "Premium with AI proposals",
+            "highlights": [
+                "100 applications/month",
+                "10 active engagements",
+                "Priority visibility",
+                "Verified badge",
+                "Advanced analytics",
+                "30 AI credits/month"
+            ],
+            "limits": {
+                "teamSize": 1,
+                "monthlyCaps": {
+                    "applications": 100,
+                    "rfqResponses": 100,
+                    "activeEngagements": 10
+                }
+            },
+            "features": {
+                "profileListing": true,
+                "verifiedBadge": true,
+                "requirementsDiscovery": "priority_feed",
+                "rfqParticipation": "enabled",
+                "quotationSubmission": true,
+                "chat": "enabled",
+                "workProgressTracking": true,
+                "milestonesAndInvoices": true,
+                "analyticsLevel": "advanced",
+                "aiAssistMode": "fair_use"
+            },
+            "featureDescriptions": {
+                "verifiedBadge": "Verified expert badge",
+                "requirementsDiscovery": "Priority access to opportunities",
+                "analyticsLevel": "Advanced engagement analytics",
+                "aiAssistMode": "30 AI assist credits per month"
+            },
+            "fairUse": {
+                "aiAssistCreditsPerMonth": 30
+            },
+            "status": "active"
+        }
+    ]
+}

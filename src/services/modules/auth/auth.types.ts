@@ -114,3 +114,24 @@ export interface User {
   userSubType?: 'ServiceVendor' | 'ProductVendor' | 'LogisticVendor';
   companyName?: string;
 }
+
+// ========== Forgot Password Types ==========
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+// ========== Reset Password Types ==========
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}

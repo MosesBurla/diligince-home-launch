@@ -17,8 +17,8 @@ interface UserContextType {
   isLoading: boolean;
   updateProfile: (updates: Partial<UserProfile>) => void;
   updatePreferences: (preferences: Partial<UserPreferences>) => void;
-  login: (email: string, password: string) => Promise<{success: boolean, error?: string}>;
-  verify2FA: (twoFactorToken: string, code: string) => Promise<{success: boolean, error?: string}>;
+  login: (email: string, password: string) => Promise<{ success: boolean, error?: string }>;
+  verify2FA: (twoFactorToken: string, code: string) => Promise<{ success: boolean, error?: string }>;
   logout: () => void;
   getDashboardUrl: () => string;
   isUserType: (role: UserRole) => boolean;
@@ -31,6 +31,7 @@ interface UserContextType {
   verificationStatus: VerificationStatus;
   canAccessDashboard: boolean;
   refreshVerificationStatus: () => Promise<void>;
+  updateVerificationStatus: (status: VerificationStatus) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -65,7 +66,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [profileCompletion, setProfileCompletion] = useState<ProfileCompletion>(defaultProfileCompletion);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(VerificationStatus.INCOMPLETE);
-  
+
   const canAccessDashboard = verificationStatus === VerificationStatus.APPROVED;
 
   useEffect(() => {
@@ -75,17 +76,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const savedUser = localStorage.getItem('user');
         const savedOnboarding = localStorage.getItem('hasCompletedOnboarding');
         const savedVerificationStatus = localStorage.getItem('verificationStatus');
-        
+
         if (savedUser) {
           const userData = JSON.parse(savedUser) as UserProfile;
           console.log("Loaded user from localStorage:", userData);
           setUser(userData);
           setHasCompletedOnboarding(savedOnboarding === 'true');
-          
+
           // Calculate profile completion immediately
           const completion = calculateProfileCompleteness(userData);
           setProfileCompletion(completion);
-          
+
           // Load verification status from API
           try {
             // First, set the cached status if available (instant UI update)
@@ -94,18 +95,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
               setVerificationStatus(cachedStatus);
               console.log('Loaded cached verification status:', cachedStatus);
             }
-            
+
             // Then fetch fresh status from API
             let apiStatus: string | undefined;
-            
+
             if (userData.role === 'industry') {
               const profileResponse = await api.get(companyProfileRoutes.get);
               apiStatus = profileResponse?.data?.data?.profile?.verificationStatus;
             } else if (userData.role === 'vendor') {
               const profileResponse = await api.get(vendorProfileRoutes.get);
-              apiStatus = profileResponse?.data?.data?.profile?.verificationStatus;
+              apiStatus = profileResponse?.data?.data?.verificationStatus;
             }
-            
+
             if (apiStatus) {
               const mappedStatus = apiStatus as VerificationStatus;
               setVerificationStatus(mappedStatus);
@@ -137,7 +138,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     if (user) {
       console.log("Saving user to localStorage and recalculating completion:", user);
       localStorage.setItem('user', JSON.stringify(user));
-      
+
       // Recalculate profile completion
       const completion = calculateProfileCompleteness(user);
       console.log("New profile completion:", completion);
@@ -162,7 +163,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const updateProfile = (updates: Partial<UserProfile>) => {
     if (!user) return;
-    
+
     console.log("Updating profile with:", updates);
     setUser(current => {
       if (!current) return null;
@@ -178,7 +179,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const updatePreferences = (preferenceUpdates: Partial<UserPreferences>) => {
     if (!user) return;
-    
+
     setUser(current => {
       if (!current) return null;
       return {
@@ -196,43 +197,43 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       console.log('[Auth] Attempting API login...');
       const response: any = await api.post(apiRoutes.auth.login, { email, password });
-      
+
       // Parse the response - handle API structure: response.data.data
       const responseData = response?.data || response;
       const userData = responseData?.data;
-      
+
       if (userData?.access_token && userData?.user) {
         console.log('[Auth] API login successful');
-        
+
         // Store authentication tokens
         localStorage.setItem('authToken', userData.access_token);
         localStorage.setItem('refreshToken', userData.refresh_token);
-        
+
         // Validate and store roleConfiguration for permissions
         const roleConfig = userData.user.roleConfiguration;
         if (!roleConfig || !roleConfig.permissions || roleConfig.permissions.length === 0) {
           toast.error("Don't have any Module Access");
           return { success: false, error: "No module access configured for this account" };
         }
-        
+
         // Check if user has at least one readable module
-        const hasAnyAccess = roleConfig.permissions.some((m: any) => 
-          m.permissions?.read === true || 
+        const hasAnyAccess = roleConfig.permissions.some((m: any) =>
+          m.permissions?.read === true ||
           m.submodules?.some((s: any) => s.permissions?.read === true)
         );
-        
+
         if (!hasAnyAccess) {
           toast.error("Don't have any Module Access");
           return { success: false, error: "No module access configured for this account" };
         }
-        
+
         // Store valid permissions
         localStorage.setItem('roleConfiguration', JSON.stringify(roleConfig));
         // Dispatch event to update permissions context
-        window.dispatchEvent(new CustomEvent('permissions:update', { 
-          detail: roleConfig 
+        window.dispatchEvent(new CustomEvent('permissions:update', {
+          detail: roleConfig
         }));
-        
+
         const apiUser = userData.user;
         const userProfile: UserProfile = {
           id: apiUser.id,
@@ -242,11 +243,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           userType: apiUser.userType,
           userSubType: apiUser.userSubType,
           profile: {
-            vendorCategory: apiUser.userSubType 
-              ? (apiUser.userSubType === 'ServiceVendor' ? 'service' 
-                : apiUser.userSubType === 'ProductVendor' ? 'product' 
-                : apiUser.userSubType === 'LogisticVendor' ? 'logistics' 
-                : apiUser.profile?.vendorCategory)
+            vendorCategory: apiUser.userSubType
+              ? (apiUser.userSubType === 'ServiceVendor' ? 'service'
+                : apiUser.userSubType === 'ProductVendor' ? 'product'
+                  : apiUser.userSubType === 'LogisticVendor' ? 'logistics'
+                    : apiUser.profile?.vendorCategory)
               : apiUser.profile?.vendorCategory,
             companyName: apiUser.profile?.companyName,
             firstName: apiUser.profile?.firstName,
@@ -256,23 +257,23 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        
+
         setUser(userProfile);
         setIsFirstTimeUser(!apiUser.profile?.isProfileComplete);
-        
+
         // Fetch verification status for the logged-in user
         setTimeout(async () => {
           try {
             let apiStatus: string | undefined;
-            
+
             if (userProfile.role === 'industry') {
               const response = await api.get(companyProfileRoutes.get);
               apiStatus = response?.data?.data?.profile?.verificationStatus;
             } else if (userProfile.role === 'vendor') {
               const response = await api.get(vendorProfileRoutes.get);
-              apiStatus = response?.data?.data?.profile?.verificationStatus;
+              apiStatus = response?.data?.data?.verificationStatus;
             }
-            
+
             if (apiStatus) {
               const mappedStatus = apiStatus as VerificationStatus;
               setVerificationStatus(mappedStatus);
@@ -283,15 +284,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             console.error('Error loading verification status after login:', error);
           }
         }, 100);
-        
+
         return { success: true };
       }
       return { success: false, error: 'Invalid credentials' };
     } catch (error: any) {
       console.error('[Auth] Login failed:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Authentication failed. Please check your credentials.' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Authentication failed. Please check your credentials.'
       };
     }
   }, []);
@@ -300,41 +301,41 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       console.log('[Auth] Attempting 2FA verification...');
       const response: any = await api.post(apiRoutes.auth.verify2FA, { twoFactorToken, code });
-      
+
       const responseData = response?.data || response;
       const userData = responseData?.data;
-      
+
       if (userData?.access_token && userData?.user) {
         console.log('[Auth] 2FA verification successful');
-        
+
         // Store authentication tokens
         localStorage.setItem('authToken', userData.access_token);
         localStorage.setItem('refreshToken', userData.refresh_token);
-        
+
         // Validate and store roleConfiguration for permissions
         const roleConfig = userData.user.roleConfiguration;
         if (!roleConfig || !roleConfig.permissions || roleConfig.permissions.length === 0) {
           toast.error("Don't have any Module Access");
           return { success: false, error: "No module access configured for this account" };
         }
-        
+
         // Check if user has at least one readable module
-        const hasAnyAccess = roleConfig.permissions.some((m: any) => 
-          m.permissions?.read === true || 
+        const hasAnyAccess = roleConfig.permissions.some((m: any) =>
+          m.permissions?.read === true ||
           m.submodules?.some((s: any) => s.permissions?.read === true)
         );
-        
+
         if (!hasAnyAccess) {
           toast.error("Don't have any Module Access");
           return { success: false, error: "No module access configured for this account" };
         }
-        
+
         // Store valid permissions
         localStorage.setItem('roleConfiguration', JSON.stringify(roleConfig));
-        window.dispatchEvent(new CustomEvent('permissions:update', { 
-          detail: roleConfig 
+        window.dispatchEvent(new CustomEvent('permissions:update', {
+          detail: roleConfig
         }));
-        
+
         const apiUser = userData.user;
         const userProfile: UserProfile = {
           id: apiUser.id,
@@ -344,11 +345,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           userType: apiUser.userType,
           userSubType: apiUser.userSubType,
           profile: {
-            vendorCategory: apiUser.userSubType 
-              ? (apiUser.userSubType === 'ServiceVendor' ? 'service' 
-                : apiUser.userSubType === 'ProductVendor' ? 'product' 
-                : apiUser.userSubType === 'LogisticVendor' ? 'logistics' 
-                : apiUser.profile?.vendorCategory)
+            vendorCategory: apiUser.userSubType
+              ? (apiUser.userSubType === 'ServiceVendor' ? 'service'
+                : apiUser.userSubType === 'ProductVendor' ? 'product'
+                  : apiUser.userSubType === 'LogisticVendor' ? 'logistics'
+                    : apiUser.profile?.vendorCategory)
               : apiUser.profile?.vendorCategory,
             companyName: apiUser.profile?.companyName,
             firstName: apiUser.profile?.firstName,
@@ -358,18 +359,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        
+
         setUser(userProfile);
         setIsFirstTimeUser(!apiUser.profile?.isProfileComplete);
-        
+
         return { success: true };
       }
       return { success: false, error: 'Verification failed' };
     } catch (error: any) {
       console.error('[Auth] 2FA verification failed:', error);
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Two-factor authentication failed.' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Two-factor authentication failed.'
       };
     }
   }, []);
@@ -402,27 +403,36 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const isVendorCategory = (category: string): boolean => {
     return user?.role === 'vendor' && user?.profile?.vendorCategory === category;
   };
-  
+
+  const updateVerificationStatus = useCallback((status: VerificationStatus) => {
+    console.log('[UserContext] updateVerificationStatus called with:', status);
+    console.log('[UserContext] Current verificationStatus:', verificationStatus);
+    setVerificationStatus(status);
+    localStorage.setItem('verificationStatus', status);
+    console.log('[UserContext] Updated verificationStatus to:', status);
+    console.log('[UserContext] localStorage now has:', localStorage.getItem('verificationStatus'));
+  }, [verificationStatus]);
+
   const refreshVerificationStatus = async () => {
     try {
       if (!user) return;
-      
+
       let apiStatus: string | undefined;
-      
+
       if (user.role === 'industry') {
         const response = await api.get(companyProfileRoutes.get);
         apiStatus = response?.data?.data?.profile?.verificationStatus;
       } else if (user.role === 'vendor') {
         const response = await api.get(vendorProfileRoutes.get);
-        apiStatus = response?.data?.data?.profile?.verificationStatus;
+        apiStatus = response?.data?.data?.verificationStatus;
       }
-      
+
       if (apiStatus) {
         const mappedStatus = apiStatus as VerificationStatus;
         setVerificationStatus(mappedStatus);
         localStorage.setItem('verificationStatus', mappedStatus);
         console.log('Refreshed verification status:', mappedStatus);
-        
+
         if (mappedStatus === VerificationStatus.APPROVED) {
           toast.success('Profile verification completed!');
         }
@@ -454,6 +464,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     verificationStatus,
     canAccessDashboard,
     refreshVerificationStatus,
+    updateVerificationStatus,
   };
 
   return (

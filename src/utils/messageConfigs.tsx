@@ -84,7 +84,7 @@ export const industryMessageConfig: MessageCenterConfig = {
 /* ---------------- PROFESSIONAL ---------------- */
 export const professionalMessageConfig: MessageCenterConfig = {
   title: "Message Center",
-  theme: "purple",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
@@ -127,8 +127,8 @@ export const professionalMessageConfig: MessageCenterConfig = {
 
 /* ---------------- SERVICE VENDOR ---------------- */
 export const serviceVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "yellow",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
@@ -169,8 +169,8 @@ export const serviceVendorMessageConfig: MessageCenterConfig = {
 
 /* ---------------- PRODUCT VENDOR ---------------- */
 export const productVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "green",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
@@ -211,8 +211,8 @@ export const productVendorMessageConfig: MessageCenterConfig = {
 
 /* ---------------- LOGISTICS VENDOR ---------------- */
 export const logisticsVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "pink",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,

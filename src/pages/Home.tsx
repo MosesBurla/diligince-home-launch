@@ -147,7 +147,7 @@ const Home: React.FC = () => {
                 to="/login"
                 className="bg-gradient-to-r from-[#1A2A4F] to-[#2F80ED] text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
               >
-                Start Free Trial
+                Sign In
               </Link>
             </div>
           </div>
@@ -193,7 +193,7 @@ const Home: React.FC = () => {
                   to="/signup"
                   className="bg-white text-black px-8 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 font-semibold"
                 >
-                  <span>Start Free Trial</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <button className="border-2 border-white/30 text-white px-8 py-4 rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center space-x-2 font-semibold backdrop-blur-sm">
@@ -495,7 +495,7 @@ const Home: React.FC = () => {
               to="/signup"
               className="bg-white text-[#1A2A4F] px-10 py-4 rounded-xl hover:bg-gray-100 transition-all duration-300 flex items-center justify-center space-x-2 font-bold text-lg shadow-2xl hover:shadow-3xl hover:scale-105"
             >
-              <span>Start Free Trial</span>
+              <span>Sign In</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
             <button className="border-2 border-white/30 text-white px-10 py-4 rounded-xl hover:bg-white/10 transition-all duration-300 font-bold text-lg backdrop-blur-sm hover:border-white/50 flex items-center justify-center space-x-2">

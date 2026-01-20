@@ -17,14 +17,14 @@ export const useAuth = () => {
       if (!data.success || data.success === false) {
         // API returned success: false
         const message = data.error?.message || "An error occurred during sign up.";
-        toast.error(message); 
+        toast.error(message);
         return { success: false, error: message };
       }
 
       // Success: show green toast
       toast.success(data?.message || "Registration successful. Please check your email and phone to verify your account.");
 
-      navigate('/signin');
+      navigate('/login');
       return { success: true, user: data.user };
     } catch (error: any) {
       console.error('Sign up error:', error);

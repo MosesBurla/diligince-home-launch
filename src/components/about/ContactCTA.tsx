@@ -41,9 +41,8 @@ const ContactCTA = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div
           ref={elementRef}
-          className={`transition-all duration-1000 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-          }`}
+          className={`transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+            }`}
         >
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Side - CTA */}
@@ -62,7 +61,7 @@ const ContactCTA = () => {
                   size="lg"
                   className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                 >
-                  Start Free Trial
+                  Sign In
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button

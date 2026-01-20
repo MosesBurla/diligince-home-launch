@@ -43,6 +43,9 @@ import {
   RotateCcw,
   MapPin,
   Wrench,
+  Crown,
+  Receipt,
+  Wallet,
 } from "lucide-react";
 
 interface MenuItem {
@@ -250,6 +253,28 @@ export const menuConfig: MenuConfig = {
         },
       ],
     },
+    {
+      icon: Crown,
+      label: "Subscription",
+      path: "/dashboard/subscription",
+      submenu: [
+        {
+          icon: Crown,
+          label: "My Plan",
+          path: "/dashboard/subscription/plans",
+        },
+        {
+          icon: Receipt,
+          label: "Transactions",
+          path: "/dashboard/subscription/transactions",
+        },
+        {
+          icon: Wallet,
+          label: "Payment Methods",
+          path: "/dashboard/subscription/payment-methods",
+        },
+      ],
+    },
   ],
 
   // ---------------- PROFESSIONAL ----------------
@@ -302,6 +327,15 @@ export const menuConfig: MenuConfig = {
       label: "Profile",
       path: "/dashboard/professional-profile",
     },
+    {
+      icon: Crown,
+      label: "Subscription",
+      path: "/dashboard/subscription",
+      submenu: [
+        { icon: Crown, label: "My Plan", path: "/dashboard/subscription/plans" },
+        { icon: Receipt, label: "Transactions", path: "/dashboard/subscription/transactions" },
+      ],
+    },
   ],
 
   // ---------------- SERVICE VENDOR ----------------
@@ -343,26 +377,27 @@ export const menuConfig: MenuConfig = {
           label: "All Quotations",
           path: "/dashboard/vendor/quotations",
         },
-        {
-          icon: GitPullRequestDraft,
-          label: "Drafts",
-          path: "/dashboard/vendor/quotations/drafts",
-        },
-        {
-          icon: Clock,
-          label: "Submitted",
-          path: "/dashboard/vendor/quotations/submitted",
-        },
-        {
-          icon: CheckCircle,
-          label: "Accepted",
-          path: "/dashboard/vendor/quotations/accepted",
-        },
-        {
-          icon: XCircle,
-          label: "Rejected",
-          path: "/dashboard/vendor/quotations/rejected",
-        },
+        // Hidden for now - filtering available via tabs on All Quotations page
+        // {
+        //   icon: GitPullRequestDraft,
+        //   label: "Drafts",
+        //   path: "/dashboard/vendor/quotations/drafts",
+        // },
+        // {
+        //   icon: Clock,
+        //   label: "Submitted",
+        //   path: "/dashboard/vendor/quotations/submitted",
+        // },
+        // {
+        //   icon: CheckCircle,
+        //   label: "Accepted",
+        //   path: "/dashboard/vendor/quotations/accepted",
+        // },
+        // {
+        //   icon: XCircle,
+        //   label: "Rejected",
+        //   path: "/dashboard/vendor/quotations/rejected",
+        // },
       ],
     },
     {
@@ -429,12 +464,12 @@ export const menuConfig: MenuConfig = {
     {
       icon: Settings,
       label: "Settings",
-      path: "/dashboard/service-vendor-profile",
+      path: "/dashboard/vendor-settings",
       submenu: [
         {
           icon: Building,
           label: "Company Profile",
-          path: "/dashboard/service-vendor-profile",
+          path: "/dashboard/vendor-settings",
         },
         {
           icon: Award,
@@ -451,6 +486,15 @@ export const menuConfig: MenuConfig = {
           label: "Payment Settings",
           path: "/dashboard/service-vendor-profile/payment",
         },
+      ],
+    },
+    {
+      icon: Crown,
+      label: "Subscription",
+      path: "/dashboard/subscription",
+      submenu: [
+        { icon: Crown, label: "My Plan", path: "/dashboard/subscription/plans" },
+        { icon: Receipt, label: "Transactions", path: "/dashboard/subscription/transactions" },
       ],
     },
   ],
@@ -563,12 +607,12 @@ export const menuConfig: MenuConfig = {
     {
       icon: Settings,
       label: "Settings",
-      path: "/dashboard/product-vendor-profile",
+      path: "/dashboard/vendor-settings",
       submenu: [
         {
           icon: Building,
           label: "Company Profile",
-          path: "/dashboard/product-vendor-profile",
+          path: "/dashboard/vendor-settings",
         },
         {
           icon: Award,
@@ -590,6 +634,15 @@ export const menuConfig: MenuConfig = {
           label: "Payment Settings",
           path: "/dashboard/product-vendor-profile/payment",
         },
+      ],
+    },
+    {
+      icon: Crown,
+      label: "Subscription",
+      path: "/dashboard/subscription",
+      submenu: [
+        { icon: Crown, label: "My Plan", path: "/dashboard/subscription/plans" },
+        { icon: Receipt, label: "Transactions", path: "/dashboard/subscription/transactions" },
       ],
     },
   ],
@@ -714,12 +767,12 @@ export const menuConfig: MenuConfig = {
     {
       icon: Settings,
       label: "Settings",
-      path: "/dashboard/logistics-vendor-profile",
+      path: "/dashboard/vendor-settings",
       submenu: [
         {
           icon: Building,
           label: "Company Profile",
-          path: "/dashboard/logistics-vendor-profile",
+          path: "/dashboard/vendor-settings",
         },
         {
           icon: MapPin,
@@ -736,6 +789,15 @@ export const menuConfig: MenuConfig = {
           label: "Payment Settings",
           path: "/dashboard/logistics-vendor-profile/payment",
         },
+      ],
+    },
+    {
+      icon: Crown,
+      label: "Subscription",
+      path: "/dashboard/subscription",
+      submenu: [
+        { icon: Crown, label: "My Plan", path: "/dashboard/subscription/plans" },
+        { icon: Receipt, label: "Transactions", path: "/dashboard/subscription/transactions" },
       ],
     },
   ],

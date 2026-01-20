@@ -237,16 +237,16 @@ const ProductVendorMessages = () => {
   const urgentCount = messages.filter(msg => msg.priority === "urgent" || msg.priority === "high").length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[hsl(var(--messages-received-bubble))]">
       <Helmet>
         <title>Messages | Product Vendor Dashboard</title>
       </Helmet>
       
       {/* <VendorHeader /> */}
       
-      <div className="pt-16 flex-1 flex">
+      <div className="flex-1 flex h-[calc(100vh-64px)]">
         {/* Conversations Sidebar */}
-        <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-[360px] bg-[hsl(var(--messages-sidebar-bg))] border-r border-[hsl(var(--messages-border))] flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
@@ -418,9 +418,6 @@ const ProductVendorMessages = () => {
                     </Button>
                     <Button variant="outline" size="sm">
                       <Archive className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

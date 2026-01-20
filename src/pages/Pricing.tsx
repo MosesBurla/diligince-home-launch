@@ -1,222 +1,211 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import PublicHeader from "../components/PublicHeader";
 import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { MessageCircle, Sparkles } from "lucide-react";
+import { 
+  UserTypeSelector, 
+  PlanCard, 
+  AddOnSection, 
+  PricingFAQ,
+  TransactionFeeCard,
+  PricingHeroBackground,
+  PricingCalculator
+} from "@/components/pricing";
+import { 
+  UserType, 
+  Plan,
+  plansByUserType, 
+  userTypes 
+} from "@/data/pricingData";
+import { usePricingSelection } from "@/contexts/PricingSelectionContext";
 
 const Pricing = () => {
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'enterprise'>('pro');
   const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    navigate("/signup");
+  const location = useLocation();
+  const { selection, setSelectedPlan, toggleAddOn, hasValidSelection } = usePricingSelection();
+  
+  // Parse hash to get initial user type
+  const getInitialUserType = (): UserType => {
+    const hash = location.hash.replace('#', '');
+    const validTypes: UserType[] = ['industry', 'service_vendor', 'product_vendor', 'logistics', 'professional'];
+    if (validTypes.includes(hash as UserType)) {
+      return hash as UserType;
+    }
+    // If we have a selection, use that user type
+    if (selection?.userType) {
+      return selection.userType;
+    }
+    return 'industry';
   };
 
-  const handleSubscribe = () => {
-    // In a real app, this would redirect to payment processing
-    navigate("/signup");
+  const [selectedUserType, setSelectedUserType] = useState<UserType>(getInitialUserType);
+
+  // Update URL hash when user type changes
+  useEffect(() => {
+    window.history.replaceState(null, '', `#${selectedUserType}`);
+  }, [selectedUserType]);
+
+  const handleUserTypeChange = (userType: UserType) => {
+    setSelectedUserType(userType);
+    // Clear plan selection if user type changes
+    if (selection?.userType !== userType && selection?.selectedPlan) {
+      setSelectedPlan(userType, null);
+    }
   };
 
-  const handleContactSales = () => {
-    navigate("/contact");
+  const handlePlanSelect = (plan: Plan) => {
+    setSelectedPlan(selectedUserType, plan);
   };
 
-  const handleContactUs = () => {
-    navigate("/contact");
+  const handlePlanAction = (action: 'signup' | 'subscribe' | 'contact') => {
+    switch (action) {
+      case 'signup':
+        navigate("/signup");
+        break;
+      case 'subscribe':
+        navigate("/signup");
+        break;
+      case 'contact':
+        navigate("/contact");
+        break;
+    }
   };
+
+  const currentPlans = plansByUserType[selectedUserType];
+  const currentUserTypeConfig = userTypes.find(t => t.id === selectedUserType);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-background">
       <PublicHeader />
       <main className="flex-grow pt-24 pb-16">
-        <section className="py-12">
-          <div className="container mx-auto px-4 md:px-8">
-            <div className="text-center mb-16">
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h1>
-              <p className="text-gray-600 max-w-3xl mx-auto">
-                Choose the plan that works best for your business needs with our freemium model.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {/* Free Tier */}
-              <Card 
-                className={`bg-white border cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                  selectedPlan === 'free' 
-                    ? 'border-2 border-blue-500 shadow-lg' 
-                    : 'border border-gray-100 shadow-sm hover:shadow-md'
-                }`}
-                onClick={() => setSelectedPlan('free')}
-              >
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-gray-900">Free</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-3xl font-bold text-gray-900">₹0</span>
-                    <span className="text-gray-500 ml-1">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Basic profile creation</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Limited matching capabilities</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Access to marketplace</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Basic search functionality</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGetStarted();
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Pro Tier */}
-              <Card 
-                className={`bg-white border cursor-pointer relative transition-all duration-300 hover:shadow-lg ${
-                  selectedPlan === 'pro' 
-                    ? 'border-2 border-blue-500 shadow-lg' 
-                    : 'border border-gray-100 shadow-sm hover:shadow-md'
-                }`}
-                onClick={() => setSelectedPlan('pro')}
-              >
-                <div className="absolute top-0 right-0 bg-blue-500 text-white px-3 py-1 text-sm font-medium rounded-bl-lg rounded-tr-lg">
-                  Popular
+        {/* Hero Section with AI Background */}
+        <PricingHeroBackground>
+          <section className="py-12 md:py-16">
+            <div className="container mx-auto px-4 md:px-8">
+              <div className="text-center mb-10 animate-fade-in">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[hsl(210,64%,23%,0.08)] border border-[hsl(210,64%,23%,0.15)] mb-4">
+                  <Sparkles className="h-4 w-4 text-[hsl(210,64%,23%)]" />
+                  <span className="text-sm font-medium text-[hsl(210,64%,23%)]">AI-Powered Pricing</span>
                 </div>
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-gray-900">Pro</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-3xl font-bold text-gray-900">₹500</span>
-                    <span className="text-gray-500 ml-1">/month</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">All Free features</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Unlimited matches</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Advanced AI matching</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Detailed analytics</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Priority support</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSubscribe();
-                    }}
-                  >
-                    Subscribe Now
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              {/* Enterprise Tier */}
-              <Card 
-                className={`bg-white border cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                  selectedPlan === 'enterprise' 
-                    ? 'border-2 border-blue-500 shadow-lg' 
-                    : 'border border-gray-100 shadow-sm hover:shadow-md'
-                }`}
-                onClick={() => setSelectedPlan('enterprise')}
-              >
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl font-bold text-gray-900">Enterprise</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-3xl font-bold text-gray-900">Custom</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">All Pro features</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Custom integration</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Dedicated account manager</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">Customized reporting</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">SLA guarantees</span>
-                    </li>
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleContactSales();
-                    }}
-                  >
-                    Contact Sales
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-
-            <div className="mt-16 text-center">
-              <div className="bg-white rounded-lg p-8 border border-gray-100 shadow-sm max-w-2xl mx-auto">
-                <h2 className="text-2xl font-bold mb-4 text-gray-900">Transaction Fee</h2>
-                <p className="text-gray-600">
-                  For all successful transactions through our platform, we charge a 5% commission fee.
-                  This helps us maintain and improve our services while ensuring fair value for all parties.
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+                  Flexible Plans for Every Business
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Choose your role and find the perfect plan to grow your business on Diligince
                 </p>
               </div>
-            </div>
 
-            <div className="mt-12 text-center">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Have questions about our pricing?</h3>
+              {/* User Type Selector */}
+              <UserTypeSelector
+                selectedType={selectedUserType}
+                onSelect={handleUserTypeChange}
+              />
+            </div>
+          </section>
+        </PricingHeroBackground>
+
+        {/* Pricing Cards Section with Calculator */}
+        <section className="py-8">
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+              {/* Left Column: Plans + Add-ons (Scrollable) */}
+              <div className="flex-1">
+                {/* Compact User Type Header */}
+                {currentUserTypeConfig && (
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-muted/50">
+                      <currentUserTypeConfig.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-foreground">
+                        {currentUserTypeConfig.label} Plans
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {currentUserTypeConfig.description}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Plan Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentPlans.map((plan, index) => (
+                    <div 
+                      key={plan.code}
+                      className="animate-fade-in"
+                      style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                      <PlanCard
+                        plan={plan}
+                        onAction={handlePlanAction}
+                        selectionMode={true}
+                        isSelected={selection?.selectedPlan?.code === plan.code && selection?.userType === selectedUserType}
+                        onSelect={handlePlanSelect}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add-ons Section - Inside left column */}
+                <div className="mt-10">
+                  <AddOnSection 
+                    userType={selectedUserType}
+                    selectionMode={hasValidSelection}
+                    selectedAddOns={selection?.selectedAddOns || []}
+                    onToggleAddOn={toggleAddOn}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Calculator (Sticky) */}
+              <div className="lg:w-[340px] xl:w-[380px]">
+                <div className="lg:sticky lg:top-24">
+                  <PricingCalculator />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ + Transaction/Contact - Two Column Layout */}
+        <section className="py-8">
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+              {/* Left Column: FAQ Section */}
+              <div className="flex-1 lg:flex-[2]">
+                <PricingFAQ />
+              </div>
+              
+        {/* Right Column: Transaction Fee + Contact Us (stacked) */}
+        <div className="lg:w-[340px] xl:w-[380px] flex flex-col gap-5 lg:sticky lg:top-24">
+          {/* Transaction Fee Card */}
+          <TransactionFeeCard />
+          
+          {/* Need Help Deciding Card */}
+          <Card className="bg-card/80 backdrop-blur-sm border border-border/50 overflow-hidden">
+            <div className="p-6 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Need Help Deciding?
+              </h3>
+              <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+                Our team can guide you to the perfect plan for your business
+              </p>
               <Button 
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleContactUs}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all duration-300"
+                onClick={() => navigate("/contact")}
               >
+                <MessageCircle className="mr-2 h-4 w-4" />
                 Contact Us
               </Button>
+              <p className="text-xs text-muted-foreground mt-4">
+                or email us at <span className="font-medium">support@diligince.com</span>
+              </p>
+            </div>
+          </Card>
+        </div>
             </div>
           </div>
         </section>

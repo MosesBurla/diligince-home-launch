@@ -15,35 +15,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 // import { WelcomeModal } from "@/components/shared/WelcomeModal";
 import { useAuth } from "../hooks/useAuth";
 
-// Keep the same industries array
+// Keep the same industries array - sorted alphabetically with Others at end
 export const industries = [
-  "Sugar Manufacturing",
-  "Rice Mills",
-  "Coal Mining",
-  "Steel Manufacturing",
-  "Cement Production",
-  "Oil Refining",
-  "Natural Gas Processing",
-  "Textile Manufacturing",
-  "Paper Mills",
-  "Chemical Manufacturing",
-  "Pharmaceutical Production",
-  "Food Processing",
   "Automotive Manufacturing",
+  "Cement Production",
+  "Chemical Manufacturing",
+  "Coal Mining",
   "Electronics Manufacturing",
-  "Plastics Manufacturing",
-  "Glass Production",
-  "Plumber and Wood Products",
   "Fertilizer Production",
-  "Power Generation",
-  "Water Treatment",
+  "Food Processing",
+  "Glass Production",
   "Manufacturing",
+  "Natural Gas Processing",
+  "Oil Refining",
+  "Paper Mills",
+  "Pharmaceutical Production",
+  "Plastics Manufacturing",
+  "Plumber and Wood Products",
+  "Power Generation",
+  "Rice Mills",
+  "Steel Manufacturing",
+  "Sugar Manufacturing",
+  "Textile Manufacturing",
+  "Water Treatment",
   "Others"
 ];
+
+// Convert to options format for SearchableSelect
+const industryOptions = industries.map(industry => ({
+  value: industry,
+  label: industry
+}));
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
@@ -254,20 +260,16 @@ export function IndustrySignUpForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-gray-700">Industry Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-blue-200">
-                      <SelectValue placeholder="Select your industry type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="bg-white shadow-lg border border-gray-200 z-50">
-                    {industries.map((industry) => (
-                      <SelectItem key={industry} value={industry} className="text-gray-900 hover:bg-gray-100">
-                        {industry}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <SearchableSelect
+                    options={industryOptions}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select your industry type"
+                    searchPlaceholder="Search industries..."
+                    emptyMessage="No industry found."
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

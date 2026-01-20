@@ -29,18 +29,18 @@ const HeroSection = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-[#153b60] hover:bg-[#1e4976] text-white font-medium text-base shadow-md hover:shadow-lg transition-all duration-300 group"
                 asChild
               >
                 <Link to="/signup">
-                  Start Free Trial
+                  Sign In
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 font-medium text-base group"
               >
@@ -68,7 +68,7 @@ const HeroSection = () => {
               <div className="absolute top-12 left-12 w-32 h-32 hero-decoration-circle rounded-full animate-float" />
               <div className="absolute top-32 right-16 w-24 h-24 hero-decoration-square rounded-2xl animate-float-delayed rotate-12" />
               <div className="absolute bottom-24 left-20 w-28 h-28 hero-decoration-circle rounded-full animate-float" style={{ animationDelay: '1s' }} />
-              
+
               {/* Icon Elements */}
               <div className="absolute top-20 right-12 bg-white rounded-2xl p-4 shadow-lg animate-float">
                 <Network className="h-8 w-8 text-[#153b60]" />
@@ -76,7 +76,7 @@ const HeroSection = () => {
               <div className="absolute bottom-32 left-16 bg-white rounded-2xl p-4 shadow-lg animate-float-delayed">
                 <Zap className="h-8 w-8 text-[#1e4976]" />
               </div>
-              
+
               {/* Central Glow */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-[#153b60]/20 to-[#1e4976]/20 rounded-full blur-3xl" />
             </div>

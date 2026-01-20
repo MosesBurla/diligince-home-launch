@@ -3,6 +3,43 @@
 import type { VendorSpecialization } from "@/contexts/VendorSpecializationContext";
 
 /**
+ * Vendor specialization options per category
+ * Updated to match API documentation requirements
+ */
+export const vendorSpecializations = {
+  'Service Vendor': [
+    'IT Services & Consulting',
+    'Maintenance & Repair',
+    'Professional Services',
+    'Staffing & Recruitment',
+    'Facility Management',
+    'Security Services',
+    'Catering & Hospitality',
+    'Other Services'
+  ],
+  'Product Vendor': [
+    'Manufacturing',
+    'Trading & Distribution',
+    'Wholesale',
+    'Raw Materials',
+    'Equipment & Machinery',
+    'Electronics & Components',
+    'Packaging Materials',
+    'Other Products'
+  ],
+  'Logistics Vendor': [
+    'Road Transport',
+    'Warehousing',
+    'Courier & Express',
+    'Cold Chain Logistics',
+    'Container Services',
+    'Last Mile Delivery',
+    'International Freight',
+    'Other Logistics'
+  ]
+};
+
+/**
  * Map signup form specialization strings to the internal VendorSpecialization type
  */
 export const mapSignupToSpecialization = (

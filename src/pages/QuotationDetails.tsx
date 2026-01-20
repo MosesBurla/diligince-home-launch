@@ -13,7 +13,9 @@ import {
   CheckCircle,
   XCircle,
   MessageSquare,
+  MessageCircle,
   Download,
+  FileDown,
   GitCompare,
   Calendar,
   DollarSign,
@@ -28,6 +30,7 @@ import {
   Shield,
   TrendingUp,
   AlertCircle,
+  X,
 } from "lucide-react";
 import { DetailPageSkeleton } from "@/components/shared/loading";
 import { quotationService } from "@/services/quotation.service";
@@ -36,6 +39,7 @@ import { toast } from "sonner";
 import { ApproveQuotationModal } from "@/components/quotation/ApproveQuotationModal";
 import { RejectQuotationModal } from "@/components/quotation/RejectQuotationModal";
 import { ClarificationModal } from "@/components/quotation/ClarificationModal";
+import { QuotationChatPanel } from "@/components/quotation/QuotationChatPanel";
 
 export default function QuotationDetails() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +55,7 @@ export default function QuotationDetails() {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showClarificationModal, setShowClarificationModal] = useState(false);
+  const [showChatPanel, setShowChatPanel] = useState(false);
 
   // Fetch quotation details
   useEffect(() => {
@@ -61,17 +66,37 @@ export default function QuotationDetails() {
 
   const fetchQuotationDetails = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
-      const [quotationData, activityData, permissionsData] = await Promise.all([
-        quotationService.getById(id),
-        quotationService.getActivity(id),
-        quotationService.validateAction(id, 'approve'),
-      ]);
+
+      // Fetch quotation details first (required)
+      const quotationData = await quotationService.getById(id);
       setQuotation(quotationData);
-      setActivities(activityData);
-      setActionPermissions(permissionsData.data);
+
+      // Fetch activity and permissions separately (optional - don't fail if these fail)
+      try {
+        const activityData = await quotationService.getActivity(id);
+        setActivities(activityData);
+      } catch (activityError) {
+        console.warn("Could not load quotation activity:", activityError);
+        setActivities([]);
+      }
+
+      try {
+        const permissionsData = await quotationService.validateAction(id, 'approve');
+        setActionPermissions(permissionsData.data);
+      } catch (permissionsError) {
+        console.warn("Could not validate actions:", permissionsError);
+        // Set default permissions to allow basic actions
+        setActionPermissions({
+          userPermissions: {
+            canApprove: true,
+            canReject: true,
+            canRequestClarification: true
+          }
+        });
+      }
     } catch (error) {
       toast.error("Failed to load quotation details");
       console.error(error);
@@ -83,7 +108,7 @@ export default function QuotationDetails() {
   // Action handlers
   const handleApprove = async (comments?: string, notifyVendor?: boolean, createPO?: boolean) => {
     if (!id) return;
-    
+
     try {
       await quotationService.approve(id, { comments, notifyVendor, createPurchaseOrder: createPO } as any);
       toast.success("Quotation approved successfully");
@@ -97,7 +122,7 @@ export default function QuotationDetails() {
 
   const handleReject = async (reason: string, comments: string) => {
     if (!id) return;
-    
+
     try {
       await quotationService.reject(id, { reason: reason as any, comments });
       toast.success("Quotation rejected");
@@ -111,7 +136,7 @@ export default function QuotationDetails() {
 
   const handleRequestClarification = async (data: any) => {
     if (!id) return;
-    
+
     try {
       await quotationService.requestClarification(id, data);
       toast.success("Clarification request sent to vendor");
@@ -125,7 +150,7 @@ export default function QuotationDetails() {
 
   const handleDownloadDocument = async (documentId: string, documentName: string) => {
     if (!id) return;
-    
+
     try {
       const blob = await quotationService.downloadDocument(id, documentId);
       quotationService.downloadFile(blob, documentName);
@@ -140,6 +165,16 @@ export default function QuotationDetails() {
     if (quotation) {
       navigate(`/dashboard/quotations/comparison?highlight=${id}&requirement=${quotation.requirementId}`);
     }
+  };
+
+  const handleExportPDF = () => {
+    // Open print dialog for the current page
+    window.print();
+    toast.success("Preparing document for export");
+  };
+
+  const handleOpenChat = () => {
+    setShowChatPanel(true);
   };
 
   const getStatusColor = (status: QuotationStatus) => {
@@ -157,7 +192,7 @@ export default function QuotationDetails() {
 
   const getRecommendationBadge = (recommendation: string | null) => {
     if (!recommendation) return null;
-    
+
     const badges: Record<string, { label: string; className: string }> = {
       top_pick: { label: "Top Pick", className: "bg-green-100 text-green-800" },
       best_value: { label: "Best Value", className: "bg-blue-100 text-blue-800" },
@@ -165,7 +200,7 @@ export default function QuotationDetails() {
       highest_rated: { label: "Highest Rated", className: "bg-yellow-100 text-yellow-800" },
       best_match: { label: "Best Match", className: "bg-indigo-100 text-indigo-800" },
     };
-    
+
     const badge = badges[recommendation];
     return badge ? <Badge className={badge.className}>{badge.label}</Badge> : null;
   };
@@ -273,11 +308,11 @@ export default function QuotationDetails() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2 mt-6 flex-wrap">
             {canApprove && actionPermissions?.userPermissions?.canApprove && (
               <Button onClick={() => setShowApproveModal(true)}>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Approve
+                Accept
               </Button>
             )}
             {canReject && actionPermissions?.userPermissions?.canReject && (
@@ -286,15 +321,17 @@ export default function QuotationDetails() {
                 Reject
               </Button>
             )}
-            {canRequestClarification && actionPermissions?.userPermissions?.canRequestClarification && (
-              <Button variant="outline" onClick={() => setShowClarificationModal(true)}>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Request Clarification
-              </Button>
-            )}
+            <Button variant="outline" onClick={handleExportPDF}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button variant="outline" onClick={handleOpenChat}>
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Chat
+            </Button>
             <Button variant="outline" onClick={handleCompareWithOthers}>
               <GitCompare className="h-4 w-4 mr-2" />
-              Compare with Others
+              Compare
             </Button>
           </div>
         </div>
@@ -321,7 +358,7 @@ export default function QuotationDetails() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Link 
+                    <Link
                       to={`/dashboard/requirements/${quotation.requirement.id}`}
                       className="text-lg font-semibold text-primary hover:underline"
                     >
@@ -508,7 +545,7 @@ export default function QuotationDetails() {
                       ${quotation.quotedAmount.toLocaleString()} {quotation.currency}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-6 pt-4">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Payment Terms</p>
@@ -814,6 +851,16 @@ export default function QuotationDetails() {
         onSend={handleRequestClarification}
         quotationNumber={quotation.quotationNumber}
         vendorContact={quotation.vendorContact}
+      />
+
+      {/* Chat Panel */}
+      <QuotationChatPanel
+        quotationId={id || ''}
+        quotationNumber={quotation.quotationNumber}
+        vendorName={quotation.vendorName}
+        vendorEmail={quotation.vendorContact?.email}
+        isOpen={showChatPanel}
+        onClose={() => setShowChatPanel(false)}
       />
     </div>
   );

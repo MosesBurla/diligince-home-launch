@@ -5,8 +5,8 @@ import { getDashboardRoute } from '@/types/shared';
 
 const PUBLIC_ROUTES = [
   '/', '/about', '/contact', '/pricing', '/blog', '/careers',
-  '/legal', '/privacy', '/terms', '/signup', '/signin',
-  '/forgot-password', '/reset-password', '/pending-approval'
+  '/legal', '/privacy', '/terms', '/signup', '/signin', '/login',
+  '/forgot-password', '/pending-approval'
 ];
 
 interface AuthGuardProps {
@@ -21,16 +21,18 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     if (!isLoading) {
       const isPublicRoute = PUBLIC_ROUTES.some(route => 
-        location.pathname === route || location.pathname.startsWith('/blog/')
+        location.pathname === route || 
+        location.pathname.startsWith('/blog/') ||
+        location.pathname.startsWith('/reset-password/')
       );
       
       // Not logged in and trying to access protected route
       if (!user && !isPublicRoute) {
-        navigate('/signin', { replace: true, state: { from: location.pathname } });
+        navigate('/login', { replace: true, state: { from: location.pathname } });
       }
       
-      // Logged in and on signin/signup pages - redirect to dashboard
-      if (user && (location.pathname === '/signin' || location.pathname === '/signup')) {
+      // Logged in and on signin/signup/login pages - redirect to dashboard
+      if (user && (location.pathname === '/signin' || location.pathname === '/signup' || location.pathname === '/login')) {
         const dashboardUrl = getDashboardRoute(user);
         navigate(dashboardUrl, { replace: true });
       }

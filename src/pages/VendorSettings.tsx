@@ -10,22 +10,32 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import toast from '@/utils/toast.utils';
 import errorHandler from '@/utils/errorHandler.utils';
-import { VendorProfile, VerificationStatus, VerificationDocument, VendorDocumentType } from '@/types/verification';
+import { VendorProfile, VerificationStatus, VerificationDocument, VendorDocumentType, Address } from '@/types/verification';
 import { VendorProfileCompletionBanner } from '@/components/vendor/shared/VendorProfileCompletionBanner';
 import { VendorDocumentUploadField } from '@/components/vendor/shared/VendorDocumentUploadField';
-import { 
-  calculateVendorProfileCompletion, 
+import { VendorAddressSection } from '@/components/vendor/shared/VendorAddressSection';
+import {
+  calculateVendorProfileCompletion,
   canVendorSubmitForVerification,
   getVendorRequiredDocuments,
   getDocumentDisplayName
 } from '@/utils/vendorProfileValidation';
 import { ConsentDialog } from '@/components/verification/ConsentDialog';
+import { vendorProfileService } from '@/services';
+import ServicesSkillsForm from '@/components/vendor/forms/ServicesSkillsForm';
 
 const VENDOR_CATEGORIES = ['Service Vendor', 'Product Vendor', 'Logistics Vendor'] as const;
 
 const VendorSettings = () => {
   const navigate = useNavigate();
-  const { user, refreshVerificationStatus } = useUser();
+  const {
+    user,
+    verificationStatus,
+    canAccessDashboard,
+    isUserType,
+    refreshVerificationStatus,
+    updateVerificationStatus
+  } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isConsentOpen, setIsConsentOpen] = useState(false);
@@ -57,27 +67,31 @@ const VendorSettings = () => {
     const fetchProfile = async () => {
       try {
         setIsLoadingProfile(true);
-        // TODO: Replace with actual vendorProfileService.getProfile()
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Mock profile from user context
-        setProfile({
-          businessName: user?.profile?.businessName || '',
-          vendorCategory: user?.profile?.vendorCategory || 'Service Vendor',
-          specialization: user?.profile?.specialization || '',
-          panNumber: '',
-          gstNumber: '',
-          registrationNumber: '',
-          email: user?.email || '',
-          mobile: user?.profile?.mobile || '',
-          telephone: '',
-          website: '',
-          primaryIndustry: '',
-          yearsInBusiness: '',
-          businessLocation: '',
-          documents: [],
-          verificationStatus: VerificationStatus.INCOMPLETE,
-        });
+        const existingProfile = await vendorProfileService.getProfile();
+
+        if (existingProfile) {
+          setProfile(existingProfile);
+        } else {
+          // New user - initialize with defaults from user context
+          setProfile({
+            businessName: user?.profile?.businessName || '',
+            vendorCategory: user?.profile?.vendorCategory || 'Service Vendor',
+            specialization: user?.profile?.specialization || '',
+            panNumber: '',
+            gstNumber: '',
+            registrationNumber: '',
+            email: user?.email || '',
+            mobile: user?.profile?.mobile || '',
+            telephone: '',
+            website: '',
+            addresses: [{ line1: '', city: '', state: '', pincode: '', isPrimary: true }],
+            primaryIndustry: '',
+            yearsInBusiness: '',
+            businessLocation: '',
+            documents: [],
+            verificationStatus: VerificationStatus.INCOMPLETE,
+          });
+        }
       } catch (error: any) {
         console.error('Error fetching profile:', error);
         toast.error('Failed to load profile');
@@ -107,6 +121,10 @@ const VendorSettings = () => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleAddressChange = (addresses: Address[]) => {
+    setProfile(prev => ({ ...prev, addresses }));
+  };
+
   const handleSave = async () => {
     if (isProfileLocked) {
       toast.warning('Profile is locked', {
@@ -119,10 +137,16 @@ const VendorSettings = () => {
     const loadingToast = errorHandler.showLoading('Saving profile...');
 
     try {
-      // TODO: Replace with actual vendorProfileService.saveProfile(profile)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      errorHandler.updateSuccess(loadingToast, 'Profile saved successfully');
+      const response = await vendorProfileService.saveProfile(profile);
+
+      if (response.success) {
+        // Update local state with response data
+        const savedProfile = 'profile' in response.data ? response.data.profile : response.data;
+        setProfile(savedProfile);
+        errorHandler.updateSuccess(loadingToast, 'Profile saved successfully');
+      } else {
+        errorHandler.updateError(loadingToast, response.message || 'Failed to save profile');
+      }
     } catch (error) {
       errorHandler.updateError(loadingToast, 'Failed to save profile');
     } finally {
@@ -149,28 +173,76 @@ const VendorSettings = () => {
     setIsConsentOpen(true);
   };
 
+  const handleSelfApprove = async () => {
+    setIsSubmitting(true);
+    const loadingToast = errorHandler.showLoading('Approving profile...');
+
+    try {
+      console.log('[Self-Approve] Starting self-approval process...');
+      const response = await vendorProfileService.selfApprove();
+      console.log('[Self-Approve] API Response:', response);
+
+      if (response.success) {
+        console.log('[Self-Approve] Success! Updating local profile state...');
+
+        // Update local profile state
+        setProfile(prev => ({
+          ...prev,
+          verificationStatus: VerificationStatus.APPROVED,
+          verificationCompletedAt: response.data.verificationCompletedAt
+        }));
+
+        console.log('[Self-Approve] Calling updateVerificationStatus with:', VerificationStatus.APPROVED);
+        // Directly update UserContext verification status (immediate unlock)
+        updateVerificationStatus(VerificationStatus.APPROVED);
+
+        errorHandler.updateSuccess(loadingToast, 'Profile approved! Navigation enabled.');
+
+        // Small delay to ensure state propagates
+        console.log('[Self-Approve] Waiting for state to propagate...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        console.log('[Self-Approve] Complete! Showing success message.');
+        // Success message
+        toast.success('Sidebar navigation is now enabled!', {
+          description: 'You can now access all features.',
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error('[Self-Approve] Error during approval:', error);
+      errorHandler.updateError(loadingToast, 'Failed to approve profile');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleConsentConfirm = async () => {
     setIsSubmitting(true);
     const loadingToast = errorHandler.showLoading('Submitting for verification...');
 
     try {
-      // TODO: Replace with actual vendorProfileService.submitForVerification()
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const consentTimestamp = new Date().toISOString();
+      const response = await vendorProfileService.submitForVerification(true, consentTimestamp);
 
-      setProfile(prev => ({
-        ...prev,
-        verificationStatus: VerificationStatus.PENDING,
-        verificationSubmittedAt: new Date().toISOString(),
-      }));
+      if (response.success) {
+        setProfile(prev => ({
+          ...prev,
+          verificationStatus: VerificationStatus.PENDING,
+          verificationSubmittedAt: response.data.submittedAt,
+        }));
 
-      errorHandler.updateSuccess(loadingToast, 'Profile submitted for verification!');
-      setIsConsentOpen(false);
+        errorHandler.updateSuccess(loadingToast, 'Profile submitted for verification!');
+        setIsConsentOpen(false);
 
-      await refreshVerificationStatus();
+        await refreshVerificationStatus();
 
-      setTimeout(() => {
-        navigate('/verification-pending');
-      }, 1500);
+        setTimeout(() => {
+          navigate('/verification-pending');
+        }, 1500);
+      } else {
+        errorHandler.updateError(loadingToast, response.message || 'Failed to submit for verification');
+      }
     } catch (error) {
       errorHandler.updateError(loadingToast, 'Failed to submit for verification');
     } finally {
@@ -187,30 +259,25 @@ const VendorSettings = () => {
       throw new Error('Profile locked');
     }
 
-    // TODO: Replace with actual vendorProfileService.uploadDocument()
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const response = await vendorProfileService.uploadDocument(file, documentType as VendorDocumentType);
 
-    const uploadedDoc: VerificationDocument = {
-      id: Date.now().toString(),
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      url: URL.createObjectURL(file),
-      documentType: documentType as VerificationDocument['documentType'],
-      uploadedAt: new Date(),
-      status: 'pending',
-    };
+    if (response.success) {
+      // Handle both response structures: {document: {...}} or direct document object
+      const uploadedDoc = (response.data as any).document || response.data;
 
-    setProfile(prev => {
-      const existingDocs = prev.documents || [];
-      const filteredDocs = existingDocs.filter(doc => doc.documentType !== documentType);
-      return {
-        ...prev,
-        documents: [...filteredDocs, uploadedDoc]
-      };
-    });
+      setProfile(prev => {
+        const existingDocs = prev.documents || [];
+        const filteredDocs = existingDocs.filter(doc => doc.documentType !== documentType);
+        return {
+          ...prev,
+          documents: [...filteredDocs, uploadedDoc]
+        };
+      });
 
-    return uploadedDoc;
+      return uploadedDoc;
+    } else {
+      throw new Error(response.message || 'Failed to upload document');
+    }
   };
 
   const handleDocumentDelete = async (documentId: string): Promise<void> => {
@@ -221,20 +288,21 @@ const VendorSettings = () => {
       return;
     }
 
-    // TODO: Replace with actual vendorProfileService.deleteDocument()
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const response = await vendorProfileService.deleteDocument(documentId);
 
-    setProfile(prev => ({
-      ...prev,
-      documents: (prev.documents || []).filter(doc => doc.id !== documentId)
-    }));
+    if (response.success) {
+      setProfile(prev => ({
+        ...prev,
+        documents: (prev.documents || []).filter(doc => doc.id !== documentId)
+      }));
+    }
   };
 
   const getDocumentByType = (type: VendorDocumentType) => {
     return profile.documents?.find(doc => doc.documentType === type);
   };
 
-    return (
+  return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
@@ -255,7 +323,7 @@ const VendorSettings = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5" />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-semibold text-yellow-800 dark:text-yellow-400">
                         Profile Locked
                       </h3>
@@ -264,6 +332,19 @@ const VendorSettings = () => {
                           ? 'Your profile has been submitted for verification and is currently under review. No changes can be made during this period.'
                           : 'Your profile has been verified and is permanently locked. Please contact support if you need to make changes.'}
                       </p>
+                      {/* Testing Button - Only show for pending profiles */}
+                      {profile.verificationStatus === VerificationStatus.PENDING && (
+                        <Button
+                          onClick={handleSelfApprove}
+                          disabled={isSubmitting}
+                          variant="outline"
+                          className="mt-3 border-yellow-600 text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
+                          size="sm"
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          {isSubmitting ? 'Approving...' : 'Self Approve (Testing)'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -462,6 +543,13 @@ const VendorSettings = () => {
               </CardContent>
             </Card>
 
+            {/* Business Address Section */}
+            <VendorAddressSection
+              addresses={profile.addresses || []}
+              onChange={handleAddressChange}
+              isProfileLocked={isProfileLocked}
+            />
+
             {/* Legal Information & Documents Section (Combined) */}
             <Card>
               <CardHeader>
@@ -554,6 +642,12 @@ const VendorSettings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Services & Skills Section - All Vendor Types */}
+            <ServicesSkillsForm
+              isProfileLocked={isProfileLocked}
+              onSaveSuccess={() => toast.success('Services updated')}
+            />
 
             {/* Action Buttons - Simple row without card */}
             <div className="flex gap-3 justify-end">

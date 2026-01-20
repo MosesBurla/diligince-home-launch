@@ -70,7 +70,7 @@ const SignUp: React.FC = () => {
         <p className="text-sm text-gray-600">
           Already have an account?{" "}
           <Link
-            to="/signin"
+            to="/login"
             className="text-blue-600 font-medium hover:underline"
           >
             Sign In

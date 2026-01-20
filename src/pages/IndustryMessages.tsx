@@ -1,269 +1,280 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import IndustryHeader from "@/components/industry/IndustryHeader";
-import { MessageCenter } from "@/components/industry/dashboard/MessageCenter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, MessageSquare, Send, Plus, Phone, Video, Archive, Star, MoreHorizontal, Paperclip, Mail } from "lucide-react";
+import { Search, MessageSquare, Send, Plus, Phone, Video, Archive, Star, MoreHorizontal, Paperclip, Mail, Loader2, Check, CheckCheck, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { conversationsService } from "@/services/modules/conversations/conversations.service";
+import type { Conversation, Message } from "@/services/modules/conversations/conversations.types";
+import { useUser } from "@/contexts/UserContext";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { socketService } from "@/services/core/socket.service";
 
-// Mock message data for industry
-const messageThreads = [{
-  id: 1,
-  sender: "Steel Industries Ltd.",
-  initials: "SI",
-  subject: "Control System Upgrade Proposal",
-  preview: "We've reviewed your control system upgrade requirement. Our team can provide a comprehensive solution including SCADA implementation.",
-  lastMessage: "We can schedule a site visit next week to discuss the technical requirements in detail.",
-  time: "2 hours ago",
-  timestamp: "2:45 PM",
-  unread: true,
-  priority: "high",
-  category: "Vendor Inquiry",
-  avatar: "bg-blue-100 text-blue-600"
-}, {
-  id: 2,
-  sender: "AutoParts Manufacturing",
-  initials: "AM",
-  subject: "Purchase Order Confirmation",
-  preview: "Thank you for the purchase order. We'll begin production immediately and deliver within the specified timeline.",
-  lastMessage: "Expected delivery date is confirmed for next Friday. All items will be quality tested before shipment.",
-  time: "5 hours ago",
-  timestamp: "11:45 AM",
-  unread: true,
-  priority: "medium",
-  category: "Purchase Order",
-  orderNumber: "PO-15789",
-  avatar: "bg-green-100 text-green-600"
-}, {
-  id: 3,
-  sender: "Power Grid Solutions",
-  initials: "PG",
-  subject: "SCADA Project Update",
-  preview: "The SCADA project is progressing as planned. We've completed phase 1 testing and are ready to move to phase 2.",
-  lastMessage: "Phase 1 testing completed successfully. All systems are operational and ready for phase 2 implementation.",
-  time: "1 day ago",
-  timestamp: "Yesterday",
-  unread: false,
-  priority: "medium",
-  category: "Project Update",
-  projectId: "PROJ-2023-15",
-  avatar: "bg-orange-100 text-orange-600"
-}, {
-  id: 4,
-  sender: "Industrial Automation Co.",
-  initials: "IA",
-  subject: "Factory Automation Proposal",
-  preview: "We'd like to submit a proposal for your factory automation project. Our team has extensive experience in similar implementations.",
-  lastMessage: "We'd like to submit a proposal for your factory automation project. Our team has extensive experience in similar implementations.",
-  time: "2 days ago",
-  timestamp: "2 days ago",
-  unread: false,
-  priority: "low",
-  category: "Proposal Response",
-  avatar: "bg-purple-100 text-purple-600"
-}];
-
-// Mock detailed messages for conversations
-const detailedMessages = {
-  1: [{
-    id: 1,
-    sender: "Steel Industries Ltd.",
-    content: "Good morning! We've reviewed your control system upgrade requirement posted on your platform.",
-    timestamp: "9:30 AM",
-    isFromContact: true
-  }, {
-    id: 2,
-    sender: "You",
-    content: "Thank you for your interest. Can you provide more details about your proposed solution and timeline?",
-    timestamp: "10:00 AM",
-    isFromContact: false
-  }, {
-    id: 3,
-    sender: "Steel Industries Ltd.",
-    content: "Absolutely! Our solution includes complete SCADA implementation, PLC programming, and HMI development. Timeline is 8-12 weeks.",
-    timestamp: "10:30 AM",
-    isFromContact: true
-  }, {
-    id: 4,
-    sender: "Steel Industries Ltd.",
-    content: "We can schedule a site visit next week to discuss the technical requirements in detail.",
-    timestamp: "2:45 PM",
-    isFromContact: true
-  }]
-};
 const IndustryMessages = () => {
-  const [messages, setMessages] = useState(messageThreads);
+  const queryClient = useQueryClient();
+  const { user } = useUser();
+  const { isConnected, isUserOnline, typingUsers, sendTypingIndicator } = useWebSocket();
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterBy, setFilterBy] = useState("all");
-  const [selectedConversation, setSelectedConversation] = useState<any>(null);
-  const [conversationMessages, setConversationMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailContent, setEmailContent] = useState("");
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return "bg-red-100 text-red-800";
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "Vendor Inquiry":
-        return "bg-blue-100 text-blue-800";
-      case "Purchase Order":
-        return "bg-green-100 text-green-800";
-      case "Project Update":
-        return "bg-orange-100 text-orange-800";
-      case "Proposal Response":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-  const filteredMessages = messages.filter(message => {
-    if (filterBy === "unread" && !message.unread) return false;
-    if (filterBy === "urgent" && message.priority !== "urgent" && message.priority !== "high") return false;
-    if (filterBy === "projects" && !message.projectId) return false;
-    if (searchTerm && !message.subject.toLowerCase().includes(searchTerm.toLowerCase()) && !message.sender.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    return true;
-  });
-  const handleConversationSelect = (conversation: any) => {
-    setSelectedConversation(conversation);
-    setConversationMessages(detailedMessages[conversation.id] || []);
-    // Mark as read
-    const messageIndex = messages.findIndex(msg => msg.id === conversation.id);
-    if (messageIndex !== -1) {
-      const updatedMessages = [...messages];
-      updatedMessages[messageIndex].unread = false;
-      setMessages(updatedMessages);
-    }
-  };
-  const handleSendMessage = () => {
-    if (newMessage.trim() && selectedConversation) {
-      const message = {
-        id: conversationMessages.length + 1,
-        sender: "You",
-        content: newMessage,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        isFromContact: false
-      };
-      setConversationMessages([...conversationMessages, message]);
-      setNewMessage("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-      // Update the last message in the thread
-      const messageIndex = messages.findIndex(msg => msg.id === selectedConversation.id);
-      if (messageIndex !== -1) {
-        const updatedMessages = [...messages];
-        updatedMessages[messageIndex].lastMessage = newMessage;
-        updatedMessages[messageIndex].time = "Just now";
-        setMessages(updatedMessages);
+  // Fetch conversations
+  const { data: conversationsData, isLoading: conversationsLoading } = useQuery({
+    queryKey: ['industry-conversations'],
+    queryFn: () => conversationsService.getConversations(),
+  });
+
+  // Fetch messages for selected conversation
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
+    queryKey: ['conversation-messages', selectedConversationId],
+    queryFn: () => conversationsService.getMessages(selectedConversationId!),
+    enabled: !!selectedConversationId,
+  });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: (content: string) =>
+      conversationsService.sendMessage({
+        conversationId: selectedConversationId!,
+        content,
+        type: 'text',
+      }),
+    onSuccess: () => {
+      setMessageText("");
+      queryClient.invalidateQueries({ queryKey: ['conversation-messages', selectedConversationId] });
+      queryClient.invalidateQueries({ queryKey: ['industry-conversations'] });
+    },
+    onError: () => {
+      toast.error("Failed to send message");
+    },
+  });
+
+  // Mark as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: (conversationId: string) =>
+      conversationsService.markAsRead(conversationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['industry-conversations'] });
+    },
+  });
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messagesData?.messages]);
+
+  // Mark messages as read when conversation is selected
+  useEffect(() => {
+    if (selectedConversationId) {
+      markAsReadMutation.mutate(selectedConversationId);
+    }
+  }, [selectedConversationId]);
+
+  // Real-time message updates via WebSocket
+  useEffect(() => {
+    const handleNewMessage = (data: { message: any; conversation: { _id: string } }) => {
+      console.log('[Socket] New message received:', data);
+
+      // If message is for the currently selected conversation, add it immediately
+      if (data.conversation._id === selectedConversationId) {
+        queryClient.setQueryData(
+          ['conversation-messages', selectedConversationId],
+          (oldData: any) => {
+            if (!oldData) return { messages: [data.message] };
+            // Avoid duplicates
+            const exists = oldData.messages?.some((m: any) => m._id === data.message._id);
+            if (exists) return oldData;
+            return {
+              ...oldData,
+              messages: [...(oldData.messages || []), data.message]
+            };
+          }
+        );
       }
-      toast.success("Message sent successfully");
+
+      // Always refresh conversation list to update lastMessage and badges
+      queryClient.invalidateQueries({ queryKey: ['industry-conversations'] });
+    };
+
+    socketService.on('new_message', handleNewMessage);
+
+    return () => {
+      socketService.off('new_message', handleNewMessage);
+    };
+  }, [selectedConversationId, queryClient]);
+
+  const conversations = conversationsData?.conversations || [];
+  const messages = messagesData?.messages || [];
+
+  // CONSOLIDATION: Group conversations by participant email (company-oriented view)
+  // This ensures the same vendor appears only once, showing the most recent conversation
+  const consolidatedConversations = useMemo(() => {
+    const groupedByParticipant: Record<string, Conversation> = {};
+
+    conversations.forEach((conv) => {
+      const otherParticipant = conv.participants.find(p => p.userId._id !== user?.id);
+      const participantKey = otherParticipant?.userId.email || conv._id;
+
+      // Keep the most recent conversation (by lastMessage timestamp or updatedAt)
+      const existingConv = groupedByParticipant[participantKey];
+      const convTime = conv.lastMessage?.timestamp || conv.updatedAt;
+      const existingTime = existingConv?.lastMessage?.timestamp || existingConv?.updatedAt;
+
+      if (!existingConv || new Date(convTime) > new Date(existingTime)) {
+        // Merge unread counts from all conversations with same participant
+        const totalUnread = existingConv
+          ? (existingConv.unreadCount || 0) + (conv.unreadCount || 0)
+          : (conv.unreadCount || 0);
+
+        groupedByParticipant[participantKey] = {
+          ...conv,
+          unreadCount: totalUnread
+        };
+      } else if (existingConv) {
+        // Add unread count from this conversation to the existing one
+        groupedByParticipant[participantKey] = {
+          ...existingConv,
+          unreadCount: (existingConv.unreadCount || 0) + (conv.unreadCount || 0)
+        };
+      }
+    });
+
+    return Object.values(groupedByParticipant);
+  }, [conversations, user?.id]);
+
+  // Filter consolidated conversations
+  const filteredConversations = consolidatedConversations.filter((conv) => {
+    const otherParticipant = conv.participants.find(p => p.userId._id !== user?.id);
+    const participantEmail = otherParticipant?.userId.email || '';
+
+    const matchesSearch =
+      conv.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.lastMessage?.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      participantEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterType === "all" ||
+      (filterType === "unread" && (conv.unreadCount || 0) > 0) ||
+      conv.relatedType === filterType;
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleSendMessage = () => {
+    if (messageText.trim() && selectedConversationId) {
+      sendMessageMutation.mutate(messageText.trim());
     }
   };
+
+  const handleConversationSelect = (conversation: Conversation) => {
+    setSelectedConversationId(conversation._id);
+  };
+
+  const getInitials = (email: string) => {
+    return email?.slice(0, 2).toUpperCase() || "??";
+  };
+
+  const getParticipantName = (conversation: Conversation) => {
+    const otherParticipant = conversation.participants.find(
+      p => p.userId._id !== user?.id
+    );
+    return otherParticipant?.userId.email || conversation.title || "Unknown";
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const renderReadReceipt = (message: Message) => {
+    if (message.senderId._id !== user?.id) return null;
+
+    if (message.readBy && message.readBy.length > 0) {
+      return <Eye className="h-3 w-3 text-blue-500" />;
+    }
+    if (message.deliveredTo && message.deliveredTo.length > 0) {
+      return <CheckCheck className="h-3 w-3 text-blue-500" />;
+    }
+    if (message.status === 'sent') {
+      return <Check className="h-3 w-3 text-gray-400" />;
+    }
+    return null;
+  };
+
   const handleSendEmail = () => {
-    if (emailSubject.trim() && emailContent.trim() && selectedConversation) {
-      toast.success(`Email sent to ${selectedConversation.sender}`);
+    if (emailSubject.trim() && emailContent.trim() && selectedConv) {
+      toast.success(`Email sent to ${getParticipantName(selectedConv)}`);
       setEmailSubject("");
       setEmailContent("");
       setShowEmailModal(false);
     }
   };
-  const unreadCount = messages.filter(msg => msg.unread).length;
-  const urgentCount = messages.filter(msg => msg.priority === "urgent" || msg.priority === "high").length;
-  return <div className="min-h-screen flex flex-col bg-gray-50">
+
+  const selectedConv = conversations.find((c) => c._id === selectedConversationId);
+  const unreadCount = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[hsl(var(--messages-received-bubble))]">
       <Helmet>
         <title>Messages | Industry Dashboard</title>
       </Helmet>
-      
-      
-      
-      <div className="pt-16 flex-1 flex">
+
+      <div className="flex-1 flex h-[calc(100vh-64px)]">
         {/* Conversations Sidebar */}
-        <div className="w-1/3 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+        <div className="w-[360px] bg-[hsl(var(--messages-sidebar-bg))] border-r border-[hsl(var(--messages-border))] flex flex-col shadow-sm">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-xl font-bold text-gray-900">Messages</h1>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && <Badge className="bg-red-100 text-red-800 border-red-200 font-medium">
-                    {unreadCount} unread
-                  </Badge>}
-                {urgentCount > 0 && <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 font-medium">
-                    {urgentCount} urgent
-                  </Badge>}
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                      <DialogTitle className="text-lg font-semibold text-gray-900">Compose New Message</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">To</label>
-                        <Input placeholder="Select vendor..." className="mt-1" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Subject</label>
-                        <Input placeholder="Message subject..." className="mt-1" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">Message</label>
-                        <Textarea placeholder="Type your message..." rows={6} className="mt-1" />
-                      </div>
-                      <div className="flex justify-end space-x-3 pt-4">
-                        <Button variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50">Save Draft</Button>
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                          <Send className="w-4 h-4 mr-2" />
-                          Send Message
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
+          <div className="p-5 border-b border-[hsl(var(--messages-border))]">
+            <div className="flex items-center justify-between mb-5">
+              <h1 className="text-lg font-semibold text-[hsl(var(--foreground))]">Messages</h1>
+              {unreadCount > 0 && (
+                <Badge className="bg-[hsl(var(--messages-primary)/0.1)] text-[hsl(var(--messages-primary))] border border-[hsl(var(--messages-primary)/0.2)] font-medium">
+                  {unreadCount} unread
+                </Badge>
+              )}
             </div>
 
             {/* Search and Filter */}
             <div className="space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Search conversations..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 border-gray-200 bg-gray-50" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                <Input
+                  placeholder="Search conversations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-[hsl(var(--messages-border))] bg-[hsl(var(--messages-received-bubble))] focus:border-[hsl(var(--messages-primary))]"
+                />
               </div>
-              
-              <Select value={filterBy} onValueChange={setFilterBy}>
-                <SelectTrigger className="border-gray-200">
+
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="border-[hsl(var(--messages-border))] bg-[hsl(var(--messages-sidebar-bg))]">
                   <SelectValue placeholder="Filter messages" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[hsl(var(--card))] border-[hsl(var(--messages-border))]">
                   <SelectItem value="all">All Messages</SelectItem>
                   <SelectItem value="unread">Unread</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="projects">Project Related</SelectItem>
+                  <SelectItem value="vendor-company">Vendors</SelectItem>
+                  <SelectItem value="quote">Quotations</SelectItem>
+                  <SelectItem value="rfq">Requirements</SelectItem>
+                  <SelectItem value="purchaseOrder">Purchase Orders</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -271,145 +282,315 @@ const IndustryMessages = () => {
 
           {/* Conversations List */}
           <div className="flex-1 overflow-y-auto">
-            {filteredMessages.map(conversation => <div key={conversation.id} className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConversation?.id === conversation.id ? "bg-blue-50 border-l-4 border-l-blue-600" : ""} ${conversation.unread ? "bg-blue-25" : ""}`} onClick={() => handleConversationSelect(conversation)}>
-                <div className="flex items-start gap-3">
-                  <Avatar className={`h-10 w-10 ${conversation.avatar}`}>
-                    <AvatarFallback className="text-base font-semibold">{conversation.initials}</AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className={`text-base font-medium text-gray-900 truncate ${conversation.unread ? "font-semibold" : ""}`}>
-                        {conversation.sender}
-                      </h3>
-                      <span className="text-xs text-gray-500">{conversation.time}</span>
-                    </div>
-                    
-                    <h4 className={`text-sm mb-1 ${conversation.unread ? 'font-medium text-gray-900' : 'text-gray-700'}`}>
-                      {conversation.subject}
-                    </h4>
-                    
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                      {conversation.preview}
-                    </p>
-                    
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={getCategoryColor(conversation.category)} variant="outline">
-                        {conversation.category}
-                      </Badge>
-                      <Badge className={getPriorityColor(conversation.priority)}>
-                        {conversation.priority}
-                      </Badge>
-                      {(conversation.orderNumber || conversation.projectId) && <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
-                          {conversation.orderNumber || conversation.projectId}
-                        </Badge>}
-                      {conversation.unread && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+            {conversationsLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--messages-primary))]" />
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-[hsl(var(--muted-foreground))]">
+                <MessageSquare className="h-8 w-8 mb-2" />
+                <p>No conversations found</p>
+              </div>
+            ) : (
+              filteredConversations.map((conversation) => (
+                <div
+                  key={conversation._id}
+                  onClick={() => handleConversationSelect(conversation)}
+                  className={`p-4 border-b border-[hsl(var(--messages-border))] cursor-pointer hover:bg-[hsl(var(--messages-hover))] transition-colors ${selectedConversationId === conversation._id
+                    ? "bg-[hsl(var(--messages-selected))] border-l-4 border-l-[hsl(var(--messages-primary))]"
+                    : ""
+                    } ${(conversation.unreadCount || 0) > 0 ? "bg-[hsl(var(--messages-unread))]" : ""}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10 bg-[hsl(var(--messages-primary)/0.1)]">
+                      <AvatarFallback className="text-[hsl(var(--messages-primary))] text-sm font-semibold">
+                        {getInitials(getParticipantName(conversation))}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className={`text-sm font-medium text-[hsl(var(--foreground))] truncate ${(conversation.unreadCount || 0) > 0 ? "font-semibold" : ""
+                          }`}>
+                          {getParticipantName(conversation)}
+                        </h3>
+                        <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                          {conversation.lastMessage?.timestamp
+                            ? formatTimestamp(conversation.lastMessage.timestamp)
+                            : formatTimestamp(conversation.updatedAt)}
+                        </span>
+                      </div>
+
+                      {/* Online/Offline Status */}
+                      {(() => {
+                        const otherParticipant = conversation.participants.find(p => p.userId._id !== user?.id);
+                        const participantId = otherParticipant?.userId._id;
+                        const online = participantId ? isUserOnline(participantId) : false;
+                        return (
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className={`h-2 w-2 rounded-full ${online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                              {online ? 'Online' : 'Offline'}
+                            </span>
+                          </div>
+                        );
+                      })()}
+
+                      <p className="text-sm text-[hsl(var(--muted-foreground))] line-clamp-2">
+                        {conversation.lastMessage?.content || "No messages yet"}
+                      </p>
+
+                      <div className="flex items-center gap-2 mt-2">
+                        {(conversation.unreadCount || 0) > 0 && (
+                          <Badge className="bg-[hsl(var(--messages-primary))] text-white text-xs">
+                            {conversation.unreadCount} new
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>)}
+              ))
+            )}
           </div>
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-white">
-          {selectedConversation ? <>
+        <div className="flex-1 flex flex-col bg-[hsl(var(--messages-sidebar-bg))]">
+          {selectedConv ? (
+            <>
               {/* Chat Header */}
-              <div className="p-6 border-b border-gray-200 bg-white">
+              <div className="p-4 border-b border-[hsl(var(--messages-border))] bg-[hsl(var(--messages-sidebar-bg))]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Avatar className={`h-10 w-10 ${selectedConversation.avatar}`}>
-                      <AvatarFallback className="text-base font-semibold">{selectedConversation.initials}</AvatarFallback>
+                    <Avatar className="h-10 w-10 bg-[hsl(var(--messages-primary)/0.1)]">
+                      <AvatarFallback className="text-[hsl(var(--messages-primary))] text-sm font-semibold">
+                        {getInitials(getParticipantName(selectedConv))}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h2 className="text-base font-bold text-gray-900">{selectedConversation.sender}</h2>
-                      <p className="text-sm text-gray-600">{selectedConversation.category}</p>
-                      {(selectedConversation.orderNumber || selectedConversation.projectId) && <p className="text-xs text-blue-600 font-medium">{selectedConversation.orderNumber || selectedConversation.projectId}</p>}
+                      <h2 className="text-sm font-semibold text-[hsl(var(--foreground))]">
+                        {getParticipantName(selectedConv)}
+                      </h2>
+                      {/* Online/Offline status in header */}
+                      {(() => {
+                        const otherParticipant = selectedConv.participants.find(p => p.userId._id !== user?.id);
+                        const participantId = otherParticipant?.userId._id;
+                        const online = participantId ? isUserOnline(participantId) : false;
+                        const isTyping = participantId && typingUsers.get(selectedConv._id)?.has(participantId);
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <span className={`h-2 w-2 rounded-full ${online ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                            <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                              {isTyping ? 'Typing...' : (online ? 'Online' : 'Offline')}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="border-gray-200 bg-blue-700 hover:bg-blue-600 text-gray-50">
+
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Calling...")}
+                      className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white border-0 h-8 w-8 p-0"
+                    >
                       <Phone className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Starting video call...")}
+                      className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white border-0 h-8 w-8 p-0"
+                    >
                       <Video className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setShowEmailModal(true)} className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowEmailModal(true)}
+                      className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white border-0 h-8 w-8 p-0"
+                    >
                       <Mail className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Starred!")}
+                      className="border-[hsl(var(--messages-border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--messages-hover))] h-8 w-8 p-0"
+                    >
                       <Star className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Archived!")}
+                      className="border-[hsl(var(--messages-border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--messages-hover))] h-8 w-8 p-0"
+                    >
                       <Archive className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600">
-                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {conversationMessages.map(message => <div key={message.id} className={`flex ${message.isFromContact ? "justify-start" : "justify-end"}`}>
-                    <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${message.isFromContact ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white"}`}>
-                      <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${message.isFromContact ? "text-gray-500" : "text-blue-200"}`}>
-                        {message.timestamp}
-                      </p>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[hsl(var(--messages-received-bubble))]">
+                {messagesLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--messages-primary))]" />
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-[hsl(var(--muted-foreground))]">
+                    <MessageSquare className="h-12 w-12 mb-4" />
+                    <p>No messages yet. Start the conversation!</p>
+                  </div>
+                ) : (
+                  messages.map((message) => (
+                    <div
+                      key={message._id}
+                      className={`flex ${message.senderId._id === user?.id ? "justify-end" : "justify-start"
+                        }`}
+                    >
+                      {message.senderId._id !== user?.id && (
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarFallback className="bg-[hsl(var(--messages-primary)/0.1)] text-[hsl(var(--messages-primary))] text-xs">
+                            {getInitials(message.senderId.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl ${message.senderId._id === user?.id
+                          ? "bg-[hsl(var(--messages-sent-bubble))] text-white rounded-br-md"
+                          : "bg-[hsl(var(--messages-sidebar-bg))] text-[hsl(var(--foreground))] border border-[hsl(var(--messages-border))] rounded-bl-md"
+                          }`}
+                      >
+                        <p className="text-sm">{message.content}</p>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                          <p
+                            className={`text-xs ${message.senderId._id === user?.id
+                              ? "text-white/70"
+                              : "text-[hsl(var(--muted-foreground))]"
+                              }`}
+                          >
+                            {new Date(message.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                          {renderReadReceipt(message)}
+                        </div>
+                      </div>
+
+                      {message.senderId._id === user?.id && (
+                        <Avatar className="h-8 w-8 ml-2">
+                          <AvatarFallback className="bg-[hsl(var(--messages-primary))] text-white text-xs">
+                            {getInitials(user?.email || "")}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
                     </div>
-                  </div>)}
+                  ))
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
-              <div className="p-6 border-t border-gray-200 bg-white">
+              <div className="p-4 border-t border-[hsl(var(--messages-border))] bg-[hsl(var(--messages-sidebar-bg))]">
                 <div className="flex items-end gap-3">
-                  <Button variant="outline" size="sm" className="border-gray-200 text-gray-50 bg-indigo-700 hover:bg-indigo-600">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-[hsl(var(--messages-border))] text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--messages-hover))] h-10 w-10 p-0"
+                  >
                     <Paperclip className="h-4 w-4" />
                   </Button>
-                  <Textarea placeholder="Type your message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyPress={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }} className="flex-1 min-h-[40px] max-h-32 resize-none border-gray-200 bg-gray-50" />
-                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                    <Send className="h-4 w-4" />
+                  <Textarea
+                    placeholder="Type your message..."
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    className="flex-1 min-h-[40px] max-h-32 resize-none border-[hsl(var(--messages-border))] bg-[hsl(var(--messages-received-bubble))] focus:border-[hsl(var(--messages-primary))]"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!messageText.trim() || sendMessageMutation.isPending}
+                    className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white font-medium h-10 w-10 p-0"
+                  >
+                    {sendMessageMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
-            </> : <div className="flex-1 flex items-center justify-center">
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-[hsl(var(--messages-received-bubble))]">
               <div className="text-center">
-                <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a conversation</h3>
-                <p className="text-gray-600">Choose a conversation from the sidebar to start messaging</p>
+                <div className="h-16 w-16 bg-[hsl(var(--messages-primary)/0.1)] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageSquare className="h-8 w-8 text-[hsl(var(--messages-primary))]" />
+                </div>
+                <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-2">
+                  Select a conversation
+                </h3>
+                <p className="text-[hsl(var(--muted-foreground))]">
+                  Choose a conversation from the sidebar to start messaging
+                </p>
               </div>
-            </div>}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Email Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-[hsl(var(--card))] border-[hsl(var(--messages-border))]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900">Send Email to {selectedConversation?.sender}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-[hsl(var(--foreground))]">
+              Send Email to {selectedConv ? getParticipantName(selectedConv) : ""}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Subject</label>
-              <Input placeholder="Email subject..." value={emailSubject} onChange={e => setEmailSubject(e.target.value)} className="mt-1 border-gray-200" />
+              <label className="text-sm font-medium text-[hsl(var(--foreground))]">Subject</label>
+              <Input
+                placeholder="Email subject..."
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="mt-1 border-[hsl(var(--messages-border))]"
+              />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Message</label>
-              <Textarea placeholder="Type your email message..." rows={8} value={emailContent} onChange={e => setEmailContent(e.target.value)} className="mt-1 border-gray-200" />
+              <label className="text-sm font-medium text-[hsl(var(--foreground))]">Message</label>
+              <Textarea
+                placeholder="Type your email message..."
+                rows={8}
+                value={emailContent}
+                onChange={(e) => setEmailContent(e.target.value)}
+                className="mt-1 border-[hsl(var(--messages-border))]"
+              />
             </div>
             <div className="flex justify-end space-x-3 pt-4">
-              <Button variant="outline" onClick={() => setShowEmailModal(false)} className="border-gray-200 text-gray-700 hover:bg-gray-50">
+              <Button
+                variant="outline"
+                onClick={() => setShowEmailModal(false)}
+                className="border-[hsl(var(--messages-border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--messages-hover))]"
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSendEmail} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
+              <Button
+                onClick={handleSendEmail}
+                className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white font-medium"
+              >
                 <Mail className="w-4 h-4 mr-2" />
                 Send Email
               </Button>
@@ -417,6 +598,8 @@ const IndustryMessages = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 };
+
 export default IndustryMessages;

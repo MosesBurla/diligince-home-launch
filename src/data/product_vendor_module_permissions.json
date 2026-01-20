@@ -261,7 +261,7 @@
     {
       "id": "pv-settings",
       "name": "Settings",
-      "path": "/dashboard/product-vendor-profile",
+      "path": "/dashboard/vendor-settings",
       "icon": "Settings",
       "permissions": {
         "read": true,
@@ -274,7 +274,7 @@
         {
           "id": "pv-settings-company",
           "name": "Company Profile",
-          "path": "/dashboard/product-vendor-profile",
+          "path": "/dashboard/vendor-settings",
           "icon": "Building",
           "permissions": {
             "read": true,

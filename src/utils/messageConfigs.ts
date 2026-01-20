@@ -26,17 +26,17 @@ export interface MessageCenterConfig {
 
 export const industryMessageConfig: MessageCenterConfig = {
   title: "Message Center",
-  theme: "blue-600",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
   showCallActions: true,
   messageTypes: {
-    "vendor-inquiry": { label: "Vendor Inquiry", icon: "🏭", color: "blue" },
-    "project-update": { label: "Project Update", icon: "🔧", color: "green" },
-    "proposal-response": { label: "Proposal Response", icon: "📋", color: "orange" },
-    "purchase-order": { label: "Purchase Order", icon: "📦", color: "purple" },
-    "system-notification": { label: "System", icon: "🔔", color: "gray" }
+    "vendor-inquiry": { label: "Vendor Inquiry", icon: "🏭", color: "primary" },
+    "project-update": { label: "Project Update", icon: "🔧", color: "primary" },
+    "proposal-response": { label: "Proposal Response", icon: "📋", color: "primary" },
+    "purchase-order": { label: "Purchase Order", icon: "📦", color: "primary" },
+    "system-notification": { label: "System", icon: "🔔", color: "muted" }
   },
   filters: [
     { key: "all", label: "All" },
@@ -49,17 +49,17 @@ export const industryMessageConfig: MessageCenterConfig = {
 
 export const professionalMessageConfig: MessageCenterConfig = {
   title: "Message Center",
-  theme: "purple-600",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
   showCallActions: true,
   messageTypes: {
-    "project-update": { label: "Project Update", icon: "🔧", color: "blue" },
-    "project-preparation": { label: "Project Prep", icon: "📋", color: "green" },
-    "job-response": { label: "Job Response", icon: "💼", color: "orange" },
-    "job-inquiry": { label: "Job Inquiry", icon: "🔍", color: "purple" },
-    "system-notification": { label: "System", icon: "🔔", color: "gray" }
+    "project-update": { label: "Project Update", icon: "🔧", color: "primary" },
+    "project-preparation": { label: "Project Prep", icon: "📋", color: "primary" },
+    "job-response": { label: "Job Response", icon: "💼", color: "primary" },
+    "job-inquiry": { label: "Job Inquiry", icon: "🔍", color: "primary" },
+    "system-notification": { label: "System", icon: "🔔", color: "muted" }
   },
   filters: [
     { key: "all", label: "All" },
@@ -71,18 +71,18 @@ export const professionalMessageConfig: MessageCenterConfig = {
 };
 
 export const serviceVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "yellow-600",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
   showCallActions: true,
   messageTypes: {
-    "project-update": { label: "Project Update", icon: "🔧", color: "green" },
-    "project-inquiry": { label: "Project Inquiry", icon: "🔍", color: "blue" },
-    "proposal-response": { label: "Proposal Response", icon: "📋", color: "orange" },
-    "consultation-request": { label: "Consultation", icon: "💬", color: "purple" },
-    "system-notification": { label: "System", icon: "🔔", color: "gray" }
+    "project-update": { label: "Project Update", icon: "🔧", color: "primary" },
+    "project-inquiry": { label: "Project Inquiry", icon: "🔍", color: "primary" },
+    "proposal-response": { label: "Proposal Response", icon: "📋", color: "primary" },
+    "consultation-request": { label: "Consultation", icon: "💬", color: "primary" },
+    "system-notification": { label: "System", icon: "🔔", color: "muted" }
   },
   filters: [
     { key: "all", label: "All" },
@@ -92,18 +92,18 @@ export const serviceVendorMessageConfig: MessageCenterConfig = {
 };
 
 export const productVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "green-600",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
   showCallActions: true,
   messageTypes: {
-    "order-notification": { label: "Order", icon: "📦", color: "blue" },
-    "rfq-notification": { label: "RFQ", icon: "📋", color: "green" },
-    "stock-inquiry": { label: "Stock Inquiry", icon: "📊", color: "orange" },
-    "technical-inquiry": { label: "Technical", icon: "🔧", color: "purple" },
-    "system-notification": { label: "System", icon: "🔔", color: "gray" }
+    "order-notification": { label: "Order", icon: "📦", color: "primary" },
+    "rfq-notification": { label: "RFQ", icon: "📋", color: "primary" },
+    "stock-inquiry": { label: "Stock Inquiry", icon: "📊", color: "primary" },
+    "technical-inquiry": { label: "Technical", icon: "🔧", color: "primary" },
+    "system-notification": { label: "System", icon: "🔔", color: "muted" }
   },
   filters: [
     { key: "all", label: "All" },
@@ -113,16 +113,16 @@ export const productVendorMessageConfig: MessageCenterConfig = {
 };
 
 export const logisticsVendorMessageConfig: MessageCenterConfig = {
-  title: "Messages Hub",
-  theme: "pink-600",
+  title: "Message Center",
+  theme: "primary",
   showSearch: true,
   showFilters: true,
   showReply: true,
   showCallActions: true,
   messageTypes: {
-    "transport-request": { label: "Transport", icon: "🚛", color: "blue" },
-    "delivery-update": { label: "Delivery", icon: "📦", color: "green" },
-    "system-notification": { label: "System", icon: "🔔", color: "gray" }
+    "transport-request": { label: "Transport", icon: "🚛", color: "primary" },
+    "delivery-update": { label: "Delivery", icon: "📦", color: "primary" },
+    "system-notification": { label: "System", icon: "🔔", color: "muted" }
   },
   filters: [
     { key: "all", label: "All" },
