@@ -3,9 +3,10 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { format, differenceInDays } from 'date-fns';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Plus, Trash2, ArrowLeft, Eye } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, ArrowLeft, Eye, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PurchaseOrderStepIndicator from '@/components/purchase-order/PurchaseOrderStepIndicator';
 import { ISO9001TermsSection } from '@/components/industry/workflow/ISO9001TermsSection';
 import POReviewStep from '@/components/purchase-order/POReviewStep';
+import SOWDocumentUpload from '@/components/purchase-order/SOWDocumentUpload';
+import { purchaseOrdersService } from '@/services/modules/purchase-orders';
+import { usePOPrefill } from '@/hooks/usePOFromQuotation';
+
+// Type for uploaded files
+interface UploadedFile {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+  status: 'pending' | 'uploading' | 'success' | 'error';
+  error?: string;
+}
 
 // Define step type
 export type POStepType = 1 | 2 | 3 | 4 | 5;
@@ -78,30 +93,30 @@ const usePOFormData = (form: UseFormReturn<FormValues>) => {
   // Type-safe data preparation for review
   const prepareReviewData = useCallback((): FormValues | null => {
     const values = form.getValues();
-    
+
     // Validate that all required fields have values
-    if (!values.poNumber || !values.vendor || !values.projectTitle || 
-        !values.startDate || !values.endDate || !values.paymentTerms || 
-        !values.scopeOfWork) {
+    if (!values.poNumber || !values.vendor || !values.projectTitle ||
+      !values.startDate || !values.endDate || !values.paymentTerms ||
+      !values.scopeOfWork) {
       return null;
     }
-    
+
     // After validation, we can safely cast - all required fields are guaranteed to exist
     return values as FormValues;
   }, [form]);
-  
+
   // Create complete PO data for final submission
   const createCompletePOData = useCallback((isoTerms: string[], customTerms: string): CompletePOData | null => {
     const reviewData = prepareReviewData();
     if (!reviewData) return null;
-    
+
     return {
       ...reviewData,
       isoTerms,
       customTerms
     };
   }, [prepareReviewData]);
-  
+
   return {
     prepareReviewData,
     createCompletePOData
@@ -115,21 +130,21 @@ const usePOValidation = (form: UseFormReturn<FormValues>) => {
     hasRequiredFields: false,
     validationErrors: []
   });
-  
+
   const validateForm = useCallback(async (): Promise<boolean> => {
     const result = await form.trigger();
     const errors = form.formState.errors;
     const errorMessages = Object.values(errors).map(error => error?.message || 'Validation error').filter(Boolean);
-    
+
     setValidationState({
       isFormValid: result,
       hasRequiredFields: result,
       validationErrors: errorMessages
     });
-    
+
     return result;
   }, [form]);
-  
+
   return {
     validationState,
     validateForm
@@ -138,10 +153,19 @@ const usePOValidation = (form: UseFormReturn<FormValues>) => {
 
 const CreatePurchaseOrder: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const quotationId = searchParams.get('quotationId') || '';
+
   const [currentStep, setCurrentStep] = useState<POStepType>(3);
   const [selectedISOTerms, setSelectedISOTerms] = useState<string[]>([]);
   const [customISOTerms, setCustomISOTerms] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [sopDocuments, setSopDocuments] = useState<UploadedFile[]>([]);
+
+  // Fetch quotation data for pre-fill if quotationId is present
+  const { data: prefillData, isLoading: isPrefillLoading } = usePOPrefill(quotationId || undefined);
 
   // Generate unique PO number
   const generatePONumber = useCallback(() => {
@@ -243,49 +267,41 @@ const CreatePurchaseOrder: React.FC = () => {
     setIsSubmitting(true);
     try {
       const completePOData = createCompletePOData(selectedISOTerms, customISOTerms);
-      
+
       if (!completePOData) {
         throw new Error('Form data is incomplete');
       }
 
-      // Create the purchase order object
+      // Create the purchase order object with pending_approval status
       const purchaseOrder = {
         ...completePOData,
-        status: 'issued',
+        status: 'pending_approval', // Changed from 'issued' to 'pending_approval'
         createdAt: new Date().toISOString(),
-        deliveredToVendor: true,
+        deliveredToVendor: false, // Will be set to true after approval
         recordedInSystem: true,
       };
 
-      console.log("Creating and delivering Purchase Order:", purchaseOrder);
+      console.log("Creating Purchase Order for Approval:", purchaseOrder);
 
-      // Simulate PO creation and delivery process
+      // Simulate PO creation process
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Show success message
       toast({
-        title: "Purchase Order Created & Delivered!",
-        description: `PO ${completePOData.poNumber} has been created, saved to your records, 
-        and delivered to ${vendors.find(v => v.id === completePOData.vendor)?.name || 'the vendor'}.`,
+        title: "Purchase Order Submitted!",
+        description: `PO ${completePOData.poNumber} has been submitted for approval and will be sent to ${vendors.find(v => v.id === completePOData.vendor)?.name || 'the vendor'} after approval.`,
       });
 
-      // Navigate to Work Timeline page with "new" as the ID
+      // Navigate to Purchase Orders page
       setTimeout(() => {
-        const params = new URLSearchParams({
-          vendorId: completePOData.vendor,
-          vendorName: vendors.find(v => v.id === completePOData.vendor)?.name || 'Vendor',
-          amount: completePOData.totalValue.toString(),
-          projectTitle: completePOData.projectTitle,
-          requirementId: 'REQ-2024-001'
-        });
-        window.location.href = `/industry-project-workflow/new?${params.toString()}`;
-      }, 3000);
+        navigate('/dashboard/purchase-orders');
+      }, 2000);
 
     } catch (error) {
       console.error("Error creating purchase order:", error);
       toast({
-        title: "Error Creating Purchase Order",
-        description: "There was an error creating the purchase order. Please try again.",
+        title: "Error Submitting Purchase Order",
+        description: "There was an error submitting the purchase order. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -294,42 +310,73 @@ const CreatePurchaseOrder: React.FC = () => {
   };
 
   // Handle save as draft - no validation required
-  const handleSaveAsDraft = () => {
+  const handleSaveAsDraft = async () => {
+    if (!quotationId) {
+      toast({
+        title: "Missing Quotation",
+        description: "Please create a PO from an approved quotation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSavingDraft(true);
     try {
       const formValues = form.getValues();
+
+      // Prepare data matching CreatePORequest interface
       const draftData = {
-        poNumber: formValues.poNumber || '',
-        vendor: formValues.vendor || '',
+        quotationId,
         projectTitle: formValues.projectTitle || '',
-        orderValue: formValues.orderValue || 0,
-        taxPercentage: formValues.taxPercentage || 0,
-        totalValue: formValues.totalValue || 0,
-        startDate: formValues.startDate || new Date(),
-        endDate: formValues.endDate || new Date(),
-        paymentTerms: formValues.paymentTerms || '',
-        specialInstructions: formValues.specialInstructions || '',
         scopeOfWork: formValues.scopeOfWork || '',
-        deliverables: formValues.deliverables || [],
-        acceptanceCriteria: formValues.acceptanceCriteria || [],
-        isoTerms: selectedISOTerms,
-        customTerms: customISOTerms,
-        status: 'draft',
-        savedAt: new Date().toISOString(),
+        specialInstructions: formValues.specialInstructions || '',
+        startDate: formValues.startDate ? formValues.startDate.toISOString() : new Date().toISOString(),
+        endDate: formValues.endDate ? formValues.endDate.toISOString() : new Date().toISOString(),
+        paymentTerms: formValues.paymentTerms || '',
+        deliverables: (formValues.deliverables || []).map(del => ({
+          description: del.description || '',
+          quantity: 1,
+          unit: 'unit',
+          unitPrice: 0,
+        })),
+        paymentMilestones: (formValues.paymentMilestones || []).map(m => ({
+          name: m.description || '',
+          description: m.description || '',
+          percentage: m.percentage || 0,
+          dueDate: m.dueDate ? m.dueDate.toISOString() : new Date().toISOString(),
+        })),
+        acceptanceCriteria: (formValues.acceptanceCriteria || []).map(ac => ({
+          criteria: ac.criteria || '',
+        })),
+        isoCompliance: {
+          termsAndConditions: selectedISOTerms,
+          qualityRequirements: [],
+          warrantyPeriod: '',
+          penaltyClause: customISOTerms || '',
+        },
+        saveAsDraft: true,
       };
 
-      console.log("Saving draft:", draftData);
+      const response = await purchaseOrdersService.create(draftData);
 
       toast({
         title: "Draft Saved Successfully",
-        description: "Your purchase order has been saved as a draft."
+        description: `Purchase Order ${response.data.poNumber} has been saved as a draft.`
       });
-    } catch (error) {
+
+      // Navigate to the saved PO details page
+      if (response.data?.id) {
+        navigate(`/dashboard/purchase-orders/${response.data.id}`);
+      }
+    } catch (error: any) {
       console.error("Error saving draft:", error);
       toast({
         title: "Error Saving Draft",
-        description: "There was an error saving your draft. Please try again.",
+        description: error?.message || "There was an error saving your draft. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
@@ -385,7 +432,7 @@ const CreatePurchaseOrder: React.FC = () => {
           </div>
         );
       }
-      
+
       return (
         <POReviewStep
           formData={reviewData as any}
@@ -423,16 +470,16 @@ const CreatePurchaseOrder: React.FC = () => {
 
             <div className="bg-blue-50 p-4 rounded-lg mb-6">
               <p className="text-sm text-blue-800">
-                <strong>What happens next:</strong><br/>
-                • PO will be created and assigned number {reviewData.poNumber}<br/>
-                • Saved to your industry records<br/>
-                • Delivered to {vendors.find(v => v.id === reviewData.vendor)?.name || 'the vendor'}<br/>
+                <strong>What happens next:</strong><br />
+                • PO will be created and assigned number {reviewData.poNumber}<br />
+                • Saved to your industry records<br />
+                • Delivered to {vendors.find(v => v.id === reviewData.vendor)?.name || 'the vendor'}<br />
                 • Workflow will begin tracking
               </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      );
     }
 
     // Default - PO Details Step (Step 3)
@@ -722,6 +769,19 @@ const CreatePurchaseOrder: React.FC = () => {
                 )}
               />
 
+              {/* Document Upload Section */}
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Supporting Documents (Optional)</h4>
+                <p className="text-xs text-gray-500 mb-3">
+                  Upload scope of work documents, specifications, or other supporting files.
+                </p>
+                <SOWDocumentUpload
+                  files={sopDocuments}
+                  onFilesChange={setSopDocuments}
+                  maxFiles={5}
+                />
+              </div>
+
               <div>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-medium text-gray-900 text-lg">Deliverables</h3>
@@ -849,72 +909,79 @@ const CreatePurchaseOrder: React.FC = () => {
             {renderStepContent()}
 
             {/* Action Buttons */}
-            <div className="flex justify-between items-center">
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSaveAsDraft}
-                  className="border-gray-200 bg-blue-700 hover:bg-blue-600 text-gray-50"
-                >
-                  Save as Draft
-                </Button>
-
-                {currentStep === 4 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleBackToEdit}
-                    className="border-gray-200 text-gray-700 hover:bg-gray-50"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Edit
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-3">
+            <div className="flex justify-center items-center gap-3">
+              {/* Previous Button - only show on steps 4 and 5 */}
+              {currentStep > 3 && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handlePrevious}
-                  disabled={currentStep === 3}
-                  className="border-gray-200 text-gray-50 bg-blue-700 hover:bg-blue-600"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Previous
                 </Button>
+              )}
 
-                {currentStep === 3 && (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                  >
-                    Review & Confirm
-                  </Button>
-                )}
+              {/* Save Draft Button - show on step 3 only */}
+              {currentStep === 3 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSaveAsDraft}
+                  disabled={isSavingDraft}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  {isSavingDraft ? "Saving..." : "Save Draft"}
+                </Button>
+              )}
 
-                {currentStep === 4 && (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                  >
-                    Approve & Proceed
-                  </Button>
-                )}
+              {/* Back to Edit Button - show on review step (4) */}
+              {currentStep === 4 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBackToEdit}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Edit
+                </Button>
+              )}
 
-                {currentStep === 5 && (
-                  <Button
-                    type="button"
-                    onClick={handleCreatePurchaseOrder}
-                    disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700 text-white font-medium px-8"
-                  >
-                    {isSubmitting ? "Creating & Delivering..." : "Create & Deliver Purchase Order"}
-                  </Button>
-                )}
-              </div>
+              {/* Step 3: Review & Confirm button */}
+              {currentStep === 3 && (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8"
+                >
+                  Review & Confirm
+                </Button>
+              )}
+
+              {/* Step 4: Approve & Proceed button */}
+              {currentStep === 4 && (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8"
+                >
+                  Approve & Proceed
+                </Button>
+              )}
+
+              {/* Step 5: Submit button (changed from Create) */}
+              {currentStep === 5 && (
+                <Button
+                  type="button"
+                  onClick={handleCreatePurchaseOrder}
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-8"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit for Approval"}
+                </Button>
+              )}
             </div>
           </div>
         </Form>

@@ -42,24 +42,38 @@ class VendorPurchaseOrdersService {
   }
 
   /**
-   * Accept purchase order
+   * Respond to purchase order (accept/reject/negotiate)
    */
-  async acceptPO(poId: string, data: VendorPOAcceptData): Promise<PurchaseOrder> {
-    const response = await apiService.post<{ success: boolean; data: PurchaseOrder }, VendorPOAcceptData>(
-      vendorPurchaseOrdersRoutes.accept(poId),
-      data
+  async respondToPO(
+    poId: string,
+    action: 'accept' | 'reject' | 'negotiate',
+    data?: {
+      comments?: string;
+      estimatedCompletionDate?: string;
+      digitalSignature?: {
+        signedBy: string;
+        designation: string;
+      };
+      reason?: string;
+      negotiationPoints?: Array<{
+        field: string;
+        currentValue: any;
+        proposedValue: any;
+        justification: string;
+      }>;
+    }
+  ): Promise<{ success: boolean; data?: any; message?: string }> {
+    const response = await apiService.post<
+      { success: boolean; data?: any; message?: string },
+      { action: string;[key: string]: any }
+    >(
+      vendorPurchaseOrdersRoutes.respond(poId),
+      {
+        action,
+        ...data,
+      }
     );
-    return response.data;
-  }
-
-  /**
-   * Reject purchase order
-   */
-  async rejectPO(poId: string, data: VendorPORejectData): Promise<void> {
-    await apiService.post<{ success: boolean; message: string }, VendorPORejectData>(
-      vendorPurchaseOrdersRoutes.reject(poId),
-      data
-    );
+    return response;
   }
 
   /**
@@ -106,6 +120,16 @@ class VendorPurchaseOrdersService {
   async getPOStats(): Promise<VendorPOStats> {
     const response = await apiService.get<{ success: boolean; data: VendorPOStats }>(
       vendorPurchaseOrdersRoutes.stats
+    );
+    return response.data;
+  }
+
+  /**
+   * Export PO as PDF
+   */
+  async exportPOAsPDF(poId: string): Promise<any> {
+    const response = await apiService.get<{ success: boolean; data: any }>(
+      vendorPurchaseOrdersRoutes.export(poId)
     );
     return response.data;
   }

@@ -111,7 +111,7 @@ const WorkCompletionPayment = (): JSX.Element => {
   // ------------------ Authentication ------------------
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/signin");
+      navigate("/login");
       return;
     }
     if (user?.role !== "industry") {
@@ -335,3 +335,4 @@ const WorkCompletionPayment = (): JSX.Element => {
 };
 
 export default WorkCompletionPayment;
+

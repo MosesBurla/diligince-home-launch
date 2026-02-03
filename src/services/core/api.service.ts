@@ -134,22 +134,22 @@ api.interceptors.response.use(
           // Process queued requests with error
           processQueue(refreshError as Error, null);
 
-          // Refresh failed, clear tokens and redirect to signin
+          // Refresh failed, clear tokens and redirect to login
           localStorage.removeItem('authToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
           localStorage.removeItem('roleConfiguration');
-          window.location.href = '/signin';
+          window.location.href = '/login';
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
         }
       } else {
-        // No refresh token, redirect to signin
+        // No refresh token, redirect to login
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         localStorage.removeItem('roleConfiguration');
-        window.location.href = '/signin';
+        window.location.href = '/login';
       }
     }
 

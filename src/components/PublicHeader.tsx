@@ -53,7 +53,7 @@ const PublicHeader = () => {
     //           </nav>
 
     //           <Link
-    //             to="/signin"
+    //             to="/login"
     //             className="bg-gradient-to-r from-[#1A2A4F] to-[#2F80ED] text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
     //           >
     //             Sign In

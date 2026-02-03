@@ -796,21 +796,6 @@ const Index: React.FC = () => {
             </button>
           </div>
 
-          {/* Trust Indicators */}
-          <div className="mt-16 flex flex-wrap justify-center items-center gap-8 text-[#828282] text-sm">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-[#153b60]" />
-              <span className="font-medium">No credit card required</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-[#153b60]" />
-              <span className="font-medium">14-day free trial</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-[#153b60]" />
-              <span className="font-medium">Cancel anytime</span>
-            </div>
-          </div>
         </div>
       </section>
 

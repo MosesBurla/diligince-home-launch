@@ -33,8 +33,13 @@ import Careers from "@/pages/Careers";
 import Legal from "@/pages/Legal";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
+import Security from "@/pages/Security";
+import CookiePolicy from "@/pages/CookiePolicy";
+import HelpCenter from "@/pages/HelpCenter";
+import Documentation from "@/pages/Documentation";
+import Community from "@/pages/Community";
+import PressKit from "@/pages/PressKit";
 import SignUp from "@/pages/SignUp";
-import SignIn from "@/pages/SignIn";
 import MultiStepLogin from "@/pages/MultiStepLogin";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
@@ -64,6 +69,7 @@ import IndustryReports from "@/pages/IndustryReports";
 import IndustrySettings from "@/pages/IndustrySettings";
 import IndustryWorkflows from "@/pages/IndustryWorkflows";
 import IndustryProjectWorkflow from "@/pages/IndustryProjectWorkflow";
+import IndustryWorkflowDetails from "@/pages/IndustryWorkflowDetails";
 import IndustryStakeholders from "@/pages/IndustryStakeholders";
 import IndustryDocuments from "@/pages/IndustryDocuments";
 import IndustryMessages from "@/pages/IndustryMessages";
@@ -110,6 +116,7 @@ import PurchaseOrdersPending from "@/pages/PurchaseOrdersPending";
 import PurchaseOrdersInProgress from "@/pages/PurchaseOrdersInProgress";
 import PurchaseOrdersCompleted from "@/pages/PurchaseOrdersCompleted";
 import PurchaseOrderDetails from "@/pages/PurchaseOrderDetails";
+import VendorPurchaseOrderDetails from "@/pages/VendorPurchaseOrderDetails";
 
 // Workflow sub-pages
 import WorkflowsActive from "@/pages/WorkflowsActive";
@@ -135,6 +142,7 @@ import ServiceVendorProjects from "@/pages/ServiceVendorProjects";
 import ServiceVendorMessages from "@/pages/ServiceVendorMessages";
 import ServiceVendorProfile from "@/pages/ServiceVendorProfile";
 import ServiceVendorServices from "@/pages/ServiceVendorServices";
+import VendorWorkflowDetails from "@/pages/VendorWorkflowDetails";
 
 // Product Vendor pages
 import ProductVendorRFQs from "@/pages/ProductVendorRFQs";
@@ -209,6 +217,16 @@ function App() {
                                   <Route path="/legal" element={<Legal />} />
                                   <Route path="/privacy" element={<Privacy />} />
                                   <Route path="/terms" element={<Terms />} />
+                                  <Route path="/security" element={<Security />} />
+                                  <Route path="/cookies" element={<CookiePolicy />} />
+                                  <Route path="/help" element={<HelpCenter />} />
+                                  <Route path="/documentation" element={<Documentation />} />
+                                  <Route path="/community" element={<Community />} />
+                                  <Route path="/press" element={<PressKit />} />
+                                  <Route path="/solutions/industries" element={<ComingSoon />} />
+                                  <Route path="/solutions/professionals" element={<ComingSoon />} />
+                                  <Route path="/solutions/vendors" element={<ComingSoon />} />
+                                  <Route path="/solutions/enterprise" element={<ComingSoon />} />
 
                                   {/* Coming Soon Route */}
                                   <Route path="/coming-soon" element={<ComingSoon />} />
@@ -216,7 +234,6 @@ function App() {
                                   {/* Auth Routes */}
                                   <Route path="/signup" element={<SignUp />} />
                                   <Route path="/login" element={<MultiStepLogin />} />
-                                  <Route path="/signin" element={<SignIn />} />
                                   <Route
                                     path="/forgot-password"
                                     element={<ForgotPassword />}
@@ -307,6 +324,10 @@ function App() {
                                       element={<IndustryProjectWorkflow />}
                                     />
                                     <Route
+                                      path="workflow-details/:id"
+                                      element={<IndustryWorkflowDetails />}
+                                    />
+                                    <Route
                                       path="industry-stakeholders"
                                       element={<IndustryStakeholders />}
                                     />
@@ -345,7 +366,7 @@ function App() {
                                     />
                                     <Route
                                       path="create-purchase-order"
-                                      element={<CreatePurchaseOrder />}
+                                      element={<CreateEditPurchaseOrder />}
                                     />
                                     <Route
                                       path="purchase-orders/create"
@@ -464,6 +485,10 @@ function App() {
                                       path="purchase-orders/:id"
                                       element={<PurchaseOrderDetails />}
                                     />
+                                    <Route
+                                      path="vendor/purchase-orders/:id"
+                                      element={<VendorPurchaseOrderDetails />}
+                                    />
 
                                     {/* Workflow Sub-routes */}
                                     <Route
@@ -525,6 +550,10 @@ function App() {
                                     <Route
                                       path="service-vendor-projects"
                                       element={<ServiceVendorProjects />}
+                                    />
+                                    <Route
+                                      path="vendor/projects/:id"
+                                      element={<VendorWorkflowDetails />}
                                     />
                                     <Route
                                       path="service-vendor-messages"

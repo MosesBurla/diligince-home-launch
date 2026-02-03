@@ -48,16 +48,20 @@ import {
   Wallet,
 } from "lucide-react";
 
+interface SubMenuItem {
+  icon: any;
+  label: string;
+  path: string;
+  onClick?: () => void;
+  restricted?: boolean;
+  restrictedReason?: string;
+}
+
 interface MenuItem {
   icon: any;
   label: string;
   path: string;
-  submenu?: {
-    icon: any;
-    label: string;
-    path: string;
-    onClick?: () => void;
-  }[];
+  submenu?: SubMenuItem[];
 }
 
 interface MenuConfig {
@@ -144,6 +148,8 @@ export const menuConfig: MenuConfig = {
           icon: Plus,
           label: "Create PO",
           path: "/dashboard/create-purchase-order",
+          restricted: true,
+          restrictedReason: "Access from Approved Quotations",
         },
         {
           icon: List,

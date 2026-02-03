@@ -9,23 +9,23 @@ export const vendorPurchaseOrdersRoutes = {
     page?: number;
     limit?: number;
   }) => `${BASE_PATH}${buildQueryString(params)}`,
-  
+
   // Get PO details
   getById: (poId: string) => `${BASE_PATH}/${poId}`,
-  
-  // Accept purchase order
-  accept: (poId: string) => `${BASE_PATH}/${poId}/accept`,
-  
-  // Reject purchase order
-  reject: (poId: string) => `${BASE_PATH}/${poId}/reject`,
-  
+
+  // Respond to purchase order (accept/reject/negotiate)
+  respond: (poId: string) => `${BASE_PATH}/${poId}/respond`,
+
   // Submit milestone completion
   submitMilestoneCompletion: (poId: string, milestoneId: string) =>
     `${BASE_PATH}/${poId}/milestones/${milestoneId}/complete`,
-  
+
   // Submit invoice
   submitInvoice: (poId: string) => `${BASE_PATH}/${poId}/invoices`,
-  
+
   // Get vendor PO statistics
   stats: `${BASE_PATH}/stats`,
+
+  // Export PO as PDF
+  export: (poId: string) => `${BASE_PATH}/${poId}/export/pdf`,
 };

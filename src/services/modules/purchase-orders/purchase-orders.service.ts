@@ -11,6 +11,11 @@ import type {
   CancelPORequest,
   ApprovePORequest,
   RejectPORequest,
+  SendPORequest,
+  POSendResponse,
+  POLimitResponse,
+  POPrefillResponse,
+  POCreateResponse,
   PaymentMilestone,
   MilestoneListResponse,
   MilestoneUpdateRequest,
@@ -25,117 +30,102 @@ import type {
   ActivityLog,
   ActivityLogResponse,
   ExportXLSXRequest,
+  ExportPDFOptions,
+  VendorPOListParams,
+  VendorPOListResponse,
+  VendorPODetailResponse,
+  VendorPOResponseRequest,
 } from './purchase-orders.types';
 
 class PurchaseOrdersService {
   // ============= List Operations =============
-  
-  /**
-   * Get active purchase orders
-   */
+
   async getActive(params?: POListParams): Promise<POListResponse> {
     return apiService.get<POListResponse>(purchaseOrdersRoutes.getActive(params));
   }
 
-  /**
-   * Get pending purchase orders (awaiting approval)
-   */
   async getPending(params?: POListParams): Promise<POListResponse> {
     return apiService.get<POListResponse>(purchaseOrdersRoutes.getPending(params));
   }
 
-  /**
-   * Get in-progress purchase orders
-   */
   async getInProgress(params?: POListParams): Promise<POListResponse> {
     return apiService.get<POListResponse>(purchaseOrdersRoutes.getInProgress(params));
   }
 
-  /**
-   * Get completed purchase orders
-   */
   async getCompleted(params?: POListParams): Promise<POListResponse> {
     return apiService.get<POListResponse>(purchaseOrdersRoutes.getCompleted(params));
   }
 
-  /**
-   * Get all purchase orders with optional filtering
-   */
   async getAll(params?: POListParams): Promise<POListResponse> {
     return apiService.get<POListResponse>(purchaseOrdersRoutes.getAll(params));
   }
 
+  // ============= Subscription Limit =============
+
+  async checkLimit(): Promise<POLimitResponse> {
+    return apiService.get<POLimitResponse>(purchaseOrdersRoutes.checkLimit);
+  }
+
   // ============= Single PO Operations =============
-  
-  /**
-   * Get purchase order by ID with full details
-   */
+
   async getById(orderId: string): Promise<PODetailResponse> {
     return apiService.get<PODetailResponse>(purchaseOrdersRoutes.getById(orderId));
   }
 
-  /**
-   * Create new purchase order from quotation
-   */
-  async create(data: CreatePORequest): Promise<PODetailResponse> {
-    return apiService.post<PODetailResponse, CreatePORequest>(purchaseOrdersRoutes.create, data);
+  async getPrefillFromQuotation(quotationId: string): Promise<POPrefillResponse> {
+    return apiService.get<POPrefillResponse>(purchaseOrdersRoutes.getPrefillFromQuotation(quotationId));
   }
 
-  /**
-   * Update existing purchase order (draft or pending_approval only)
-   */
+  async create(data: CreatePORequest): Promise<POCreateResponse> {
+    return apiService.post<POCreateResponse, CreatePORequest>(purchaseOrdersRoutes.create, data);
+  }
+
   async update(orderId: string, data: UpdatePORequest): Promise<PODetailResponse> {
     return apiService.put<PODetailResponse, UpdatePORequest>(purchaseOrdersRoutes.update(orderId), data);
   }
 
-  /**
-   * Cancel a purchase order
-   */
   async cancel(orderId: string, reason: string): Promise<PODetailResponse> {
     const payload: CancelPORequest = { reason, cancelledBy: 'current_user' };
     return apiService.post<PODetailResponse, CancelPORequest>(purchaseOrdersRoutes.cancel(orderId), payload);
   }
 
-  /**
-   * Approve a pending purchase order
-   */
+  async delete(orderId: string): Promise<void> {
+    return apiService.remove<void>(`/api/v1/industry/purchase-orders/${orderId}`);
+  }
+
+  // ============= Approval =============
+
   async approve(orderId: string, comments?: string): Promise<PODetailResponse> {
     const payload: ApprovePORequest = { comments };
     return apiService.post<PODetailResponse, ApprovePORequest>(purchaseOrdersRoutes.approve(orderId), payload);
   }
 
-  /**
-   * Reject a pending purchase order
-   */
   async reject(orderId: string, reason: string): Promise<PODetailResponse> {
     const payload: RejectPORequest = { reason };
     return apiService.post<PODetailResponse, RejectPORequest>(purchaseOrdersRoutes.reject(orderId), payload);
   }
 
+  // ============= Send to Vendor =============
+
+  async send(orderId: string, data?: SendPORequest): Promise<POSendResponse> {
+    return apiService.post<POSendResponse, SendPORequest | {}>(purchaseOrdersRoutes.send(orderId), data || {});
+  }
+
   // ============= Milestone Operations =============
-  
-  /**
-   * Get all milestones for a purchase order
-   */
+
   async getMilestones(orderId: string): Promise<MilestoneListResponse> {
     return apiService.get<MilestoneListResponse>(purchaseOrdersRoutes.getMilestones(orderId));
   }
 
-  /**
-   * Get specific milestone details
-   */
   async getMilestoneById(orderId: string, milestoneId: string): Promise<{ success: boolean; data: PaymentMilestone }> {
     return apiService.get<{ success: boolean; data: PaymentMilestone }>(
       purchaseOrdersRoutes.getMilestoneById(orderId, milestoneId)
     );
   }
 
-  /**
-   * Update milestone details
-   */
   async updateMilestone(
-    orderId: string, 
-    milestoneId: string, 
+    orderId: string,
+    milestoneId: string,
     data: MilestoneUpdateRequest
   ): Promise<{ success: boolean; data: PaymentMilestone }> {
     return apiService.put<{ success: boolean; data: PaymentMilestone }, MilestoneUpdateRequest>(
@@ -144,12 +134,9 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Mark milestone as complete
-   */
   async markMilestoneComplete(
-    orderId: string, 
-    milestoneId: string, 
+    orderId: string,
+    milestoneId: string,
     notes?: string
   ): Promise<{ success: boolean; data: PaymentMilestone }> {
     return apiService.post<{ success: boolean; data: PaymentMilestone }, { notes?: string }>(
@@ -158,12 +145,9 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Upload proof document for milestone completion
-   */
   async uploadMilestoneProof(
-    orderId: string, 
-    milestoneId: string, 
+    orderId: string,
+    milestoneId: string,
     document: File
   ): Promise<{ success: boolean; data: PaymentMilestone }> {
     const formData = new FormData();
@@ -175,26 +159,17 @@ class PurchaseOrdersService {
   }
 
   // ============= Invoice Operations =============
-  
-  /**
-   * Get all invoices for a purchase order
-   */
+
   async getInvoices(orderId: string): Promise<InvoiceListResponse> {
     return apiService.get<InvoiceListResponse>(purchaseOrdersRoutes.getInvoices(orderId));
   }
 
-  /**
-   * Get specific invoice details
-   */
   async getInvoiceById(orderId: string, invoiceId: string): Promise<{ success: boolean; data: Invoice }> {
     return apiService.get<{ success: boolean; data: Invoice }>(
       purchaseOrdersRoutes.getInvoiceById(orderId, invoiceId)
     );
   }
 
-  /**
-   * Create new invoice for a milestone
-   */
   async createInvoice(orderId: string, data: InvoiceCreateRequest): Promise<{ success: boolean; data: Invoice }> {
     return apiService.post<{ success: boolean; data: Invoice }, InvoiceCreateRequest>(
       purchaseOrdersRoutes.createInvoice(orderId),
@@ -202,12 +177,9 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Update invoice details
-   */
   async updateInvoice(
-    orderId: string, 
-    invoiceId: string, 
+    orderId: string,
+    invoiceId: string,
     data: InvoiceUpdateRequest
   ): Promise<{ success: boolean; data: Invoice }> {
     return apiService.put<{ success: boolean; data: Invoice }, InvoiceUpdateRequest>(
@@ -216,12 +188,9 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Mark invoice as paid
-   */
   async markInvoicePaid(
-    orderId: string, 
-    invoiceId: string, 
+    orderId: string,
+    invoiceId: string,
     paymentData: MarkInvoicePaidRequest
   ): Promise<{ success: boolean; data: Invoice }> {
     return apiService.post<{ success: boolean; data: Invoice }, MarkInvoicePaidRequest>(
@@ -230,9 +199,6 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Export invoice as PDF
-   */
   async exportInvoicePDF(orderId: string, invoiceId: string): Promise<Blob> {
     return apiService.get<Blob>(
       purchaseOrdersRoutes.exportInvoicePDF(orderId, invoiceId),
@@ -241,24 +207,15 @@ class PurchaseOrdersService {
   }
 
   // ============= Delivery Operations =============
-  
-  /**
-   * Get delivery tracking information
-   */
+
   async getDeliveryTracking(orderId: string): Promise<DeliveryTrackingResponse> {
     return apiService.get<DeliveryTrackingResponse>(purchaseOrdersRoutes.getDeliveryTracking(orderId));
   }
 
-  /**
-   * Get delivery timeline/events
-   */
   async getDeliveryTimeline(orderId: string): Promise<DeliveryTrackingResponse> {
     return apiService.get<DeliveryTrackingResponse>(purchaseOrdersRoutes.getDeliveryTimeline(orderId));
   }
 
-  /**
-   * Update delivery status
-   */
   async updateDeliveryStatus(orderId: string, data: DeliveryUpdateRequest): Promise<DeliveryTrackingResponse> {
     return apiService.post<DeliveryTrackingResponse, DeliveryUpdateRequest>(
       purchaseOrdersRoutes.updateDeliveryStatus(orderId),
@@ -266,9 +223,6 @@ class PurchaseOrdersService {
     );
   }
 
-  /**
-   * Upload proof of delivery document
-   */
   async uploadProofOfDelivery(orderId: string, document: File): Promise<DeliveryTrackingResponse> {
     const formData = new FormData();
     formData.append('document', document);
@@ -279,29 +233,20 @@ class PurchaseOrdersService {
   }
 
   // ============= Activity Log =============
-  
-  /**
-   * Get activity log for a purchase order
-   */
+
   async getActivityLog(orderId: string): Promise<ActivityLogResponse> {
     return apiService.get<ActivityLogResponse>(purchaseOrdersRoutes.getActivityLog(orderId));
   }
 
   // ============= Export Operations =============
-  
-  /**
-   * Export single purchase order as PDF
-   */
-  async exportToPDF(orderId: string): Promise<Blob> {
+
+  async exportToPDF(orderId: string, options?: ExportPDFOptions): Promise<Blob> {
     return apiService.get<Blob>(
-      purchaseOrdersRoutes.exportToPDF(orderId),
+      purchaseOrdersRoutes.exportToPDF(orderId, options),
       { responseType: 'blob' }
     );
   }
 
-  /**
-   * Export multiple purchase orders to Excel
-   */
   async exportToXLSX(params: ExportXLSXRequest): Promise<Blob> {
     return apiService.post<Blob, ExportXLSXRequest>(
       purchaseOrdersRoutes.exportToXLSX,
@@ -309,6 +254,31 @@ class PurchaseOrdersService {
       { responseType: 'blob' }
     );
   }
+
+  // ============= Vendor Methods =============
+
+  vendor = {
+    getAll: async (params?: VendorPOListParams): Promise<VendorPOListResponse> => {
+      return apiService.get<VendorPOListResponse>(purchaseOrdersRoutes.vendor.getAll(params));
+    },
+
+    getById: async (poId: string): Promise<VendorPODetailResponse> => {
+      return apiService.get<VendorPODetailResponse>(purchaseOrdersRoutes.vendor.getById(poId));
+    },
+
+    respond: async (poId: string, data: VendorPOResponseRequest): Promise<PODetailResponse> => {
+      return apiService.post<PODetailResponse, VendorPOResponseRequest>(purchaseOrdersRoutes.vendor.respond(poId), data);
+    },
+
+    getStats: async (): Promise<any> => {
+      return apiService.get(purchaseOrdersRoutes.vendor.stats);
+    },
+
+    exportToPDF: async (poId: string, options?: ExportPDFOptions): Promise<Blob> => {
+      return apiService.get<Blob>(purchaseOrdersRoutes.vendor.exportToPDF(poId, options), { responseType: 'blob' });
+    },
+  };
 }
 
 export const purchaseOrdersService = new PurchaseOrdersService();
+export default purchaseOrdersService;

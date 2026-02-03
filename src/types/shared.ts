@@ -83,11 +83,11 @@ export const mapUserSubTypeToVendorCategory = (
   userSubType?: string
 ): VendorCategory | undefined => {
   if (!userSubType) return undefined;
-  
+
   if (userSubType === 'ServiceVendor') return 'service';
   if (userSubType === 'ProductVendor') return 'product';
   if (userSubType === 'LogisticVendor') return 'logistics';
-  
+
   return undefined;
 };
 
@@ -100,16 +100,16 @@ export const getDashboardRoute = (user: UserProfile): string => {
       return '/dashboard/professional';
     case 'vendor':
       // Prefer userSubType, fallback to profile.vendorCategory
-      const vendorCategory = user.userSubType 
+      const vendorCategory = user.userSubType
         ? mapUserSubTypeToVendorCategory(user.userSubType)
         : user.profile?.vendorCategory;
-        
+
       if (vendorCategory === 'service') return '/dashboard/service-vendor';
       if (vendorCategory === 'product') return '/dashboard/product-vendor';
       if (vendorCategory === 'logistics') return '/dashboard/logistics-vendor';
       return '/dashboard';
     default:
-      return '/signin';
+      return '/login';
   }
 };
 

@@ -28,7 +28,7 @@ const ProfessionalProfile = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/signin");
+      navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
@@ -111,3 +111,4 @@ const ProfessionalProfile = () => {
 };
 
 export default ProfessionalProfile;
+

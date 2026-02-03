@@ -9,6 +9,7 @@ import { purchaseOrdersService } from "@/services/modules/purchase-orders";
 import { POStatusBadge } from "@/components/purchase-order/POStatusBadge";
 import { POQuickActions } from "@/components/purchase-order/POQuickActions";
 import { POFilters } from "@/components/purchase-order/POFilters";
+import AISearchBar from '@/components/shared/AISearchBar';
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { useAsyncOperation } from "@/hooks/useAsyncOperation";
@@ -159,17 +160,24 @@ const PurchaseOrdersPending = () => {
             Purchase orders awaiting approval before being sent to vendors
           </p>
         </div>
-        <Button onClick={() => navigate('/dashboard/purchase-orders/create')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Purchase Order
+        <Button onClick={() => navigate('/dashboard/quotations-approved')} variant="outline" className="gap-2">
+          View Approved Quotations
         </Button>
       </div>
 
+      {/* AI Search Bar */}
+      <AISearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Search pending purchase orders with AI..."
+        isLoading={isLoading}
+        className="mb-6"
+      />
+
+      {/* Filter Dropdowns - status is fixed to pending */}
       <POFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         statusFilter="pending_approval"
-        onStatusChange={() => {}}
+        onStatusChange={() => { }}
         onClearFilters={() => setSearchTerm("")}
         showStatusFilter={false}
       />
@@ -180,7 +188,6 @@ const PurchaseOrdersPending = () => {
         onRowClick={handleRowClick}
         selectable={true}
         onSelectionChange={setSelectedRows}
-        globalSearchPlaceholder="Search pending purchase orders..."
         pagination={{
           enabled: true,
           pageSize,

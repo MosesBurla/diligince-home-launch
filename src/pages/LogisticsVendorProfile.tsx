@@ -29,7 +29,7 @@ const LogisticsVendorProfile = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/signin');
+      navigate('/login');
     }
   }, [isAuthenticated, navigate]);
 
@@ -109,3 +109,4 @@ const LogisticsVendorProfile = () => {
 };
 
 export default LogisticsVendorProfile;
+

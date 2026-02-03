@@ -26,7 +26,7 @@ const ServiceVendorProfile: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/signin");
+      navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
@@ -102,3 +102,4 @@ const ServiceVendorProfile: React.FC = () => {
 };
 
 export default ServiceVendorProfile;
+

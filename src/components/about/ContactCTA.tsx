@@ -57,7 +57,7 @@ const ContactCTA = () => {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Button
-                  onClick={() => navigate('/signin')}
+                  onClick={() => navigate('/login')}
                   size="lg"
                   className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                 >
@@ -134,3 +134,4 @@ const ContactCTA = () => {
 };
 
 export default ContactCTA;
+

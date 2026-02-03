@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  ArrowLeft, 
-  Edit, 
-  Trash2, 
-  X, 
-  Building2, 
-  Calendar, 
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  X,
+  Building2,
+  Calendar,
   IndianRupee,
   FileText,
+  FileCheck,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -50,6 +51,13 @@ const VendorQuotationDetails: React.FC = () => {
   const { data: quotation, isLoading } = useQuery({
     queryKey: ['vendor-quotation', quotationId],
     queryFn: () => vendorQuotationsService.getQuotationDetails(quotationId!),
+    enabled: !!quotationId,
+  });
+
+  // Fetch purchase order for this quotation
+  const { data: purchaseOrder } = useQuery({
+    queryKey: ['vendor-quotation-po', quotationId],
+    queryFn: () => vendorQuotationsService.getPurchaseOrderForQuotation(quotationId!),
     enabled: !!quotationId,
   });
 
@@ -160,6 +168,16 @@ const VendorQuotationDetails: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {purchaseOrder && purchaseOrder.status !== 'rejected' && purchaseOrder.status !== 'vendor_rejected' && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => navigate(`/dashboard/vendor/purchase-orders/${purchaseOrder.id}`)}
+              >
+                <FileCheck className="mr-2 h-4 w-4" />
+                View PO
+              </Button>
+            )}
             {canEdit && (
               <Button variant="outline" size="sm" onClick={handleEdit}>
                 <Edit className="mr-2 h-4 w-4" />

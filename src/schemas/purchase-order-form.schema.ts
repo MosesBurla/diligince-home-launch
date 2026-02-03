@@ -1,7 +1,20 @@
 import * as z from 'zod';
 
+// Schema for SOW uploaded files
+export const sowDocumentSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: z.number(),
+  type: z.string(),
+  status: z.enum(['pending', 'uploading', 'success', 'error']),
+  error: z.string().optional()
+});
+
+export type SOWDocument = z.infer<typeof sowDocumentSchema>;
+
 export const purchaseOrderFormSchema = z.object({
   quotationId: z.string().optional(),
+  sowDocuments: z.array(sowDocumentSchema).optional(),
   projectTitle: z.string().min(3, "Project title must be at least 3 characters"),
   scopeOfWork: z.string().min(10, "Scope of work must be at least 10 characters"),
   specialInstructions: z.string().optional(),
@@ -22,12 +35,15 @@ export const purchaseOrderFormSchema = z.object({
   paymentMilestones: z.array(z.object({
     id: z.string().optional(),
     description: z.string().min(1, "Description is required"),
-    percentage: z.coerce.number().min(1).max(100, "Percentage must be between 1 and 100"),
+    percentage: z.coerce.number()
+      .min(0.1, "Percentage must be greater than 0")
+      .max(100, "Percentage cannot exceed 100"),
     dueDate: z.string().min(1, "Due date is required")
   })).min(1, "At least one payment milestone is required"),
   acceptanceCriteria: z.array(z.object({
     id: z.string().optional(),
-    criteria: z.string().min(1, "Criteria is required")
+    criteria: z.string().min(1, "Criteria is required"),
+    documents: z.array(sowDocumentSchema).optional()
   })).min(1, "At least one acceptance criteria is required")
 }).refine(data => data.endDate >= data.startDate, {
   message: "End date must be after start date",

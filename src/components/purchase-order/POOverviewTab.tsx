@@ -22,7 +22,7 @@ export const POOverviewTab: React.FC<POOverviewTabProps> = ({ po }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {po.currency} {po.amount.toLocaleString()}
+              {po.currency} {po.amount?.toLocaleString() || '0'}
             </div>
           </CardContent>
         </Card>
@@ -49,7 +49,7 @@ export const POOverviewTab: React.FC<POOverviewTabProps> = ({ po }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              {po.currency} {po.totalValue.toLocaleString()}
+              {po.currency} {po.totalValue?.toLocaleString() || '0'}
             </div>
           </CardContent>
         </Card>
@@ -68,17 +68,17 @@ export const POOverviewTab: React.FC<POOverviewTabProps> = ({ po }) => {
             <div>
               <p className="text-sm text-muted-foreground">Start Date</p>
               <p className="text-base font-medium">
-                {format(new Date(po.startDate), 'PPP')}
+                {po.startDate ? format(new Date(po.startDate), 'PPP') : 'Not specified'}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">End Date</p>
               <p className="text-base font-medium">
-                {format(new Date(po.endDate), 'PPP')}
+                {po.endDate ? format(new Date(po.endDate), 'PPP') : 'Not specified'}
               </p>
             </div>
           </div>
-          
+
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-medium">Completion Progress</p>
@@ -141,7 +141,26 @@ export const POOverviewTab: React.FC<POOverviewTabProps> = ({ po }) => {
           <CardTitle>Payment Terms</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-base">{po.paymentTerms}</p>
+          {typeof po.paymentTerms === 'string' ? (
+            <p className="text-base">{po.paymentTerms}</p>
+          ) : po.paymentTerms && typeof po.paymentTerms === 'object' ? (
+            <div className="space-y-2">
+              {(po.paymentTerms as any).method && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Payment Method: </span>
+                  <span className="font-medium">{(po.paymentTerms as any).method}</span>
+                </div>
+              )}
+              {(po.paymentTerms as any).advancePayment !== undefined && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Advance Payment: </span>
+                  <span className="font-medium">{(po.paymentTerms as any).advancePayment}%</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-base text-muted-foreground">No payment terms specified</p>
+          )}
         </CardContent>
       </Card>
 

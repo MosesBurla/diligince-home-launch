@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,9 @@ import {
   Loader2,
   Check,
   CheckCheck,
-  Eye
+  Eye,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import {
   Select,
@@ -41,6 +43,11 @@ const ServiceVendorMessages = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Nested structure state
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [selectedRelatedId, setSelectedRelatedId] = useState<string | null>(null); // null = General Chat
 
   // Fetch conversations
   const { data: conversationsData, isLoading: conversationsLoading } = useQuery({
@@ -97,15 +104,98 @@ const ServiceVendorMessages = () => {
   const conversations = conversationsData?.conversations || [];
   const messages = messagesData?.messages || [];
 
-  // Filter conversations
-  const filteredConversations = conversations.filter((conv) => {
+  // NESTED GROUPING: Group by Company → Then by Requirement
+  interface RequirementGroup {
+    relatedType: string;
+    relatedId: string;
+    relatedTitle: string;
+    unreadCount: number;
+    latestConversation: Conversation;
+    allConversations: Conversation[];
+  }
+
+  interface CompanyConversations {
+    companyId: string;
+    companyName: string;
+    companyEmail: string;
+    totalUnread: number;
+    isExpanded: boolean;
+    generalChat: Conversation[];
+    requirements: RequirementGroup[];
+  }
+
+  const groupedByCompany = useMemo(() => {
+    const companies: Record<string, CompanyConversations> = {};
+
+    conversations.forEach((conv) => {
+      const otherParticipant = conv.participants.find(p => p.userId._id !== user?.id);
+      const companyKey = otherParticipant?.userId.email || conv._id;
+
+      // Initialize company if not exists
+      if (!companies[companyKey]) {
+        companies[companyKey] = {
+          companyId: companyKey,
+          companyName: otherParticipant?.userId.email || 'Unknown Company',
+          companyEmail: otherParticipant?.userId.email || '',
+          totalUnread: 0,
+          isExpanded: expandedCompanies.has(companyKey),
+          generalChat: [],
+          requirements: []
+        };
+      }
+
+      // Categorize: General Chat vs Requirement-specific
+      if (conv.relatedId && conv.relatedType) {
+        // Requirement-specific conversation
+        let reqGroup = companies[companyKey].requirements.find(
+          r => r.relatedId === conv.relatedId
+        );
+
+        if (!reqGroup) {
+          reqGroup = {
+            relatedType: conv.relatedType,
+            relatedId: conv.relatedId,
+            relatedTitle: conv.title || `${conv.relatedType}-${conv.relatedId.substring(0, 6)}`,
+            unreadCount: 0,
+            latestConversation: conv,
+            allConversations: []
+          };
+          companies[companyKey].requirements.push(reqGroup);
+        }
+
+        reqGroup.allConversations.push(conv);
+        reqGroup.unreadCount += conv.unreadCount || 0;
+
+        // Keep latest conversation
+        if (new Date(conv.updatedAt) > new Date(reqGroup.latestConversation.updatedAt)) {
+          reqGroup.latestConversation = conv;
+        }
+      } else {
+        // General chat (no relatedId)
+        companies[companyKey].generalChat.push(conv);
+      }
+
+      companies[companyKey].totalUnread += conv.unreadCount || 0;
+    });
+
+    return Object.values(companies);
+  }, [conversations, user?.id, expandedCompanies]);
+
+  // Filter companies based on search and filter
+  const filteredCompanies = groupedByCompany.filter((company) => {
     const matchesSearch =
-      conv.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.lastMessage?.content?.toLowerCase().includes(searchTerm.toLowerCase());
+      company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.generalChat.some(c => c.lastMessage?.content?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      company.requirements.some(r =>
+        r.relatedTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.latestConversation.lastMessage?.content?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
     const matchesFilter =
       filterType === "all" ||
-      (filterType === "unread" && (conv.unreadCount || 0) > 0) ||
-      conv.relatedType === filterType;
+      (filterType === "unread" && company.totalUnread > 0) ||
+      company.requirements.some(r => r.relatedType === filterType);
+
     return matchesSearch && matchesFilter;
   });
 
@@ -117,6 +207,52 @@ const ServiceVendorMessages = () => {
 
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversationId(conversation._id);
+  };
+
+  // Nested structure handlers
+  const toggleCompany = (companyId: string) => {
+    setExpandedCompanies(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(companyId)) {
+        newSet.delete(companyId);
+        // If collapsing selected company, clear selection
+        if (selectedCompanyId === companyId) {
+          setSelectedCompanyId(null);
+          setSelectedRelatedId(null);
+          setSelectedConversationId(null);
+        }
+      } else {
+        newSet.add(companyId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectRequirementOrGeneral = (companyId: string, relatedId: string | null) => {
+    setSelectedCompanyId(companyId);
+    setSelectedRelatedId(relatedId);
+
+    // Find the company
+    const company = groupedByCompany.find(c => c.companyId === companyId);
+    if (!company) return;
+
+    let conversationsToShow: Conversation[];
+
+    if (relatedId) {
+      // Requirement-specific chat
+      const reqGroup = company.requirements.find(r => r.relatedId === relatedId);
+      conversationsToShow = reqGroup?.allConversations || [];
+    } else {
+      // General chat
+      conversationsToShow = company.generalChat;
+    }
+
+    // Select first conversation for display
+    if (conversationsToShow.length > 0) {
+      setSelectedConversationId(conversationsToShow[0]._id);
+    } else {
+      setSelectedConversationId(null);
+    }
   };
 
   const getInitials = (email: string) => {
@@ -198,73 +334,132 @@ const ServiceVendorMessages = () => {
                 <SelectContent className="bg-[hsl(var(--card))] border-[hsl(var(--messages-border))]">
                   <SelectItem value="all">All Messages</SelectItem>
                   <SelectItem value="unread">Unread</SelectItem>
+                  <SelectItem value="requirement">Requirements</SelectItem>
                   <SelectItem value="quote">Quotations</SelectItem>
                   <SelectItem value="rfq">RFQs</SelectItem>
+                  <SelectItem value="purchaseOrder">Purchase Orders</SelectItem>
                   <SelectItem value="project">Projects</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Conversations List */}
+          {/* Conversations List - Nested Structure */}
           <div className="flex-1 overflow-y-auto">
             {conversationsLoading ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin text-[hsl(var(--messages-primary))]" />
               </div>
-            ) : filteredConversations.length === 0 ? (
+            ) : filteredCompanies.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-[hsl(var(--muted-foreground))]">
                 <MessageSquare className="h-8 w-8 mb-2" />
                 <p>No conversations found</p>
               </div>
             ) : (
-              filteredConversations.map((conversation) => (
-                <div
-                  key={conversation._id}
-                  onClick={() => handleConversationSelect(conversation)}
-                  className={`p-4 border-b border-[hsl(var(--messages-border))] cursor-pointer hover:bg-[hsl(var(--messages-hover))] transition-colors ${selectedConversationId === conversation._id
-                    ? "bg-[hsl(var(--messages-selected))] border-l-4 border-l-[hsl(var(--messages-primary))]"
-                    : ""
-                    } ${(conversation.unreadCount || 0) > 0 ? "bg-[hsl(var(--messages-unread))]" : ""}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10 bg-[hsl(var(--messages-primary)/0.1)]">
-                      <AvatarFallback className="text-[hsl(var(--messages-primary))] text-sm font-semibold">
-                        {getInitials(getParticipantName(conversation))}
-                      </AvatarFallback>
-                    </Avatar>
+              filteredCompanies.map((company) => (
+                <div key={company.companyId}>
+                  {/* Company Header - Collapsible */}
+                  <div
+                    onClick={() => toggleCompany(company.companyId)}
+                    className={`p-4 border-b border-[hsl(var(--messages-border))] cursor-pointer hover:bg-[hsl(var(--messages-hover))] transition-colors ${selectedCompanyId === company.companyId
+                        ? "bg-[hsl(var(--messages-selected)/0.3)]"
+                        : ""
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Expand/Collapse Icon */}
+                      {company.isExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                      )}
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className={`text-sm font-medium text-[hsl(var(--foreground))] truncate ${(conversation.unreadCount || 0) > 0 ? "font-semibold" : ""
-                          }`}>
-                          {getParticipantName(conversation)}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          {(conversation.unreadCount || 0) > 0 && (
-                            <Badge className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white text-xs px-2">
-                              {conversation.unreadCount}
+                      {/* Company Avatar */}
+                      <Avatar className="h-10 w-10 bg-[hsl(var(--messages-primary)/0.1)]">
+                        <AvatarFallback className="text-[hsl(var(--messages-primary))] text-sm font-semibold">
+                          {getInitials(company.companyName)}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {/* Company Name and Unread */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-medium text-[hsl(var(--foreground))] truncate">
+                            {company.companyName}
+                          </h3>
+                          {company.totalUnread > 0 && (
+                            <Badge className="bg-[hsl(var(--messages-primary))] hover:bg-[hsl(var(--messages-primary-hover))] text-white text-xs px-2 ml-2">
+                              {company.totalUnread}
                             </Badge>
                           )}
-                          <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                            {conversation.lastMessage?.timestamp
-                              ? formatTimestamp(conversation.lastMessage.timestamp)
-                              : formatTimestamp(conversation.updatedAt)}
-                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Content: General Chat + Requirements */}
+                  {company.isExpanded && (
+                    <div className="bg-[hsl(var(--messages-received-bubble))]">
+                      {/* General Chat */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectRequirementOrGeneral(company.companyId, null);
+                        }}
+                        className={`pl-14 pr-4 py-3 border-b border-[hsl(var(--messages-border))] cursor-pointer hover:bg-[hsl(var(--messages-hover))] transition-colors ${selectedCompanyId === company.companyId && selectedRelatedId === null
+                            ? "bg-[hsl(var(--messages-selected))] border-l-4 border-l-[hsl(var(--messages-primary))]"
+                            : ""
+                          }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                          <span className="text-sm text-[hsl(var(--foreground))]">General Chat</span>
+                          {company.generalChat.reduce((sum, c) => sum + (c.unreadCount || 0), 0) > 0 && (
+                            <Badge className="bg-[hsl(var(--messages-primary))] text-white text-xs px-1.5">
+                              {company.generalChat.reduce((sum, c) => sum + (c.unreadCount || 0), 0)}
+                            </Badge>
+                          )}
                         </div>
                       </div>
 
-                      {conversation.relatedType && (
-                        <Badge variant="outline" className="text-xs mb-2 bg-[hsl(var(--messages-primary)/0.1)] text-[hsl(var(--messages-primary))] border-[hsl(var(--messages-primary)/0.2)]">
-                          {conversation.relatedType}
-                        </Badge>
-                      )}
-
-                      <p className="text-sm text-[hsl(var(--muted-foreground))] line-clamp-2">
-                        {conversation.lastMessage?.content || "No messages yet"}
-                      </p>
+                      {/* Requirement-specific Chats */}
+                      {company.requirements.map((req) => (
+                        <div
+                          key={req.relatedId}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectRequirementOrGeneral(company.companyId, req.relatedId);
+                          }}
+                          className={`pl-14 pr-4 py-3 border-b border-[hsl(var(--messages-border))] cursor-pointer hover:bg-[hsl(var(--messages-hover))] transition-colors ${selectedCompanyId === company.companyId && selectedRelatedId === req.relatedId
+                              ? "bg-[hsl(var(--messages-selected))] border-l-4 border-l-[hsl(var(--messages-primary))]"
+                              : ""
+                            }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-[hsl(var(--messages-primary)/0.1)] text-[hsl(var(--messages-primary))] border-[hsl(var(--messages-primary)/0.2)]"
+                              >
+                                {req.relatedType}
+                              </Badge>
+                              <span className="text-sm font-medium text-[hsl(var(--foreground))]">
+                                {req.relatedTitle}
+                              </span>
+                            </div>
+                            {req.unreadCount > 0 && (
+                              <Badge className="bg-[hsl(var(--messages-primary))] text-white text-xs px-1.5">
+                                {req.unreadCount}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-[hsl(var(--muted-foreground))] truncate">
+                            {req.latestConversation.lastMessage?.content || "No messages yet"}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  )}
                 </div>
               ))
             )}

@@ -3,7 +3,8 @@ import { useLocation, Link } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import { menuConfig } from '@/config/menuConfig';
 import { getMenuConfigKey } from '@/utils/roleMapper';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, User, LogOut, Settings as SettingsIcon, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, User, LogOut, Settings as SettingsIcon, Lock, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { VerificationStatus } from '@/types/verification';
 import { toast } from 'sonner';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -268,19 +269,45 @@ const Sidebar: React.FC = () => {
                     {/* Submenu for expanded state */}
                     {!isCollapsed && hasSubmenu && isExpanded && (
                       <div className="ml-8 mt-2 space-y-1">
-                        {item.submenu!.map((subItem, index) => (
-                          <Link
-                            key={index}
-                            to={subItem.path}
-                            className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === subItem.path
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-primary-foreground hover:bg-accent hover:text-accent-foreground'
-                              }`}
-                          >
-                            <subItem.icon className="w-4 h-4" />
-                            <span>{subItem.label}</span>
-                          </Link>
-                        ))}
+                        {item.submenu!.map((subItem, index) => {
+                          const isRestricted = (subItem as any).restricted;
+                          const restrictedReason = (subItem as any).restrictedReason;
+                          
+                          if (isRestricted) {
+                            return (
+                              <TooltipProvider key={index}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div
+                                      className="flex items-center space-x-2 px-3 py-2 text-sm rounded-lg transition-colors text-primary-foreground/50 cursor-not-allowed"
+                                    >
+                                      <subItem.icon className="w-4 h-4" />
+                                      <span>{subItem.label}</span>
+                                      <Info className="w-3 h-3 ml-auto" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" className="bg-popover text-popover-foreground border-border">
+                                    <p className="text-xs">{restrictedReason}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          }
+                          
+                          return (
+                            <Link
+                              key={index}
+                              to={subItem.path}
+                              className={`flex items-center space-x-2 px-3 py-2 text-sm rounded-lg transition-colors ${location.pathname === subItem.path
+                                ? 'bg-accent text-accent-foreground'
+                                : 'text-primary-foreground hover:bg-accent hover:text-accent-foreground'
+                                }`}
+                            >
+                              <subItem.icon className="w-4 h-4" />
+                              <span>{subItem.label}</span>
+                            </Link>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

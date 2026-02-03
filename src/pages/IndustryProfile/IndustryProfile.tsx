@@ -22,7 +22,7 @@ const IndustryProfile = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/signin');
+      navigate('/login');
     }
   }, [isAuthenticated, navigate]);
 
@@ -112,3 +112,4 @@ const IndustryProfile = () => {
 };
 
 export default IndustryProfile;
+

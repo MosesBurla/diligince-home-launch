@@ -9,6 +9,7 @@ import { purchaseOrdersService } from '@/services/modules/purchase-orders';
 import { POStatusBadge } from '@/components/purchase-order/POStatusBadge';
 import { POQuickActions } from '@/components/purchase-order/POQuickActions';
 import { POFilters } from '@/components/purchase-order/POFilters';
+import AISearchBar from '@/components/shared/AISearchBar';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TableSkeletonLoader, StatisticsBarSkeleton } from '@/components/shared/loading';
@@ -144,9 +145,8 @@ const PurchaseOrdersCompleted = () => {
             View all successfully completed purchase orders
           </p>
         </div>
-        <Button onClick={() => navigate('/dashboard/purchase-orders/create')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Purchase Order
+        <Button onClick={() => navigate('/dashboard/quotations-approved')} variant="outline" className="gap-2">
+          View Approved Quotations
         </Button>
       </div>
 
@@ -187,11 +187,18 @@ const PurchaseOrdersCompleted = () => {
         </Card>
       </div>
 
+      {/* AI Search Bar */}
+      <AISearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Search completed purchase orders with AI..."
+        isLoading={isLoading}
+      />
+
+      {/* Filter Dropdowns - status is fixed to completed */}
       <POFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         statusFilter="completed"
-        onStatusChange={() => {}}
+        onStatusChange={() => { }}
         onClearFilters={() => setSearchTerm('')}
         showStatusFilter={false}
       />
@@ -202,7 +209,6 @@ const PurchaseOrdersCompleted = () => {
         onRowClick={handleRowClick}
         selectable={true}
         onSelectionChange={setSelectedRows}
-        globalSearchPlaceholder="Search completed purchase orders..."
         pagination={{
           enabled: true,
           pageSize,

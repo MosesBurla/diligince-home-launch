@@ -70,7 +70,7 @@ const ProfileCompletion = () => {
   });
 
   if (!user) {
-    navigate("/signin");
+    navigate("/login");
     return null;
   }
 
@@ -326,3 +326,4 @@ const ProfileCompletion = () => {
 };
 
 export default ProfileCompletion;
+

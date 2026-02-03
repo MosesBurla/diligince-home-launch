@@ -31,11 +31,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     // If 401 and not already retried, try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
@@ -43,10 +43,10 @@ api.interceptors.response.use(
             `${BASE_URL}/api/v1/auth/refresh-token`,
             { refresh_token: refreshToken }
           );
-          
+
           const { access_token } = response.data.meta;
           localStorage.setItem('authToken', access_token);
-          
+
           // Retry original request with new token
           originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
           return api(originalRequest);
@@ -54,12 +54,12 @@ api.interceptors.response.use(
           // Refresh failed, logout user
           localStorage.removeItem('authToken');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/signin';
+          window.location.href = '/login';
           return Promise.resolve(refreshError);
         }
       }
     }
-    
+
     return Promise.resolve(error.response.data);
   }
 );

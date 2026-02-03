@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -8,42 +7,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Filter, X } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import { POStatus } from '@/services/modules/purchase-orders';
 
+interface VendorOption {
+  id: string;
+  name: string;
+}
+
 interface POFiltersProps {
-  searchTerm: string;
-  onSearchChange: (value: string) => void;
   statusFilter: POStatus | 'all';
   onStatusChange: (value: POStatus | 'all') => void;
   onClearFilters: () => void;
   showStatusFilter?: boolean;
+  // Optional vendor filter
+  vendorFilter?: string;
+  onVendorChange?: (value: string) => void;
+  vendors?: VendorOption[];
+  showVendorFilter?: boolean;
 }
 
 export const POFilters: React.FC<POFiltersProps> = ({
-  searchTerm,
-  onSearchChange,
   statusFilter,
   onStatusChange,
   onClearFilters,
   showStatusFilter = true,
+  vendorFilter,
+  onVendorChange,
+  vendors = [],
+  showVendorFilter = false,
 }) => {
-  const hasActiveFilters = searchTerm || statusFilter !== 'all';
+  const hasActiveFilters = statusFilter !== 'all' || (vendorFilter && vendorFilter !== 'all');
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      {/* Search */}
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search by PO number, vendor, or project..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
+    <div className="flex flex-wrap gap-4 mb-6">
       {/* Status Filter */}
       {showStatusFilter && (
         <Select value={statusFilter} onValueChange={onStatusChange}>
@@ -59,6 +56,23 @@ export const POFilters: React.FC<POFiltersProps> = ({
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Vendor Filter */}
+      {showVendorFilter && onVendorChange && (
+        <Select value={vendorFilter || 'all'} onValueChange={onVendorChange}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Filter by vendor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Vendors</SelectItem>
+            {vendors.map((vendor) => (
+              <SelectItem key={vendor.id} value={vendor.id}>
+                {vendor.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       )}

@@ -8,6 +8,7 @@ import { purchaseOrdersService, POStatus } from '@/services/modules/purchase-ord
 import { POStatusBadge } from '@/components/purchase-order/POStatusBadge';
 import { POQuickActions } from '@/components/purchase-order/POQuickActions';
 import { POFilters } from '@/components/purchase-order/POFilters';
+import AISearchBar from '@/components/shared/AISearchBar';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAsyncOperation } from '@/hooks/useAsyncOperation';
@@ -52,11 +53,61 @@ const IndustryPurchaseOrders = () => {
   };
 
   const handleExport = async (orderId: string) => {
-    await purchaseOrdersService.exportToPDF(orderId);
+    try {
+      // Fetch full PO details
+      const response = await purchaseOrdersService.getById(orderId);
+      const poDetails = response.data;
+
+      // Import PDF generator dynamically
+      const { exportPOToPDF } = await import('@/services/pdf-generator');
+
+      // Generate and download PDF
+      await exportPOToPDF(poDetails);
+    } catch (error) {
+      console.error('Error exporting PO:', error);
+      // Fallback to backend PDF export if frontend PDF fails
+      try {
+        await purchaseOrdersService.exportToPDF(orderId);
+      } catch (backendError) {
+        console.error('Backend PDF export also failed:', backendError);
+        throw error;
+      }
+    }
+  };
+
+  const { execute: executeSubmit } = useAsyncOperation({
+    showSuccessToast: true,
+    successMessage: 'Purchase order submitted to vendor',
+    onSuccess: () => refetch(),
+  });
+
+  const handleSubmit = async (orderId: string) => {
+    await executeSubmit(() => purchaseOrdersService.send(orderId));
+  };
+
+  const handleEdit = (orderId: string) => {
+    navigate(`/dashboard/purchase-orders/${orderId}/edit`);
+  };
+
+  const { execute: executeDelete } = useAsyncOperation({
+    showSuccessToast: true,
+    successMessage: 'Purchase order deleted successfully',
+    onSuccess: () => refetch(),
+  });
+
+  const handleDelete = async (orderId: string) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this purchase order? This action cannot be undone.'
+    );
+    if (confirmed) {
+      await executeDelete(() => purchaseOrdersService.delete(orderId));
+    }
   };
 
   const handleRowClick = (row: any) => {
-    navigate(`/dashboard/purchase-orders/${row.id}`);
+    if (row?.id) {
+      navigate(`/dashboard/purchase-orders/${row.id}`);
+    }
   };
 
   const handleClearFilters = () => {
@@ -90,39 +141,42 @@ const IndustryPurchaseOrders = () => {
       label: 'Total Value',
       isSortable: true,
       align: 'right',
-      render: (row) => `${row.currency} ${row.totalValue.toLocaleString()}`,
+      render: (value, row) => `${row.currency || 'INR'} ${(row.totalValue || row.amount || 0).toLocaleString()}`,
     },
     {
       name: 'startDate',
       label: 'Start Date',
       isSortable: true,
-      render: (row) => format(new Date(row.startDate), 'PP'),
+      render: (value, row) => row.startDate ? format(new Date(row.startDate), 'PP') : '-',
     },
     {
       name: 'endDate',
       label: 'End Date',
       isSortable: true,
-      render: (row) => format(new Date(row.endDate), 'PP'),
+      render: (value, row) => row.endDate ? format(new Date(row.endDate), 'PP') : '-',
     },
     {
       name: 'status',
       label: 'Status',
       isSortable: true,
-      render: (row) => <POStatusBadge status={row.status} />,
+      render: (value, row) => <POStatusBadge status={value} />,
     },
     {
       name: 'actions',
       label: 'Actions',
       align: 'right',
-      render: (row) => (
+      render: (value, row) => row?.id ? (
         <POQuickActions
           orderId={row.id}
           status={row.status}
           onApprove={() => handleApprove(row.id)}
           onReject={() => handleReject(row.id)}
           onExport={() => handleExport(row.id)}
+          onSubmit={() => handleSubmit(row.id)}
+          onEdit={() => handleEdit(row.id)}
+          onDelete={() => handleDelete(row.id)}
         />
-      ),
+      ) : null,
     },
   ];
 
@@ -174,9 +228,8 @@ const IndustryPurchaseOrders = () => {
             Manage and track all purchase orders
           </p>
         </div>
-        <Button onClick={() => navigate('/dashboard/purchase-orders/create')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Purchase Order
+        <Button onClick={() => navigate('/dashboard/quotations-approved')} variant="outline" className="gap-2">
+          View Approved Quotations
         </Button>
       </div>
 
@@ -223,9 +276,16 @@ const IndustryPurchaseOrders = () => {
         </Card>
       </div>
 
+      {/* AI Search Bar */}
+      <AISearchBar
+        value={searchTerm}
+        onChange={setSearchTerm}
+        placeholder="Search purchase orders with AI..."
+        isLoading={isLoading}
+      />
+
+      {/* Filter Dropdowns */}
       <POFilters
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusChange={(value) => setStatusFilter(value as POStatus | 'all')}
         onClearFilters={handleClearFilters}
@@ -237,7 +297,6 @@ const IndustryPurchaseOrders = () => {
         onRowClick={handleRowClick}
         selectable={true}
         onSelectionChange={setSelectedRows}
-        globalSearchPlaceholder="Search purchase orders..."
         pagination={{
           enabled: true,
           pageSize,

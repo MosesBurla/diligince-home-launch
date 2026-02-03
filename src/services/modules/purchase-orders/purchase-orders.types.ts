@@ -1,33 +1,37 @@
 import { PaginationParams, PaginationResponse } from '../../core/common.types';
 
 // ============= Status Types =============
-export type POStatus = 
-  | 'draft' 
-  | 'pending_approval' 
-  | 'approved' 
-  | 'in_progress' 
-  | 'completed' 
+export type POStatus =
+  | 'draft'
+  | 'pending_approval'
+  | 'approved'
+  | 'in_progress'
+  | 'completed'
   | 'cancelled';
 
-export type MilestoneStatus = 
-  | 'pending' 
-  | 'in_progress' 
-  | 'completed' 
+export type MilestoneStatus =
+  | 'pending'
+  | 'in_progress'
+  | 'completed'
   | 'overdue';
 
-export type InvoiceStatus = 
-  | 'draft' 
-  | 'pending' 
-  | 'paid' 
-  | 'overdue' 
+export type InvoiceStatus =
+  | 'draft'
+  | 'pending'
+  | 'paid'
+  | 'overdue'
   | 'cancelled';
 
-export type DeliveryStatus = 
-  | 'not_started' 
-  | 'in_transit' 
-  | 'partially_delivered' 
-  | 'delivered' 
+export type DeliveryStatus =
+  | 'not_started'
+  | 'in_transit'
+  | 'partially_delivered'
+  | 'delivered'
   | 'delayed';
+
+export type RecipientType = 'vendor' | 'professional';
+
+export type VendorResponseStatus = 'pending' | 'accepted' | 'rejected' | 'negotiating';
 
 // ============= Main Purchase Order Interface =============
 export interface PurchaseOrder {
@@ -37,7 +41,11 @@ export interface PurchaseOrder {
   vendorName: string;
   requirementId: string;
   quotationId: string;
-  
+
+  // Recipient Info
+  recipientType?: RecipientType;
+  recipientId?: string;
+
   // Financial details
   status: POStatus;
   amount: number;
@@ -46,12 +54,12 @@ export interface PurchaseOrder {
   totalValue: number;
   currency: string;
   paymentTerms: string;
-  
+
   // Project details
   projectTitle: string;
   scopeOfWork: string;
   specialInstructions?: string;
-  
+
   // Timeline
   startDate: string;
   endDate: string;
@@ -59,17 +67,22 @@ export interface PurchaseOrder {
   updatedAt: string;
   approvedAt?: string;
   completedAt?: string;
-  
+  sentToVendorAt?: string;
+
   // Progress tracking
   completionPercentage: number;
   milestonesCompleted: number;
   milestonesPending: number;
   totalMilestones: number;
-  
+
   // Summary counts
   totalInvoices: number;
   paidInvoices: number;
   pendingInvoices: number;
+
+  // Vendor Response
+  vendorResponseStatus?: VendorResponseStatus;
+  acceptanceDeadline?: string;
 }
 
 // ============= Detailed Purchase Order (with relations) =============
@@ -85,6 +98,50 @@ export interface PurchaseOrderDetail extends PurchaseOrder {
   documents: Document[];
   activityLog: ActivityLog[];
   approvalWorkflow: ApprovalWorkflow;
+  isoCompliance?: ISOCompliance | null;
+
+  // Optional fields for backward compatibility and legacy support
+  poNumber?: string;  // Display-friendly PO number
+  milestones?: PaymentMilestone[];  // Legacy alias for paymentMilestones
+  vendorEmail?: string;  // Flattened vendor email
+  vendorPhone?: string;  // Flattened vendor phone
+  subtotal?: number;  // Pre-tax subtotal
+  gstRate?: number;  // GST/Tax rate percentage
+  termsConditions?: string;  // Terms and conditions text
+  vendorResponse?: VendorResponse;
+}
+
+
+// ============= ISO Compliance =============
+export interface ISOCompliance {
+  termsAndConditions: string[];
+  qualityRequirements: string[];
+  warrantyPeriod: string;
+  penaltyClause: string;
+}
+
+// ============= Vendor Response =============
+export interface VendorResponse {
+  status: VendorResponseStatus;
+  respondedAt?: string;
+  respondedBy?: string;
+  comments?: string;
+  digitalSignature?: {
+    signedBy: string;
+    designation: string;
+    signedAt: string;
+  };
+  negotiationNotes?: string;
+  negotiationHistory?: NegotiationItem[];
+}
+
+export interface NegotiationItem {
+  field: string;
+  originalValue: any;
+  proposedValue: any;
+  reason: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  respondedAt?: string;
 }
 
 // ============= Related Entity Types =============
@@ -95,6 +152,9 @@ export interface VendorInfo {
   email: string;
   phone: string;
   rating: number;
+  type?: RecipientType;
+  gstin?: string;
+  address?: string;
 }
 
 export interface RequirementInfo {
@@ -119,10 +179,16 @@ export interface Deliverable {
   unitPrice: number;
   totalPrice: number;
   status: 'pending' | 'in_progress' | 'delivered';
+
+  // Legacy aliases for backward compatibility
+  rate?: number;  // Alias for unitPrice
+  amount?: number;  // Alias for totalPrice
+  specifications?: string;
 }
 
 export interface PaymentMilestone {
   id: string;
+  name?: string;
   description: string;
   percentage: number;
   amount: number;
@@ -131,6 +197,19 @@ export interface PaymentMilestone {
   completedAt?: string;
   proofDocuments?: Document[];
   invoiceId?: string;
+
+  //Legacy aliases
+  milestoneName?: string;  // Alias for name
+  title?: string;  // Another alias for name
+}
+
+export interface AcceptanceCriteriaDocument {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploadedAt?: string;
 }
 
 export interface AcceptanceCriteria {
@@ -140,6 +219,7 @@ export interface AcceptanceCriteria {
   verifiedAt?: string;
   verifiedBy?: string;
   notes?: string;
+  documents?: AcceptanceCriteriaDocument[];
 }
 
 export interface Invoice {
@@ -214,6 +294,71 @@ export interface ApprovalWorkflow {
   }>;
 }
 
+// ============= PO Subscription Limit =============
+export interface POLimitStatus {
+  canGenerate: boolean;
+  used: number;
+  limit: number | 'unlimited';
+  remaining: number | 'unlimited';
+  periodStart: string;
+  periodEnd: string;
+  resetDate: string;
+  planName: string;
+  warningThreshold: number;
+  isWarning: boolean;
+  upgradeOptions?: UpgradeOption[];
+}
+
+export interface UpgradeOption {
+  planCode: string;
+  planName: string;
+  poLimit: number | 'unlimited';
+  monthlyPrice: number;
+}
+
+// ============= PO Pre-fill from Quotation =============
+export interface POPrefillData {
+  quotationId: string;
+  quotationNumber: string;
+  requirementId: string;
+  requirementTitle: string;
+  vendor: {
+    id: string;
+    type: RecipientType;
+    name: string;
+    contactPerson: string;
+    email: string;
+    phone: string;
+    gstin?: string;
+    address?: string;
+  };
+  financial: {
+    subtotal: number;
+    taxPercentage: number;
+    taxAmount: number;
+    totalAmount: number;
+    currency: string;
+    validUntil: string;
+  };
+  lineItems: Array<{
+    description: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    totalPrice: number;
+    specifications?: string;
+  }>;
+  proposedDeliveryDays: number;
+  suggestedStartDate: string;
+  suggestedEndDate: string;
+  proposalSummary?: string; // For Scope of Work pre-fill
+  termsFromQuotation: {
+    paymentTerms: string;
+    warrantyPeriod?: string;
+    deliveryTerms?: string;
+  };
+}
+
 // ============= Request Types =============
 export interface CreatePORequest {
   quotationId: string;
@@ -230,6 +375,7 @@ export interface CreatePORequest {
     unitPrice: number;
   }>;
   paymentMilestones: Array<{
+    name?: string;
     description: string;
     percentage: number;
     dueDate: string;
@@ -237,6 +383,13 @@ export interface CreatePORequest {
   acceptanceCriteria: Array<{
     criteria: string;
   }>;
+  isoCompliance?: {
+    termsAndConditions?: string[];
+    qualityRequirements?: string[];
+    warrantyPeriod?: string;
+    penaltyClause?: string;
+  };
+  saveAsDraft?: boolean;
 }
 
 export interface UpdatePORequest {
@@ -255,6 +408,7 @@ export interface UpdatePORequest {
   }>;
   paymentMilestones?: Array<{
     id?: string;
+    name?: string;
     description: string;
     percentage: number;
     dueDate: string;
@@ -263,6 +417,20 @@ export interface UpdatePORequest {
     id?: string;
     criteria: string;
   }>;
+  isoCompliance?: {
+    termsAndConditions?: string[];
+    qualityRequirements?: string[];
+    warrantyPeriod?: string;
+    penaltyClause?: string;
+  };
+}
+
+export interface SendPORequest {
+  message?: string;
+  notifyViaEmail?: boolean;
+  notifyViaPlatform?: boolean;
+  requireDigitalAcceptance?: boolean;
+  acceptanceDeadline?: string;
 }
 
 export interface CancelPORequest {
@@ -310,11 +478,39 @@ export interface DeliveryUpdateRequest {
   delayReason?: string;
 }
 
+export interface ExportPDFOptions {
+  includeTerms?: boolean;
+  includeSignature?: boolean;
+  template?: 'standard' | 'detailed' | 'compact';
+}
+
 export interface ExportXLSXRequest {
   orderIds?: string[];
   status?: POStatus;
   dateFrom?: string;
   dateTo?: string;
+}
+
+// ============= Vendor Response Types =============
+export interface VendorPOResponseRequest {
+  action: 'accept' | 'reject' | 'negotiate';
+  comments?: string;
+  reason?: string;
+  estimatedCompletionDate?: string;
+  digitalSignature?: {
+    signedBy: string;
+    designation: string;
+  };
+  negotiationPoints?: Array<{
+    field: string;
+    currentValue: any;
+    proposedValue: any;
+    reason: string;
+  }>;
+  alternativeProposal?: {
+    suggestedStartDate?: string;
+    suggestedEndDate?: string;
+  };
 }
 
 // ============= Response Types =============
@@ -327,12 +523,82 @@ export interface POListResponse {
     totalValue: number;
     activeOrders: number;
     completedOrders: number;
+    usageThisMonth?: {
+      used: number;
+      limit: number | 'unlimited';
+      remaining: number | 'unlimited';
+    };
   };
 }
 
 export interface PODetailResponse {
   success: boolean;
   data: PurchaseOrderDetail;
+}
+
+export interface POLimitResponse {
+  success: boolean;
+  data: POLimitStatus;
+}
+
+export interface POPrefillResponse {
+  success: boolean;
+  data: POPrefillData;
+}
+
+export interface POCreateResponse {
+  success: boolean;
+  data: {
+    id: string;
+    poNumber: string;
+    status: POStatus;
+    quotation: {
+      id: string;
+      quotationNumber: string;
+      vendorName: string;
+    };
+    recipientType: RecipientType;
+    recipientId: string;
+    projectTitle: string;
+    subtotal: number;
+    taxPercentage: number;
+    taxAmount: number;
+    totalAmount: number;
+    currency: string;
+    createdAt: string;
+    usageInfo: {
+      used: number;
+      limit: number | 'unlimited';
+      remaining: number | 'unlimited';
+    };
+  };
+  message: string;
+}
+
+export interface POSendResponse {
+  success: boolean;
+  data: {
+    id: string;
+    poNumber: string;
+    status: POStatus;
+    sentToVendorAt: string;
+    sentBy: {
+      userId: string;
+      name: string;
+    };
+    recipient: {
+      type: RecipientType;
+      id: string;
+      name: string;
+      email: string;
+    };
+    acceptanceDeadline?: string;
+    notifications: {
+      emailSent: boolean;
+      platformNotified: boolean;
+    };
+  };
+  message: string;
 }
 
 export interface MilestoneListResponse {
@@ -355,13 +621,79 @@ export interface ActivityLogResponse {
   data: ActivityLog[];
 }
 
+// ============= Vendor PO Types =============
+export interface VendorPurchaseOrder {
+  id: string;
+  poNumber: string;
+  status: POStatus;
+  industry: {
+    id: string;
+    name: string;
+    contactPerson: string;
+    email: string;
+  };
+  projectTitle: string;
+  totalAmount: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  receivedAt: string;
+  acceptanceDeadline?: string;
+  requiresResponse: boolean;
+  vendorResponseStatus?: VendorResponseStatus;
+}
+
+export interface VendorPOListResponse {
+  success: boolean;
+  data: {
+    purchaseOrders: VendorPurchaseOrder[];
+    summary: {
+      total: number;
+      pending: number;
+      accepted: number;
+      inProgress: number;
+      completed: number;
+      totalValue: number;
+    };
+  };
+  pagination: PaginationResponse;
+}
+
+export interface VendorPODetailResponse {
+  success: boolean;
+  data: PurchaseOrderDetail & {
+    industry: {
+      id: string;
+      name: string;
+      contactPerson: string;
+      email: string;
+      phone: string;
+      address: string;
+    };
+    receivedAt: string;
+    acceptanceDeadline?: string;
+    requiresResponse: boolean;
+    canAccept: boolean;
+    canReject: boolean;
+    canNegotiate: boolean;
+  };
+}
+
 // ============= Query Params =============
 export interface POListParams extends PaginationParams {
   status?: POStatus;
   vendorId?: string;
+  recipientType?: RecipientType;
   dateFrom?: string;
   dateTo?: string;
   search?: string;
   minAmount?: number;
   maxAmount?: number;
+}
+
+export interface VendorPOListParams extends PaginationParams {
+  status?: POStatus | 'pending' | 'accepted' | 'rejected';
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }

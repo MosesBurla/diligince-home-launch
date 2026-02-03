@@ -5,7 +5,7 @@ import { getDashboardRoute } from '@/types/shared';
 
 const PUBLIC_ROUTES = [
   '/', '/about', '/contact', '/pricing', '/blog', '/careers',
-  '/legal', '/privacy', '/terms', '/signup', '/signin', '/login',
+  '/legal', '/privacy', '/terms', '/signup', '/login',
   '/forgot-password', '/pending-approval'
 ];
 
@@ -17,28 +17,28 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { user, isLoading } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   useEffect(() => {
     if (!isLoading) {
-      const isPublicRoute = PUBLIC_ROUTES.some(route => 
-        location.pathname === route || 
+      const isPublicRoute = PUBLIC_ROUTES.some(route =>
+        location.pathname === route ||
         location.pathname.startsWith('/blog/') ||
         location.pathname.startsWith('/reset-password/')
       );
-      
+
       // Not logged in and trying to access protected route
       if (!user && !isPublicRoute) {
         navigate('/login', { replace: true, state: { from: location.pathname } });
       }
-      
-      // Logged in and on signin/signup/login pages - redirect to dashboard
-      if (user && (location.pathname === '/signin' || location.pathname === '/signup' || location.pathname === '/login')) {
+
+      // Logged in and on signup/login pages - redirect to dashboard
+      if (user && (location.pathname === '/signup' || location.pathname === '/login')) {
         const dashboardUrl = getDashboardRoute(user);
         navigate(dashboardUrl, { replace: true });
       }
     }
   }, [user, isLoading, location.pathname, navigate]);
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -49,6 +49,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       </div>
     );
   }
-  
+
   return <>{children}</>;
 };

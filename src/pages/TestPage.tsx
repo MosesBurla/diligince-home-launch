@@ -43,10 +43,9 @@ const TestPage: React.FC = () => {
             <a href="/contact" className="text-blue-600 hover:underline">
               Contact
             </a>
-            <a href="/signin" className="text-blue-600 hover:underline">
-              Sign In
-            </a>
-          </div>
+            <a href="/login" className="text-blue-600 hover:underline">
+              login
+            </a>{' '}         </div>
         </div>
       </div>
     </div>

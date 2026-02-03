@@ -55,7 +55,7 @@ export const PermissionsProvider: React.FC<PermissionsProviderProps> = ({ childr
     localStorage.removeItem('hasCompletedOnboarding');
     // Redirect to login
     setTimeout(() => {
-      window.location.href = '/signin';
+      window.location.href = '/login';
     }, 1000);
   };
 
@@ -248,3 +248,4 @@ export const usePermissionsContext = (): PermissionsContextType => {
   }
   return context;
 };
+

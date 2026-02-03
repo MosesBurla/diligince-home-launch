@@ -40,7 +40,7 @@ const Navbar = () => {
         <div className="flex items-center">
           <Link to="/" className="flex items-center space-x-2">
             <img
-              src={location.pathname === '/signup' || location.pathname === '/signin' || location.pathname === '/login'
+              src={location.pathname === '/signup' || location.pathname === '/login'
                 ? "/diligence-no-bg-white.svg"
                 : "/logo-main-no-bg.svg"
               }
@@ -66,7 +66,7 @@ const Navbar = () => {
             Contact
           </Link>
           {/* <Button variant="outline" className="mr-2 bg-transparent border-white text-white hover:bg-white hover:text-primary transition-all duration-200" asChild>
-            <Link to="/signin">Log In</Link>
+            <Link to="/login">Log In</Link>
           </Button>
           <Button className="bg-white text-primary hover:bg-primary/5 hover:text-primary transition-all duration-200" asChild>
             <Link to="/signup">Sign In</Link>

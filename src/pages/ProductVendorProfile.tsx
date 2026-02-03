@@ -29,7 +29,7 @@ const ProductVendorProfile = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate("/signin");
+      navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
@@ -112,3 +112,4 @@ const ProductVendorProfile = () => {
 };
 
 export default ProductVendorProfile;
+

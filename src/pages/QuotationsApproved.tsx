@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { Plus, FileText } from "lucide-react";
 import CustomTable from "@/components/CustomTable";
 import { ColumnConfig, FilterConfig } from "@/types/table";
 import { quotationService } from "@/services/modules/quotations";
 import type { Quotation } from "@/types/quotation";
 import { useToast } from "@/hooks/use-toast";
 import { TableSkeletonLoader } from "@/components/shared/loading";
+import { Button } from "@/components/ui/button";
+import AISearchBar from "@/components/shared/AISearchBar";
 
 const QuotationsApproved = () => {
   const [selectedRows, setSelectedRows] = useState<Quotation[]>([]);
@@ -34,13 +37,16 @@ const QuotationsApproved = () => {
   const tableData = quotations.map((q) => ({
     id: q.quotationNumber,
     requirementId: q.requirementId,
+    requirementNumber: (q as any).requirementNumber, // Will be populated when backend adds this field
     requirementTitle: q.requirementTitle,
+    requirementDisplay: (q as any).requirementNumber || q.requirementTitle || 'N/A',
     vendorName: q.vendorName,
     quotedAmount: `${q.currency} ${q.quotedAmount.toLocaleString()}`,
     approvedDate: q.approvedDate ? new Date(q.approvedDate).toLocaleDateString() : "N/A",
     approvedBy: q.approvedBy || "N/A",
     contractValue: `${q.currency} ${q.quotedAmount.toLocaleString()}`,
     status: q.status,
+    quotationId: q.id, // Add quotation ID for Create PO action
   }));
 
   const columns: ColumnConfig[] = [
@@ -56,12 +62,20 @@ const QuotationsApproved = () => {
       width: "120px",
     },
     {
-      name: "requirementId",
+      name: "requirementDisplay",
       label: "Requirement",
       isSortable: true,
       isSearchable: true,
       action: (row) => navigate(`/dashboard/requirements/${row.requirementId}`),
-      width: "120px",
+      width: "180px",
+      render: (row) => (
+        <span 
+          className="text-primary hover:underline cursor-pointer font-medium"
+          title={row.requirementTitle}
+        >
+          {row.requirementNumber || row.requirementTitle || 'N/A'}
+        </span>
+      ),
     },
     {
       name: "requirementTitle",
@@ -106,6 +120,25 @@ const QuotationsApproved = () => {
       filterOptions: [
         { key: "approved", value: "Approved", color: "#dcfce7" },
       ],
+    },
+    {
+      name: "actions",
+      label: "Actions",
+      align: "center",
+      width: "120px",
+      render: (row) => (
+        <Button
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/dashboard/purchase-orders/create?quotationId=${row.quotationId}`);
+          }}
+          className="gap-1"
+        >
+          <Plus className="h-3 w-3" />
+          Create PO
+        </Button>
+      ),
     },
   ];
 
@@ -168,6 +201,15 @@ const QuotationsApproved = () => {
         </p>
       </div>
 
+      {/* AI Search Bar */}
+      <AISearchBar
+        value={searchTerm}
+        onChange={handleSearch}
+        placeholder="Search approved quotations with AI..."
+        isLoading={isLoading}
+        className="mb-6"
+      />
+
       {isLoading ? (
         <TableSkeletonLoader rows={8} columns={6} showFilters showActions />
       ) : (
@@ -175,14 +217,12 @@ const QuotationsApproved = () => {
           columns={columns}
           data={tableData}
           filterCallback={handleFilter}
-          searchCallback={handleSearch}
           onExport={{
             xlsx: handleExportXLSX,
             csv: handleExportCSV,
           }}
           selectable={true}
           onSelectionChange={handleSelectionChange}
-          globalSearchPlaceholder="Search approved quotations..."
           pagination={{
             enabled: true,
             pageSize: pageSize,

@@ -31,6 +31,7 @@ import {
   TrendingUp,
   AlertCircle,
   X,
+  ShoppingCart,
 } from "lucide-react";
 import { DetailPageSkeleton } from "@/components/shared/loading";
 import { quotationService } from "@/services/quotation.service";
@@ -265,6 +266,7 @@ export default function QuotationDetails() {
   const canApprove = quotation.status === 'pending_review' || quotation.status === 'under_evaluation';
   const canReject = quotation.status === 'pending_review' || quotation.status === 'under_evaluation';
   const canRequestClarification = quotation.status !== 'approved' && quotation.status !== 'rejected' && quotation.status !== 'expired';
+  const canCreatePO = quotation.status === 'approved';
 
   return (
     <div className="min-h-screen bg-background">
@@ -333,6 +335,12 @@ export default function QuotationDetails() {
               <GitCompare className="h-4 w-4 mr-2" />
               Compare
             </Button>
+            {canCreatePO && (
+              <Button onClick={() => navigate(`/dashboard/create-purchase-order?quotationId=${quotation.id}`)}>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Create PO
+              </Button>
+            )}
           </div>
         </div>
       </div>

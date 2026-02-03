@@ -7,22 +7,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Download, FileText, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { purchaseOrdersService } from '@/services/modules/purchase-orders';
+import VendorPurchaseOrderDetails from './VendorPurchaseOrderDetails';
 import { DetailPageSkeleton } from '@/components/shared/loading';
 import { POOverviewTab } from '@/components/purchase-order/POOverviewTab';
 import { POLineItemsTab } from '@/components/purchase-order/POLineItemsTab';
 import { POMilestonesTab } from '@/components/purchase-order/POMilestonesTab';
 import { PODeliveryTab } from '@/components/purchase-order/PODeliveryTab';
 import { POInvoicesTab } from '@/components/purchase-order/POInvoicesTab';
-import { PODocumentsTab } from '@/components/purchase-order/PODocumentsTab';
+import { POAcceptanceCriteriaTab } from '@/components/purchase-order/POAcceptanceCriteriaTab';
 import { POActivityTab } from '@/components/purchase-order/POActivityTab';
+import { exportPOToPDF } from '@/services/pdf-generator';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
 
 const PurchaseOrderDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useUser();
+
+  // Check user type for vendor detection (userType is more reliable than role)
+  const isVendorUser = user?.userType === 'Vendor';
+
+  // If user is a vendor, use the vendor-specific component
+  if (isVendorUser) {
+    return <VendorPurchaseOrderDetails />;
+  }
+
+  // Otherwise, continue with industry PO details
 
   const { data: poDetail, isLoading, error } = useQuery({
     queryKey: ['purchase-order', id],
-    queryFn: () => purchaseOrdersService.getById(id!),
+    queryFn: async () => {
+      const response = await purchaseOrdersService.getById(id!);
+      return response.data;
+    },
     enabled: !!id,
   });
 
@@ -49,8 +68,23 @@ const PurchaseOrderDetails = () => {
   };
 
   const handleExportPDF = async () => {
-    if (!id) return;
-    await purchaseOrdersService.exportToPDF(id);
+    if (!poDetail) return;
+
+    try {
+      // Use client-side PDF generation
+      await exportPOToPDF(poDetail);
+      toast({
+        title: 'Success',
+        description: 'PDF exported successfully',
+      });
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to export PDF',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (isLoading) {
@@ -76,8 +110,17 @@ const PurchaseOrderDetails = () => {
     );
   }
 
-  const po = poDetail.data;
-  const showApprovalActions = po.status === 'pending_approval';
+  const po = poDetail;
+
+  // Role-based access control - use userType for reliable vendor/industry detection
+  const isVendor = user?.userType === 'Vendor';
+  const isIndustry = user?.userType === 'Industry' || user?.role === 'industry';
+
+  // Only vendors can approve/reject POs sent to them
+  const showApprovalActions = po.status === 'pending_approval' && isVendor;
+
+  // Only industry users can edit (not vendors)
+  const canEdit = (po.status === 'draft' || po.status === 'cancelled') && isIndustry;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -87,11 +130,15 @@ const PurchaseOrderDetails = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/dashboard/industry-purchase-orders')}
+            onClick={() => navigate(
+              isVendor
+                ? '/dashboard/service-vendor'  // Vendor dashboard
+                : '/dashboard/industry-purchase-orders'  // Industry PO list
+            )}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Purchase Orders
+            Back to {isVendor ? 'Dashboard' : 'Purchase Orders'}
           </Button>
         </div>
 
@@ -107,7 +154,7 @@ const PurchaseOrderDetails = () => {
               </div>
               <p className="text-muted-foreground">{po.projectTitle}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Vendor: {po.vendorName || 'N/A'}
+                Vendor: {po.vendor?.name || po.vendorName || 'N/A'}
               </p>
             </div>
 
@@ -128,14 +175,16 @@ const PurchaseOrderDetails = () => {
                 <Download className="h-4 w-4" />
                 Export PDF
               </Button>
-              <Button 
-                variant="outline" 
-                className="gap-2"
-                onClick={() => navigate(`/dashboard/purchase-orders/${id}/edit`)}
-              >
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => navigate(`/dashboard/purchase-orders/${id}/edit`)}
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
             </div>
           </div>
         </Card>
@@ -146,9 +195,9 @@ const PurchaseOrderDetails = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="items">Line Items</TabsTrigger>
             <TabsTrigger value="milestones">Milestones</TabsTrigger>
+            <TabsTrigger value="acceptance">Acceptance Criteria</TabsTrigger>
             <TabsTrigger value="delivery">Delivery</TabsTrigger>
             <TabsTrigger value="invoices">Invoices</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="activity">Activity Log</TabsTrigger>
           </TabsList>
 
@@ -164,16 +213,16 @@ const PurchaseOrderDetails = () => {
             <POMilestonesTab orderId={po.id} milestones={po.paymentMilestones} />
           </TabsContent>
 
+          <TabsContent value="acceptance">
+            <POAcceptanceCriteriaTab criteria={po.acceptanceCriteria || []} />
+          </TabsContent>
+
           <TabsContent value="delivery">
             <PODeliveryTab orderId={po.id} delivery={po.deliveryTracking} />
           </TabsContent>
 
           <TabsContent value="invoices">
-            <POInvoicesTab orderId={po.id} invoices={po.invoices} />
-          </TabsContent>
-
-          <TabsContent value="documents">
-            <PODocumentsTab orderId={po.id} documents={po.documents} />
+            <POInvoicesTab orderId={po.id} invoices={po.invoices || []} />
           </TabsContent>
 
           <TabsContent value="activity">

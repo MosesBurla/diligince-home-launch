@@ -30,6 +30,9 @@ export const vendorQuotationsRoutes = {
   // Upload quotation documents
   uploadDocument: (quotationId: string) => `${BASE_PATH}/${quotationId}/documents`,
 
+  // Get purchase order for quotation
+  getPurchaseOrder: (quotationId: string) => `${BASE_PATH}/${quotationId}/purchase-order`,
+
   // Get quotation statistics
   stats: `${BASE_PATH}/stats`,
 };

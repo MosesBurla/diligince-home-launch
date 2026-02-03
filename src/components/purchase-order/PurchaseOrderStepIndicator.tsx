@@ -31,10 +31,10 @@ const PurchaseOrderStepIndicator: React.FC<StepIndicatorProps> = ({
   const isStepAccessible = (stepId: number) => {
     // First step is always accessible
     if (stepId === 1) return true;
-    
+
     // Current step and previous steps are always accessible
     if (stepId <= currentStep) return true;
-    
+
     // Allow access to the next step
     return stepId === currentStep + 1;
   };
@@ -61,15 +61,15 @@ const PurchaseOrderStepIndicator: React.FC<StepIndicatorProps> = ({
                     isStepCompleted(step.id)
                       ? "border-blue-600 bg-blue-600 text-white"
                       : isStepActive(step.id)
-                      ? "border-blue-600 bg-white text-blue-600"
-                      : "border-gray-300 bg-white text-gray-500",
+                        ? "border-blue-600 bg-white text-blue-600"
+                        : "border-gray-300 bg-white text-gray-500",
                     !isStepAccessible(step.id) && "cursor-not-allowed opacity-50"
                   )}
                   disabled={!isStepAccessible(step.id)}
                 >
                   <span className="text-sm">{step.id}</span>
                 </button>
-                <div className="absolute -bottom-8 text-center" style={{ width: "100px", marginLeft: "-45px" }}>
+                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
                   <span className={cn(
                     "text-xs font-medium",
                     isStepActive(step.id) ? "text-blue-600" : "text-gray-700"

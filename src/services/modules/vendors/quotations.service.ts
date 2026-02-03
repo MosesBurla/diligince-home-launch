@@ -108,6 +108,24 @@ class VendorQuotationsService {
     );
     return response.data;
   }
+
+  /**
+   * Get purchase order associated with a quotation
+   */
+  async getPurchaseOrderForQuotation(quotationId: string): Promise<any | null> {
+    try {
+      const response = await apiService.get<{ success: boolean; data: any; message?: string }>(
+        vendorQuotationsRoutes.getPurchaseOrder(quotationId)
+      );
+      return response.data; // Can be null if no PO exists
+    } catch (error) {
+      // If 404, return null (no PO exists yet)
+      if ((error as any)?.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
 }
 
 export const vendorQuotationsService = new VendorQuotationsService();
