@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    ImageName: "react-vite-shadcn"
+    AWS_ACCOUNT_ID: "627216615313"
+    AWS_DEFAULT_REGION: "us-east-1"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Docker Hub..."
+      - DOCKERHUB_USER=$(aws ssm get-parameter --name /dockerhub/username --query Parameter.Value --output text)
+      - DOCKERHUB_TOKEN=$(aws ssm get-parameter --name /dockerhub/token --with-decryption --query Parameter.Value --output text)
+      - echo $DOCKERHUB_TOKEN | docker login --username $DOCKERHUB_USER --password-stdin
+
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+
+      - echo "Files in project:"
+      - ls -la
+
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t $ImageName:latest -f Dockerfile .
+
+  post_build:
+    commands:
+      - echo "Tagging and pushing to ECR..."
+      - docker tag $ImageName:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ImageName:latest
+      - echo "Image pushed successfully!"
