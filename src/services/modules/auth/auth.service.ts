@@ -46,7 +46,10 @@ export const authService = {
   verify2FA: async (request: Verify2FARequest): Promise<Verify2FAResponse> => {
     const response = await api.post<Verify2FAResponse>(
       authRoutes.verify2FA,
-      request
+      {
+        sessionToken: request.twoFactorToken, // backend expects sessionToken
+        code: request.code,
+      }
     );
     return response.data;
   },
@@ -57,7 +60,7 @@ export const authService = {
   resend2FA: async (twoFactorToken: string): Promise<Resend2FAResponse> => {
     const response = await api.post<Resend2FAResponse>(
       authRoutes.resend2FA,
-      { twoFactorToken } as Resend2FARequest
+      { sessionToken: twoFactorToken } // backend expects sessionToken
     );
     return response.data;
   },
