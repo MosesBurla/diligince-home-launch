@@ -1,267 +1,318 @@
 
 
-# Unified AI Search Bar & Table Search Cleanup Plan
-## All Listing Pages Across All User Types
+# Chatbot Knowledge Base Documentation Plan
+## User-Specific Feature Docs with Page Links for Industry & Service Vendor
 
 ---
 
 ## Overview
 
-This plan standardizes search across every listing page in the application by:
-1. Updating the shared `AISearchBar` component to only trigger search on clicking the search icon (removing auto-debounce)
-2. Adding the `AISearchBar` to every listing page that is missing it
-3. Hiding the built-in search in `CustomTable` on all pages (`hideSearch={true}`)
-4. Consolidating the two duplicate `AISearchBar` components into one shared component
-5. Preparing a backend API specification document for all listing endpoints
+Create a new structured documentation folder (`docs/ChatBot/users/`) organized by user type, containing detailed markdown files that describe every feature, page, and workflow. The chatbot will use these docs to provide contextual help and clickable page links when users ask about features.
 
 ---
 
-## Part 1: AISearchBar Component Update
+## Folder Structure
 
-### Problem
-Currently the `AISearchBar` has a debounced auto-search that fires after 500ms of typing. The user wants search to only trigger when clicking the search icon or pressing Enter.
-
-### Changes to `src/components/shared/AISearchBar.tsx`
-- Remove the debounced `useEffect` that auto-triggers `onChange`
-- Keep the `handleSubmit` (Enter key / button click) as the only trigger
-- Add a subtle "AI-powered" label text next to the Sparkles icon for clearer AI indication
-- Maintain corporate minimal styling
-
-### Consolidation
-There are two identical `AISearchBar` components:
-- `src/components/shared/AISearchBar.tsx` (used by Industry pages)
-- `src/components/vendor/shared/AISearchBar.tsx` (used by Vendor pages)
-
-Both are functionally identical. Update the shared one and redirect vendor imports to use `@/components/shared/AISearchBar`.
-
----
-
-## Part 2: Full Audit of All Listing Pages
-
-### Pages Already Using AISearchBar (need `hideSearch={true}` on CustomTable)
-
-| Page | User Type | AISearchBar | CustomTable hideSearch | Action Needed |
-|------|-----------|-------------|----------------------|---------------|
-| `IndustryPurchaseOrders.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `PurchaseOrdersPending.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `PurchaseOrdersInProgress.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `PurchaseOrdersCompleted.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `IndustryQuotes.tsx` | Industry | Yes | Yes | Done |
-| `QuotationsForRequirement.tsx` | Industry | Yes | Check | Add `hideSearch` |
-| `QuotationsPending.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `QuotationsApproved.tsx` | Industry | Yes | No | Add `hideSearch` |
-| `VendorQuotations.tsx` | Vendor | Yes | Yes | Done |
-| `VendorRFQsBrowse.tsx` | Vendor | Yes | N/A (card view) | OK |
-| `VendorRFQsApplied.tsx` | Vendor | Yes | N/A (card view) | OK |
-
-### Pages MISSING AISearchBar (need AISearchBar + hideSearch)
-
-| Page | User Type | Current Search | Action |
-|------|-----------|----------------|--------|
-| `RequirementsDrafts.tsx` | Industry | Manual Input + CustomTable | Add AISearchBar, remove inline Input, add `hideSearch` |
-| `RequirementsApproved.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `RequirementsPending.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `RequirementsPublished.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `IndustryTeam.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `IndustryApprovals.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `IndustryDocuments.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `WorkflowsActive.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `StakeholdersProfessionals.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `StakeholdersVendors.tsx` | Industry | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-| `VendorTeamMembers.tsx` | Vendor | Manual Input | Replace with AISearchBar |
-| `VendorRFQsSaved.tsx` | Vendor | None | Add AISearchBar |
-| `ProfessionalCertifications.tsx` | Professional | CustomTable built-in | Add AISearchBar, add `hideSearch` |
-
----
-
-## Part 3: Implementation Details Per Page
-
-### 3.1 AISearchBar Component Changes
-
-**File:** `src/components/shared/AISearchBar.tsx`
-
-```tsx
-// Remove debounced auto-search effect
-// Keep only form submit (Enter key + search button click)
-// Add "AI-powered" indicator text
-```
-
-### 3.2 Industry Pages - Requirements Module
-
-**Files:** `RequirementsDrafts.tsx`, `RequirementsApproved.tsx`, `RequirementsPending.tsx`, `RequirementsPublished.tsx`
-
-For each:
-1. Import `AISearchBar` from `@/components/shared/AISearchBar`
-2. Add `AISearchBar` above the CustomTable
-3. Remove inline search Input (in RequirementsDrafts)
-4. Add `hideSearch={true}` to CustomTable
-5. Wire `onChange` to set searchTerm and reset pagination
-6. Keep existing filter dropdowns (CreatorFilterDropdown) as-is
-
-### 3.3 Industry Pages - Team, Approvals, Documents, Workflows, Stakeholders
-
-**Files:** `IndustryTeam.tsx`, `IndustryApprovals.tsx`, `IndustryDocuments.tsx`, `WorkflowsActive.tsx`, `StakeholdersProfessionals.tsx`, `StakeholdersVendors.tsx`
-
-For each:
-1. Import `AISearchBar`
-2. Add `AISearchBar` above CustomTable
-3. Add `hideSearch={true}` to CustomTable
-4. Wire search state
-
-### 3.4 Industry Pages - PO and Quotations (already have AISearchBar)
-
-**Files:** `IndustryPurchaseOrders.tsx`, `PurchaseOrdersPending.tsx`, `PurchaseOrdersInProgress.tsx`, `PurchaseOrdersCompleted.tsx`, `QuotationsPending.tsx`, `QuotationsApproved.tsx`, `QuotationsForRequirement.tsx`
-
-For each:
-1. Add `hideSearch={true}` to CustomTable (if not already set)
-
-### 3.5 Vendor Pages
-
-**`VendorTeamMembers.tsx`:**
-- Replace the manual `<Input>` search with `AISearchBar`
-- Keep existing Role and Status filter dropdowns
-
-**`VendorRFQsSaved.tsx`:**
-- Add `AISearchBar` above the card grid
-
-**`VendorQuotations.tsx`, `VendorRFQsBrowse.tsx`, `VendorRFQsApplied.tsx`:**
-- Update imports from `@/components/vendor/shared/AISearchBar` to `@/components/shared/AISearchBar`
-
-### 3.6 Professional Pages
-
-**`ProfessionalCertifications.tsx`:**
-- Add `AISearchBar` above CustomTable
-- Add `hideSearch={true}` to CustomTable
-
----
-
-## Part 4: Backend API Specification Document
-
-Create/update `docs/backend-api-specifications.md` with comprehensive listing endpoint specifications for all modules. This document will cover:
-
-### Industry Endpoints
-
-**1. Requirements List Endpoints**
-- `GET /api/v1/industry/requirements/drafts`
-- `GET /api/v1/industry/requirements/pending`
-- `GET /api/v1/industry/requirements/approved`
-- `GET /api/v1/industry/requirements/published`
-
-Add `search` parameter to all. Response should include `filters` metadata.
-
-**2. Purchase Orders Endpoints** (already documented)
-- `GET /api/v1/industry/purchase-orders`
-
-**3. Quotations Endpoints** (already documented)
-- `GET /api/v1/industry/quotations`
-
-**4. Team Endpoint**
-- `GET /api/v1/industry/team/members`
-  - Parameters: `search`, `role`, `department`, `status`, `page`, `limit`
-
-**5. Documents Endpoint**
-- `GET /api/v1/industry/documents`
-  - Parameters: `search`, `category`, `status`, `fileType`, `page`, `limit`
-
-**6. Approvals Endpoint**
-- `GET /api/v1/industry/approvals`
-  - Parameters: `search`, `type`, `status`, `priority`, `department`, `page`, `limit`
-
-**7. Workflows Endpoint**
-- `GET /api/v1/industry/workflows/active`
-  - Parameters: `search`, `status`, `vendor`, `page`, `limit`
-
-**8. Stakeholders Endpoints**
-- `GET /api/v1/industry/stakeholders/professionals`
-  - Parameters: `search`, `expertise`, `status`, `page`, `limit`
-- `GET /api/v1/industry/stakeholders/vendors`
-  - Parameters: `search`, `specialization`, `status`, `page`, `limit`
-
-### Vendor Endpoints
-
-**1. Quotations** (already documented)
-- `GET /api/v1/vendors/quotations`
-
-**2. RFQs**
-- `GET /api/v1/vendors/rfqs/browse` - Parameters: `search`, `category`, `status`, `page`, `limit`
-- `GET /api/v1/vendors/rfqs/applied` - Parameters: `search`, `status`, `page`, `limit`
-- `GET /api/v1/vendors/rfqs/saved` - Parameters: `search`, `page`, `limit`
-
-**3. Team**
-- `GET /api/v1/vendors/team/members` - Parameters: `search`, `role`, `status`, `page`, `limit`
-
-### Professional Endpoints
-
-**1. Certifications**
-- `GET /api/v1/professionals/certifications`
-  - Parameters: `search`, `category`, `level`, `status`, `page`, `limit`
-
-### Common Response Pattern for All Endpoints
-
-All listing endpoints should follow this response structure:
-
-```json
-{
-  "success": true,
-  "data": {
-    "<items_key>": [...],
-    "pagination": {
-      "page": 1,
-      "limit": 10,
-      "totalItems": 100,
-      "totalPages": 10
-    },
-    "filters": {
-      "statusCounts": { ... },
-      "<entity>s": [{ "id": "...", "name": "...", "count": 0 }]
-    },
-    "statistics": { ... }
-  }
-}
+```text
+docs/ChatBot/users/
+  industry/
+    00-overview.md
+    01-dashboard.md
+    02-requirements.md
+    03-quotations.md
+    04-purchase-orders.md
+    05-project-workflows.md
+    06-messages.md
+    07-analytics.md
+    08-diligince-hub.md
+    09-stakeholders.md
+    10-documents.md
+    11-approvals.md
+    12-settings.md
+    13-subscription.md
+  service-vendor/
+    00-overview.md
+    01-dashboard.md
+    02-rfqs.md
+    03-quotations.md
+    04-projects.md
+    05-messages.md
+    06-team.md
+    07-services.md
+    08-settings.md
+    09-subscription.md
 ```
 
 ---
 
-## Part 5: Files to Modify (Summary)
+## Document Format Standard
 
-| # | File | Change Type |
-|---|------|-------------|
-| 1 | `src/components/shared/AISearchBar.tsx` | Update: remove debounce, add AI label |
-| 2 | `src/pages/RequirementsDrafts.tsx` | Add AISearchBar, remove inline Input, add hideSearch |
-| 3 | `src/pages/RequirementsApproved.tsx` | Add AISearchBar, add hideSearch |
-| 4 | `src/pages/RequirementsPending.tsx` | Add AISearchBar, add hideSearch |
-| 5 | `src/pages/RequirementsPublished.tsx` | Add AISearchBar, add hideSearch |
-| 6 | `src/pages/IndustryTeam.tsx` | Add AISearchBar, add hideSearch |
-| 7 | `src/pages/IndustryApprovals.tsx` | Add AISearchBar, add hideSearch |
-| 8 | `src/pages/IndustryDocuments.tsx` | Add AISearchBar, add hideSearch |
-| 9 | `src/pages/WorkflowsActive.tsx` | Add AISearchBar, add hideSearch |
-| 10 | `src/pages/StakeholdersProfessionals.tsx` | Add AISearchBar, add hideSearch |
-| 11 | `src/pages/StakeholdersVendors.tsx` | Add AISearchBar, add hideSearch |
-| 12 | `src/pages/IndustryPurchaseOrders.tsx` | Add hideSearch to CustomTable |
-| 13 | `src/pages/PurchaseOrdersPending.tsx` | Add hideSearch to CustomTable |
-| 14 | `src/pages/PurchaseOrdersInProgress.tsx` | Add hideSearch to CustomTable |
-| 15 | `src/pages/PurchaseOrdersCompleted.tsx` | Add hideSearch to CustomTable |
-| 16 | `src/pages/QuotationsPending.tsx` | Add hideSearch to CustomTable |
-| 17 | `src/pages/QuotationsApproved.tsx` | Add hideSearch to CustomTable |
-| 18 | `src/pages/QuotationsForRequirement.tsx` | Add hideSearch to CustomTable |
-| 19 | `src/pages/VendorTeamMembers.tsx` | Replace inline Input with AISearchBar |
-| 20 | `src/pages/VendorRFQsSaved.tsx` | Add AISearchBar |
-| 21 | `src/pages/VendorQuotations.tsx` | Update import to shared AISearchBar |
-| 22 | `src/pages/VendorRFQsBrowse.tsx` | Update import to shared AISearchBar |
-| 23 | `src/pages/VendorRFQsApplied.tsx` | Update import to shared AISearchBar |
-| 24 | `src/pages/ProfessionalCertifications.tsx` | Add AISearchBar, add hideSearch |
-| 25 | `docs/backend-api-specifications.md` | Update with all listing endpoint specs |
+Every markdown file will follow this consistent structure:
 
-**Total: 25 files**
+```markdown
+# [Feature Name]
+
+## Overview
+Brief description of what this feature/module does.
+
+## Pages & Navigation
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Page Name | `/dashboard/path` | What this page shows |
+
+## Key Features
+- Feature 1
+- Feature 2
+
+## How To: [Action Name]
+### Steps
+1. Step 1
+2. Step 2
+
+## Page Details
+
+### [Page Name]
+**Route:** `/dashboard/path`
+**Description:** What the user sees on this page.
+**Available Actions:**
+- Action 1
+- Action 2
+
+## Common Questions
+**Q:** Question?
+**A:** Answer with page link: [Page Name](/dashboard/path)
+```
 
 ---
 
-## Implementation Sequence
+## Part 1: Industry User Documentation (13 files)
 
-1. Update `AISearchBar` component (remove debounce, search on click only, add AI indicator)
-2. Update all Industry pages (PO, Quotations, Requirements, Team, etc.)
-3. Update all Vendor pages
-4. Update Professional pages
-5. Consolidate vendor AISearchBar imports to shared component
-6. Update backend API specification document
+### `industry/00-overview.md`
+- What Industry users can do on Diligince.ai
+- Complete page index with all routes
+- Quick reference table of all modules and their routes
+- User roles (Admin, Procurement Manager, Finance Manager, Department Viewer)
+
+### `industry/01-dashboard.md`
+- **Route:** `/dashboard/industry`
+- KPI cards, procurement analytics, budget overview
+- Pending approvals widget
+- Active requirements and PO summaries
+- Quick actions (Create Requirement, View Quotes, etc.)
+
+### `industry/02-requirements.md`
+- **Pages & Routes:**
+  - All Requirements: `/dashboard/industry-requirements`
+  - Create New: `/dashboard/create-requirement`
+  - Drafts: `/dashboard/requirements/drafts`
+  - Pending Approval: `/dashboard/requirements/pending`
+  - Pending Detail: `/dashboard/requirements/pending/:id`
+  - Approved: `/dashboard/requirements/approved`
+  - Approved Detail: `/dashboard/requirements/approved/:id`
+  - Published: `/dashboard/requirements/published`
+  - Published Detail: `/dashboard/requirements/published/:id`
+  - Requirement Details: `/dashboard/requirements/:id`
+- 6-step creation wizard walkthrough
+- Status lifecycle: Draft -> Pending -> Approved -> Published
+- AI Search Bar usage on listing pages
+
+### `industry/03-quotations.md`
+- **Pages & Routes:**
+  - All Quotations: `/dashboard/industry-quotes`
+  - Pending Review: `/dashboard/quotations/pending`
+  - Approved: `/dashboard/quotations/approved`
+  - For Requirement: `/dashboard/quotations/requirement/:draftId`
+  - Quotation Details: `/dashboard/quotations/:id`
+- How to compare, approve, reject quotations
+- AI Search Bar on listing pages
+
+### `industry/04-purchase-orders.md`
+- **Pages & Routes:**
+  - All Orders: `/dashboard/industry-purchase-orders`
+  - Create PO: `/dashboard/create-purchase-order` (restricted, via approved quotations)
+  - Create/Edit: `/dashboard/purchase-orders/create`, `/dashboard/purchase-orders/:id/edit`
+  - Pending: `/dashboard/purchase-orders/pending`
+  - In Progress: `/dashboard/purchase-orders/in-progress`
+  - Completed: `/dashboard/purchase-orders/completed`
+  - PO Details: `/dashboard/purchase-orders/:id`
+- PO creation from approved quotation
+- Milestone tracking, deliverables, payment terms
+
+### `industry/05-project-workflows.md`
+- **Pages & Routes:**
+  - All Projects: `/dashboard/industry-workflows`
+  - Active Projects: `/dashboard/workflows/active`
+  - Project Details: `/dashboard/industry-project-workflow/:id`
+  - Workflow Details: `/dashboard/workflow-details/:id`
+- Task management, timeline, progress tracking
+
+### `industry/06-messages.md`
+- **Route:** `/dashboard/industry-messages`
+- Direct messaging with vendors
+- Contextual messaging (linked to requirements/POs)
+- File sharing, notifications
+
+### `industry/07-analytics.md`
+- **Route:** `/dashboard/industry-analytics`
+- Reports, procurement insights, charts
+- Export capabilities
+
+### `industry/08-diligince-hub.md`
+- **Pages & Routes:**
+  - Find Vendors: `/dashboard/Diligince-hub/vendors`
+  - Find Professionals: `/dashboard/Diligince-hub/professionals`
+- Vendor discovery, profile browsing, invite to quote
+- Requires subscription feature: DILIGENCE_HUB
+
+### `industry/09-stakeholders.md`
+- **Pages & Routes:**
+  - Vendors: `/dashboard/stakeholders/vendors`
+  - Professionals: `/dashboard/stakeholders/professionals`
+- Managing vendor and professional relationships
+
+### `industry/10-documents.md`
+- **Route:** `/dashboard/industry-documents`
+- Document management, upload, categorization
+
+### `industry/11-approvals.md`
+- **Pages & Routes:**
+  - Approvals: `/dashboard/industry-approvals`
+  - Pending Approvals: `/dashboard/pending-approvals`
+  - Approval Matrix: `/dashboard/approval-matrix`
+  - Create Matrix: `/dashboard/approval-matrix/create`
+  - View Matrix: `/dashboard/approval-matrix/:matrixId`
+  - Edit Matrix: `/dashboard/approval-matrix/:matrixId/edit`
+- Multi-level approval workflows
+
+### `industry/12-settings.md`
+- **Pages & Routes:**
+  - Company Profile: `/dashboard/industry-settings`
+  - Team Members: `/dashboard/industry-team`
+  - Role Management: `/dashboard/role-management`
+  - Create Role: `/dashboard/role-management/create`
+  - View Role: `/dashboard/role-management/:roleId`
+  - Edit Role: `/dashboard/role-management/:roleId/edit`
+  - Approval Matrix: `/dashboard/industry-approval-matrix`
+  - Notifications: `/dashboard/industry-notifications`
+  - Account Settings: `/settings/account-settings`
+- RBAC, team management, notification preferences
+
+### `industry/13-subscription.md`
+- **Pages & Routes:**
+  - My Plan: `/dashboard/subscription/plans`
+  - Transactions: `/dashboard/subscription/transactions`
+  - Transaction Detail: `/dashboard/subscription/transactions/:id`
+- Plan features, upgrade, payment history
+
+---
+
+## Part 2: Service Vendor Documentation (10 files)
+
+### `service-vendor/00-overview.md`
+- What Service Vendors can do
+- Complete page index with all routes
+- Quick reference table
+
+### `service-vendor/01-dashboard.md`
+- **Route:** `/dashboard/service-vendor`
+- Stats, team availability, RFQ management, active projects, message center
+
+### `service-vendor/02-rfqs.md`
+- **Pages & Routes:**
+  - Browse RFQs: `/dashboard/service-vendor-rfqs`
+  - Saved RFQs: `/dashboard/rfqs/saved`
+  - Applied RFQs: `/dashboard/rfqs/applied`
+  - RFQ Detail: `/dashboard/rfqs/:rfqId`
+  - Submit Quotation: `/dashboard/rfqs/:rfqId/submit-quotation`
+- How to browse, save, apply to RFQs
+- AI Search Bar usage
+
+### `service-vendor/03-quotations.md`
+- **Pages & Routes:**
+  - All Quotations: `/dashboard/vendor/quotations`
+  - Quotation Details: `/dashboard/vendor/quotations/:quotationId`
+  - Edit Quotation: `/dashboard/vendor/quotations/:quotationId/edit`
+- Status tabs (Draft, Submitted, Under Review, Accepted, Rejected)
+- AI Search Bar usage
+
+### `service-vendor/04-projects.md`
+- **Pages & Routes:**
+  - All Projects: `/dashboard/service-vendor-projects`
+  - Active Projects: `/dashboard/service-vendor-projects/active`
+  - Completed Projects: `/dashboard/service-vendor-projects/completed`
+  - Project Details: `/dashboard/vendor/projects/:id`
+- Milestone tracking, deliverables, project workflow
+
+### `service-vendor/05-messages.md`
+- **Route:** `/dashboard/service-vendor-messages`
+- Communication with industry clients
+
+### `service-vendor/06-team.md`
+- **Pages & Routes:**
+  - Team Members: `/dashboard/team/members`
+  - Role Management: `/dashboard/team/roles`
+  - Create Role: `/dashboard/team/roles/create`
+  - View Role: `/dashboard/team/roles/:id`
+  - Edit Role: `/dashboard/team/roles/:id/edit`
+- Managing team, RBAC for vendors
+
+### `service-vendor/07-services.md`
+- **Route:** `/dashboard/service-vendor-services`
+- Service catalog management, skills and expertise
+
+### `service-vendor/08-settings.md`
+- **Pages & Routes:**
+  - Company Profile: `/dashboard/vendor-settings`
+  - Service Vendor Profile: `/dashboard/service-vendor-profile`
+  - Certifications: `/dashboard/service-vendor-profile/certifications`
+  - Projects and Portfolio: `/dashboard/service-vendor-profile/portfolio`
+  - Payment Settings: `/dashboard/service-vendor-profile/payment`
+  - Account Settings: `/settings/account-settings`
+
+### `service-vendor/09-subscription.md`
+- **Pages & Routes:**
+  - My Plan: `/dashboard/subscription/plans`
+  - Transactions: `/dashboard/subscription/transactions`
+
+---
+
+## Part 3: Files to Create (Total: 23 files)
+
+| # | File Path | Content |
+|---|-----------|---------|
+| 1 | `docs/ChatBot/users/industry/00-overview.md` | Industry user overview and complete page index |
+| 2 | `docs/ChatBot/users/industry/01-dashboard.md` | Dashboard features and KPIs |
+| 3 | `docs/ChatBot/users/industry/02-requirements.md` | Requirements module with all sub-pages |
+| 4 | `docs/ChatBot/users/industry/03-quotations.md` | Quotations module with all sub-pages |
+| 5 | `docs/ChatBot/users/industry/04-purchase-orders.md` | PO module with all sub-pages |
+| 6 | `docs/ChatBot/users/industry/05-project-workflows.md` | Workflows module |
+| 7 | `docs/ChatBot/users/industry/06-messages.md` | Messages module |
+| 8 | `docs/ChatBot/users/industry/07-analytics.md` | Analytics module |
+| 9 | `docs/ChatBot/users/industry/08-diligince-hub.md` | Vendor/professional discovery |
+| 10 | `docs/ChatBot/users/industry/09-stakeholders.md` | Stakeholder management |
+| 11 | `docs/ChatBot/users/industry/10-documents.md` | Document management |
+| 12 | `docs/ChatBot/users/industry/11-approvals.md` | Approval workflows and matrix |
+| 13 | `docs/ChatBot/users/industry/12-settings.md` | Settings, team, roles |
+| 14 | `docs/ChatBot/users/industry/13-subscription.md` | Subscription plans |
+| 15 | `docs/ChatBot/users/service-vendor/00-overview.md` | Service vendor overview |
+| 16 | `docs/ChatBot/users/service-vendor/01-dashboard.md` | Dashboard features |
+| 17 | `docs/ChatBot/users/service-vendor/02-rfqs.md` | RFQ browsing and application |
+| 18 | `docs/ChatBot/users/service-vendor/03-quotations.md` | Quotation management |
+| 19 | `docs/ChatBot/users/service-vendor/04-projects.md` | Project tracking |
+| 20 | `docs/ChatBot/users/service-vendor/05-messages.md` | Messaging |
+| 21 | `docs/ChatBot/users/service-vendor/06-team.md` | Team and role management |
+| 22 | `docs/ChatBot/users/service-vendor/07-services.md` | Service catalog |
+| 23 | `docs/ChatBot/users/service-vendor/08-settings.md` | Profile and settings |
+| 24 | `docs/ChatBot/users/service-vendor/09-subscription.md` | Subscription |
+
+---
+
+## Key Design Decisions
+
+1. **Page links as clickable routes** - Every feature description includes the exact route path so the chatbot can provide direct navigation links
+2. **Separate from existing docs** - The existing `docs/ChatBot/` files are generic module docs. The new `docs/ChatBot/users/` folder is user-type-specific with route-level detail
+3. **Consistent format** - Every file follows the same structure: Overview, Pages table, Features, How-To guides, Common Questions
+4. **AI Search Bar documented** - Each listing page doc mentions the AI-powered search capability
+5. **No code changes** - This is purely documentation; no component or routing changes needed
 
