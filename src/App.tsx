@@ -577,6 +577,14 @@ function App() {
                                       element={<VendorPaymentSettings />}
                                     />
                                     <Route
+                                      path="service-vendor-profile/certifications"
+                                      element={<VendorCertifications />}
+                                    />
+                                    <Route
+                                      path="service-vendor-profile/portfolio"
+                                      element={<VendorProjectsPortfolio />}
+                                    />
+                                    <Route
                                       path="service-vendor-services"
                                       element={<ServiceVendorServices />}
                                     />

@@ -450,23 +450,24 @@ export const menuConfig: MenuConfig = {
         },
       ],
     },
-    {
-      icon: Layers,
-      label: "Services",
-      path: "/dashboard/service-vendor-services",
-      submenu: [
-        {
-          icon: List,
-          label: "Service Catalog",
-          path: "/dashboard/service-vendor-services/catalog",
-        },
-        {
-          icon: Award,
-          label: "Skills & Expertise",
-          path: "/dashboard/service-vendor-services/skills",
-        },
-      ],
-    },
+    // Services menu hidden — covered under Certifications & Projects & Portfolio
+    // {
+    //   icon: Layers,
+    //   label: "Services",
+    //   path: "/dashboard/service-vendor-services",
+    //   submenu: [
+    //     {
+    //       icon: List,
+    //       label: "Service Catalog",
+    //       path: "/dashboard/service-vendor-services/catalog",
+    //     },
+    //     {
+    //       icon: Award,
+    //       label: "Skills & Expertise",
+    //       path: "/dashboard/service-vendor-services/skills",
+    //     },
+    //   ],
+    // },
     {
       icon: Settings,
       label: "Settings",
