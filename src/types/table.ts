@@ -4,7 +4,7 @@ export interface FilterOption {
   color?: string;
 }
 
-export interface ColumnConfig<T = Record<string, unknown>> {
+export interface ColumnConfig<T = Record<string, any>> {
   name: string;
   label: string;
   isSortable?: boolean;
@@ -12,7 +12,7 @@ export interface ColumnConfig<T = Record<string, unknown>> {
   isFilterable?: boolean;
   filterOptions?: FilterOption[];
   action?: (row: T) => void;
-  render?: (value: unknown, row: T) => React.ReactNode;
+  render?: (value: any, row: T) => React.ReactNode;
   width?: string;
   align?: 'left' | 'center' | 'right';
 }
@@ -36,7 +36,7 @@ export interface PaginationConfig {
   onPageSizeChange?: (size: number) => void;
 }
 
-export interface TableProps<T = Record<string, unknown>> {
+export interface TableProps<T = Record<string, any>> {
   columns: ColumnConfig<T>[];
   data: T[];
   filterCallback?: (filters: FilterConfig) => void;

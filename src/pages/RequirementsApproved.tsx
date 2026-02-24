@@ -349,7 +349,7 @@ const RequirementsApproved = () => {
           />
         }
         selectable={true}
-        onSelectionChange={setSelectedRows}
+        onSelectionChange={(rows) => setSelectedRows(rows as any)}
         globalSearchPlaceholder="Search approved requirements..."
         pagination={{
           enabled: true,

@@ -442,7 +442,7 @@ const RequirementsDrafts = () => {
         }
         onAdd={handleAdd}
         selectable={true}
-        onSelectionChange={setSelectedRows}
+        onSelectionChange={(rows) => setSelectedRows(rows as any)}
         globalSearchPlaceholder="Search draft requirements..."
         pagination={{
           enabled: true,
