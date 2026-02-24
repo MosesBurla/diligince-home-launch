@@ -69,7 +69,7 @@ const CreateEditPurchaseOrder: React.FC = () => {
   // Populate form with existing data in edit mode
   useEffect(() => {
     // Handle both response structures: { data: {...} } and direct object
-    const po = poDetail?.data || poDetail;
+    const po: any = poDetail?.data || poDetail;
 
     if (po && isEditMode && po.projectTitle) {  // Check for actual PO data
       console.log('✓ Populating form with PO data:', po.projectTitle);

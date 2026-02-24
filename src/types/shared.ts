@@ -39,7 +39,7 @@ export interface UserProfile {
   userType?: 'Vendor' | 'Industry' | 'Professional';
   userSubType?: 'ServiceVendor' | 'ProductVendor' | 'LogisticVendor';
   initials?: string;
-  profile?: Record<string, unknown>;
+  profile?: Record<string, any>;
   preferences?: UserPreferences;
   createdAt?: string;
   updatedAt?: string;

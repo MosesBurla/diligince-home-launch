@@ -297,7 +297,7 @@ const RequirementsPending = () => {
           />
         }
         selectable={true}
-        onSelectionChange={setSelectedRows}
+        onSelectionChange={(rows) => setSelectedRows(rows as any)}
         globalSearchPlaceholder="Search pending requirements..."
         pagination={{
           enabled: true,

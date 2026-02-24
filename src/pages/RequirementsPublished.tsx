@@ -261,7 +261,7 @@ const RequirementsPublished = () => {
           />
         }
         selectable={true}
-        onSelectionChange={setSelectedRows}
+        onSelectionChange={(rows) => setSelectedRows(rows as any)}
         globalSearchPlaceholder="Search published requirements..."
         pagination={{
           enabled: true,

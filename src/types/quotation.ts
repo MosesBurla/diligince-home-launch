@@ -349,6 +349,9 @@ export interface QuotationDetail extends Quotation {
     timestamp: string;
     details?: string;
   }>;
+  rfqId?: string;
+  supportingDocuments?: any[];
+  warrantyPeriod?: string;
 }
 
 // Enhanced request types
