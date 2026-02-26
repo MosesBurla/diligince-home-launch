@@ -19,12 +19,14 @@ import {
     FileText,
     CheckCircle2,
     TrendingUp,
+    Info,
 } from 'lucide-react';
 
-import { getVendorWorkflowDetails as fetchVendorWorkflowDetails, markMilestoneComplete as vendorMarkMilestoneComplete } from '@/services/modules/workflows/workflow.service';
+import { getVendorWorkflowDetails as fetchVendorWorkflowDetails, markMilestoneComplete as vendorMarkMilestoneComplete, getVendorCloseoutChecklist, uploadVendorCloseoutDocument, getVendorCloseoutDocumentViewUrl } from '@/services/modules/workflows/workflow.service';
 import type { WorkflowDetail, WorkflowMilestone } from '@/services/modules/workflows/workflow.types';
 import { MilestoneCard } from '@/components/workflow/MilestoneCard';
 import { MilestoneDetailsDialog } from '@/components/workflow/MilestoneDetailsDialog';
+import { CloseoutChecklist } from '@/components/industry/workflow/CloseoutChecklist';
 
 // Helper functions
 const formatCurrency = (amount: number, currency: string) => `${currency} ${amount.toLocaleString()}`;
@@ -38,6 +40,7 @@ const VendorWorkflowDetails: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [processingMilestone, setProcessingMilestone] = useState<string | null>(null);
+    const [closeoutData, setCloseoutData] = useState<any>(null);
 
     // Milestone details dialog state
     const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
@@ -70,6 +73,14 @@ const VendorWorkflowDetails: React.FC = () => {
     useEffect(() => {
         fetchWorkflowDetails();
     }, [id]);
+
+    useEffect(() => {
+        if (!id || !workflowData?.workflow) return;
+        // Fetch closeout checklist when workflow is in awaiting_closeout or closed
+        getVendorCloseoutChecklist(id)
+            .then(res => { if (res.success) setCloseoutData(res.data); })
+            .catch(() => { });
+    }, [workflowData]);
 
     // Milestone action handlers
     const handleMarkComplete = async (milestoneId: string) => {
@@ -136,6 +147,9 @@ const VendorWorkflowDetails: React.FC = () => {
         completed: { label: 'COMPLETED', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200' },
         paused: { label: 'PAUSED', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
         cancelled: { label: 'CANCELLED', className: 'bg-red-100 text-red-700 border-red-200' },
+        awaiting_closeout: { label: 'AWAITING CLOSEOUT', className: 'bg-primary-50 text-primary-600 border-primary-200' },
+        closed: { label: 'CLOSED', className: 'bg-slate-100 text-slate-600 border-slate-200' },
+        disputed: { label: 'DISPUTED', className: 'bg-orange-100 text-orange-700 border-orange-200' },
     };
     const currentStatus = statusConfig[workflow.status] || { label: workflow.status.toUpperCase(), className: 'bg-muted text-muted-foreground' };
 
@@ -207,9 +221,11 @@ const VendorWorkflowDetails: React.FC = () => {
                             <Clock className={cn('h-4 w-4', workflow.isOverdue ? 'text-destructive' : 'text-muted-foreground')} />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Days Left</p>
+                            <p className="text-xs text-muted-foreground">{workflow.isOverdue ? 'Days Overdue' : 'Days Left'}</p>
                             <p className={cn('text-base font-bold', workflow.isOverdue ? 'text-destructive' : 'text-foreground')}>
-                                {workflow.isOverdue ? 'Overdue' : `${workflow.daysRemaining}d`}
+                                {workflow.isOverdue
+                                    ? `${workflow.daysOverdue ?? Math.abs(Math.ceil((new Date(workflow.endDate).getTime() - Date.now()) / 86400000))}d`
+                                    : `${workflow.daysRemaining}d`}
                             </p>
                         </div>
                     </div>
@@ -287,6 +303,62 @@ const VendorWorkflowDetails: React.FC = () => {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* ===== PROJECT CLOSURE SECTION (left main column, full width) ===== */}
+                        {/* Status banner when all milestones are done but closeout not yet started */}
+                        {workflow.status === 'completed' && (
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-200">
+                                <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-semibold text-blue-800">All Milestones Complete</p>
+                                    <p className="text-xs text-blue-700 mt-0.5">
+                                        All deliverables have been approved by both parties.{' '}
+                                        <span className="font-medium">{industry?.name || 'The client'}</span>
+                                        {industry?.contact?.email && (
+                                            <span> ({industry.contact.email})</span>
+                                        )}{' '}
+                                        will initiate the formal project closure. No action is required from you at this time.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {/* Banner when closure is in progress */}
+                        {workflow.status === 'awaiting_closeout' && (
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-primary-50 border border-primary-200">
+                                <Info className="h-5 w-5 text-primary-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-semibold text-primary-800">Project Closeout In Progress</p>
+                                    <p className="text-xs text-primary-700 mt-0.5">
+                                        The client has initiated the project closeout process. Please upload your required documents in the checklist below — only items assigned to <strong>Vendor</strong> or <strong>Both Parties</strong> require your upload. The client will verify each item and issue a completion certificate.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        {/* Banner when project is formally closed */}
+                        {workflow.status === 'closed' && (
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                                <CheckCircle2 className="h-5 w-5 text-slate-600 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-semibold text-slate-700">Project Closed</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">This project has been formally closed by the client.</p>
+                                </div>
+                            </div>
+                        )}
+                        {/* Closeout checklist — vendor can only upload Vendor / Both items */}
+                        {closeoutData?.checklist?.length > 0 && (
+                            <CloseoutChecklist
+                                workflowId={id!}
+                                items={closeoutData.checklist}
+                                isIndustry={false}
+                                uploadFn={uploadVendorCloseoutDocument}
+                                getViewUrlFn={getVendorCloseoutDocumentViewUrl}
+                                onRefresh={() =>
+                                    getVendorCloseoutChecklist(id!)
+                                        .then(r => { if (r.success) setCloseoutData(r.data); })
+                                        .catch(() => { })
+                                }
+                            />
+                        )}
                     </div>
 
                     {/* Sidebar — 1/3 */}
@@ -346,7 +418,9 @@ const VendorWorkflowDetails: React.FC = () => {
                                         'font-semibold',
                                         workflow.isOverdue ? 'text-destructive' : 'text-foreground'
                                     )}>
-                                        {workflow.isOverdue ? 'Overdue' : `${workflow.daysRemaining} days`}
+                                        {workflow.isOverdue
+                                            ? `${workflow.daysOverdue ?? Math.abs(Math.ceil((new Date(workflow.endDate).getTime() - Date.now()) / 86400000))} days overdue`
+                                            : `${workflow.daysRemaining} days`}
                                     </span>
                                 </div>
                             </CardContent>
@@ -379,6 +453,7 @@ const VendorWorkflowDetails: React.FC = () => {
                                 )}
                             </CardContent>
                         </Card>
+
                     </div>
                 </div>
             </main>

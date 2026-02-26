@@ -26,7 +26,7 @@ interface LoginState {
 
 const MultiStepLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { login: contextLogin, verify2FA: contextVerify2FA, getDashboardUrl, verificationStatus } = useUser();
+  const { login: contextLogin, setUser, verify2FA: contextVerify2FA, getDashboardUrl, verificationStatus } = useUser();
 
   const [state, setState] = useState<LoginState>({
     step: 'email',
@@ -195,22 +195,17 @@ const MultiStepLogin: React.FC = () => {
     setError('');
 
     try {
-      // Backend expects { sessionToken, code }
-      const response = await authService.verify2FA({
-        twoFactorToken: state.twoFactorToken, // maps to sessionToken in service
-        code: state.twoFactorCode,
-      });
+      const result = await contextVerify2FA(state.twoFactorToken, state.twoFactorCode);
 
-      if (response.success || (response as any).status) {
-        const result = await contextVerify2FA(state.twoFactorToken, state.twoFactorCode);
-        if (result.success) {
-          toast.success('Authentication successful');
-          const accountVerificationStatus = state.selectedAccount?.verificationStatus;
-          const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
-          navigate(redirectPath);
-        } else {
-          setError(result.error || 'Verification failed');
-        }
+      if (result.success) {
+        toast.success('Authentication successful');
+
+        // Finalize redirect
+        const accountVerificationStatus = state.selectedAccount?.verificationStatus;
+        const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
+        navigate(redirectPath);
+      } else {
+        setError(result.error || 'Verification failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid verification code');

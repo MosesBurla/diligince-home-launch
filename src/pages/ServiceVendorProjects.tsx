@@ -36,16 +36,21 @@ const ServiceVendorProjects: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
 
-  // Derive status filter from route
+  // Derive status filter from route:
+  // 'active' page = all in-flight statuses (not yet formally closed)
+  // 'completed' page = only formally closed projects
+  const ACTIVE_STATUSES = "active,completed,awaiting_closeout,paused";
+  const COMPLETED_STATUSES = "closed";
+
   const routeStatus = location.pathname.includes("/completed")
-    ? "completed"
+    ? COMPLETED_STATUSES
     : location.pathname.includes("/active")
-      ? "active"
+      ? ACTIVE_STATUSES
       : undefined;
 
-  const pageTitle = routeStatus === "completed"
+  const pageTitle = location.pathname.includes("/completed")
     ? "Completed Projects"
-    : routeStatus === "active"
+    : location.pathname.includes("/active")
       ? "Active Projects"
       : "All Projects";
 
@@ -122,7 +127,9 @@ const ServiceVendorProjects: React.FC = () => {
       filterOptions: [
         { key: "active", value: "Active", color: "#dcfce7" },
         { key: "paused", value: "Paused", color: "#fef3c7" },
-        { key: "completed", value: "Completed", color: "#dbeafe" },
+        { key: "completed", value: "Milestones Complete", color: "#dbeafe" },
+        { key: "awaiting_closeout", value: "Closure In Progress", color: "#ede9fe" },
+        { key: "closed", value: "Closed", color: "#f1f5f9" },
         { key: "cancelled", value: "Cancelled", color: "#fee2e2" },
       ],
     },
@@ -180,11 +187,13 @@ const ServiceVendorProjects: React.FC = () => {
       width: "100px",
       render: (value, row) => {
         const data = row as WorkflowRow;
-        return (
-          <span className={data.isOverdue ? "text-red-600 font-semibold" : ""}>
-            {data.isOverdue ? "Overdue" : `${value} days`}
-          </span>
-        );
+        if (data.isOverdue) {
+          const daysOverdue = Math.abs(Math.ceil(
+            (new Date(data.deadline || '').getTime() - Date.now()) / 86400000
+          ));
+          return <span className="text-red-600 font-semibold">{daysOverdue} days overdue</span>;
+        }
+        return <span>{value} days</span>;
       },
     },
     {

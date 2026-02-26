@@ -1,6 +1,6 @@
 // ============= Project Workflow Types =============
 
-export type WorkflowStatus = 'active' | 'paused' | 'completed' | 'cancelled';
+export type WorkflowStatus = 'active' | 'paused' | 'completed' | 'cancelled' | 'awaiting_closeout' | 'closed' | 'disputed';
 export type MilestoneStatus = 'pending' | 'payment_pending' | 'paid' | 'completed';
 
 export interface ProjectWorkflow {
@@ -17,6 +17,7 @@ export interface ProjectWorkflow {
     startDate: string;
     endDate: string;
     daysRemaining: number;
+    daysOverdue: number;
     isOverdue: boolean;
     milestones: {
         total: number;
@@ -70,6 +71,7 @@ export interface WorkflowDetail {
         startDate: string;
         endDate: string;
         daysRemaining: number;
+        daysOverdue: number;
         isOverdue: boolean;
     };
     linkedEntities: {

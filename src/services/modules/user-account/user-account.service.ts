@@ -40,12 +40,13 @@ class UserAccountService {
     const response = await api.patch<ApiResponse<TwoFactorAuthStatus>, TwoFactorAuthRequest>(
       userAccountRoutes.twoFactorAuth, data
     );
-    return response.data;
+    // API returns { success, data: { enabled, method, enabledAt } } — unwrap the inner data
+    return (response.data as any).data ?? response.data;
   }
 
   async get2FAStatus(): Promise<TwoFactorAuthStatus> {
     const response = await api.get<ApiResponse<TwoFactorAuthStatus>>(userAccountRoutes.twoFactorStatus);
-    return response.data;
+    return (response.data as any).data ?? response.data;
   }
 
   async generateRecoveryCodes(): Promise<RecoveryCodes> {

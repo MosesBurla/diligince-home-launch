@@ -47,11 +47,8 @@ export const TwoFactorStep: React.FC<TwoFactorStepProps> = ({
     }
   }, [countdown]);
 
-  useEffect(() => {
-    if (code.length === 6) {
-      onVerify();
-    }
-  }, [code]);
+  // Removed auto-submit useEffect to prevent infinite API calls
+  // Verification is now only triggered by the Verify button click
 
   const getInitials = (firstName?: string, lastName?: string) => {
     const f = firstName?.charAt(0) || '';

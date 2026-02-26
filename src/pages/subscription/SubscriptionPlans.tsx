@@ -82,8 +82,11 @@ const SubscriptionPlans = () => {
         console.error('Error fetching available plans:', error);
         // Fallback to mock data based on role
         if (user) {
+          const subType = user.userSubType;
           const roleUserType = (user.userType?.toLowerCase() === 'vendor'
-            ? 'service_vendor'
+            ? (subType === 'ProductVendor' ? 'product_vendor'
+              : subType === 'LogisticVendor' ? 'logistics'
+                : 'service_vendor')
             : user.userType?.toLowerCase() || 'industry') as UserType;
           setResolvedUserType(roleUserType);
           setAvailablePlans(plansByUserType[roleUserType] || plansByUserType['industry']);
@@ -146,11 +149,6 @@ const SubscriptionPlans = () => {
   const handlePayment = async () => {
     if (!selection?.selectedPlan) {
       toast.error('Please select a plan first');
-      return;
-    }
-
-    if (!razorpayLoaded) {
-      toast.error('Payment system is loading. Please try again.');
       return;
     }
 
@@ -235,7 +233,23 @@ const SubscriptionPlans = () => {
         }
       }
 
-      // 3. Open Razorpay checkout
+      // 3a. FREE PLAN: backend already activated the subscription — no payment modal needed
+      if (orderData?.freeActivation) {
+        toast.success('Subscription activated!', {
+          description: `Your ${selection.selectedPlan.name} plan is now active.`
+        });
+        setIsProcessing(false);
+        window.location.reload();
+        return;
+      }
+
+      // 3b. PAID PLAN: open Razorpay checkout
+      if (!razorpayLoaded) {
+        toast.error('Payment system is loading. Please try again in a moment.');
+        setIsProcessing(false);
+        return;
+      }
+
       const options: RazorpayOptions = {
         key: orderData.razorpayKeyId,
         amount: orderData.amount,
@@ -297,6 +311,7 @@ const SubscriptionPlans = () => {
       setIsProcessing(false);
     }
   };
+
 
   const handleUpgrade = () => {
     setActiveTab('available');
