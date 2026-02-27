@@ -230,6 +230,9 @@ export async function getVendorWorkflows(params?: {
     status?: string;
     page?: number;
     limit?: number;
+    search?: string;
+    sortBy?: string;
+    order?: string;
 }): Promise<WorkflowListResponse> {
     const response = await api.get('/api/v1/vendors/workflows', { params });
     return response.data;
@@ -253,7 +256,7 @@ export async function markMilestoneComplete(
 ): Promise<MarkMilestoneCompleteResponse> {
     const response = await api.post(
         `/api/v1/vendors/workflows/${workflowId}/milestones/${milestoneId}/complete`,
-        data || {}
+        { party: 'vendor', ...(data || {}) }
     );
     return response.data;
 }
@@ -311,19 +314,196 @@ export function formatCurrency(amount: number, currency: string = 'INR'): string
 }
 
 /**
- * Get milestone status badge color
+ * Get workflow status badge color
  */
-export function getMilestoneStatusColor(status: string): string {
+export function getWorkflowStatusColor(status: string): string {
     switch (status) {
-        case 'pending':
-            return 'bg-gray-100 text-gray-700';
-        case 'payment_pending':
-            return 'bg-yellow-100 text-yellow-700';
-        case 'paid':
-            return 'bg-blue-100 text-blue-700';
-        case 'completed':
-            return 'bg-green-100 text-green-700';
-        default:
-            return 'bg-gray-100 text-gray-600';
+        case 'active': return 'bg-blue-100 text-blue-700';
+        case 'paused': return 'bg-yellow-100 text-yellow-700';
+        case 'completed': return 'bg-green-100 text-green-700';
+        case 'cancelled': return 'bg-red-100 text-red-700';
+        case 'awaiting_closeout': return 'bg-purple-100 text-purple-700';
+        case 'closed': return 'bg-slate-100 text-slate-600';
+        case 'disputed': return 'bg-orange-100 text-orange-700';
+        default: return 'bg-gray-100 text-gray-600';
     }
+}
+
+// ============= Project Closure Service =============
+
+/**
+ * Get the closeout readiness checklist + gate status for a workflow
+ */
+export async function getCloseoutChecklist(workflowId: string): Promise<{
+    success: boolean;
+    data: {
+        workflowStatus: string;
+        gate: {
+            allMilestonesComplete: boolean;
+            allPaymentsPaid: boolean;
+            retentionReleased: boolean;
+            certificateIssued: boolean;
+            readyToClose: boolean;
+        };
+        checklist: Array<{
+            itemId: string;
+            title: string;
+            description: string;
+            requiredFrom: 'industry' | 'vendor' | 'both';
+            document?: { fileName: string; fileUrl: string; uploadedBy: string; uploadedAt: string } | null;
+            verified: boolean;
+            verifiedAt?: string;
+        }>;
+        certificate: { issued: boolean; issuedAt?: string; certificateNo?: string; fileUrl?: string } | null;
+        retentionPayment: { amount: number; status: string; releasedAt?: string } | null;
+    };
+}> {
+    const response = await api.get(`/api/v1/industry/project-workflows/${workflowId}/closeout-checklist`);
+    return response.data;
+}
+
+/**
+ * Initiate project closeout — transitions status to awaiting_closeout, seeds checklist
+ */
+export async function initiateCloseout(workflowId: string): Promise<{ success: boolean; data: any; message: string }> {
+    const response = await api.post(`/api/v1/industry/project-workflows/${workflowId}/initiate-closeout`, {});
+    return response.data;
+}
+
+/**
+ * Upload a document for a specific closeout checklist item (industry or vendor)
+ */
+export async function uploadCloseoutDocument(workflowId: string, itemId: string, file: File): Promise<{ success: boolean; data: any; message: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('authToken');
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    const response = await fetch(
+        `${BASE_URL}/api/v1/industry/project-workflows/${workflowId}/closeout/${itemId}/upload`,
+        {
+            method: 'POST',
+            headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+            body: formData
+        }
+    );
+    return response.json();
+}
+
+/**
+ * Mark a closeout checklist item as verified (industry only)
+ */
+export async function verifyCloseoutItem(workflowId: string, itemId: string): Promise<{ success: boolean; data: { itemId: string; verified: boolean; allItemsVerified: boolean }; message: string }> {
+    const response = await api.post(`/api/v1/industry/project-workflows/${workflowId}/closeout/${itemId}/verify`, {});
+    return response.data;
+}
+
+/**
+ * Issue completion certificate (requires all checklist items verified)
+ */
+export async function issueCompletionCertificate(workflowId: string): Promise<{ success: boolean; data: { certificate: { issued: boolean; issuedAt: string; certificateNo: string; fileUrl?: string } }; message: string }> {
+    const response = await api.post(`/api/v1/industry/project-workflows/${workflowId}/certificate`, {});
+    return response.data;
+}
+
+/**
+ * Release retention payment (industry only, records release — actual transfer is offline)
+ */
+export async function releaseRetention(workflowId: string, notes?: string): Promise<{ success: boolean; data: any; message: string }> {
+    const response = await api.post(`/api/v1/industry/project-workflows/${workflowId}/retention/release`, { notes });
+    return response.data;
+}
+
+/**
+ * Close the workflow (final step — all gates must pass)
+ */
+export async function closeWorkflow(workflowId: string, closureNotes?: string): Promise<{ success: boolean; data: { workflowId: string; status: string; closedAt: string; certNo: string }; message: string }> {
+    const response = await api.post(`/api/v1/industry/project-workflows/${workflowId}/close`, { closureNotes });
+    return response.data;
+}
+
+// ============= Vendor-scoped Closeout Helpers =============
+
+/**
+ * Get closeout checklist for a workflow — vendor-scoped (hits /vendors/workflows/)
+ */
+export async function getVendorCloseoutChecklist(workflowId: string): Promise<{
+    success: boolean;
+    data: {
+        workflowStatus: string;
+        gate: {
+            allMilestonesComplete: boolean;
+            allPaymentsPaid: boolean;
+            retentionReleased: boolean;
+            certificateIssued: boolean;
+            readyToClose: boolean;
+        };
+        checklist: Array<{
+            itemId: string;
+            title: string;
+            description: string;
+            requiredFrom: 'industry' | 'vendor' | 'both';
+            document?: { fileName: string; fileUrl: string; uploadedBy: string; uploadedAt: string } | null;
+            verified: boolean;
+            verifiedAt?: string;
+        }>;
+        certificate: { issued: boolean; issuedAt?: string; certificateNo?: string; fileUrl?: string } | null;
+        retentionPayment: { amount: number; status: string; releasedAt?: string } | null;
+    };
+}> {
+    const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/closeout-checklist`);
+    return response.data;
+}
+
+/**
+ * Upload a closeout document — vendor-scoped (hits /vendors/workflows/)
+ */
+export async function uploadVendorCloseoutDocument(workflowId: string, itemId: string, file: File): Promise<{ success: boolean; data: any; message: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('authToken');
+    const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    const response = await fetch(
+        `${BASE_URL}/api/v1/vendors/workflows/${workflowId}/closeout/${itemId}/upload`,
+        {
+            method: 'POST',
+            headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+            body: formData
+        }
+    );
+    return response.json();
+}
+
+/**
+ * Get a pre-signed S3 view URL for a closeout document (vendor side).
+ */
+export async function getVendorCloseoutDocumentViewUrl(workflowId: string, itemId: string): Promise<{ success: boolean; data?: { viewUrl: string } }> {
+    const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/closeout/${itemId}/document/view`);
+    return response.data;
+}
+
+/**
+ * Get a pre-signed S3 view URL for a closeout document (industry side).
+ */
+export async function getIndustryCloseoutDocumentViewUrl(workflowId: string, itemId: string): Promise<{ success: boolean; data?: { viewUrl: string } }> {
+    // Industry can use the same vendor view endpoint — it checks both industryId and stakeholderId
+    const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/closeout/${itemId}/document/view`);
+    return response.data;
+}
+
+/**
+ * Get a pre-signed S3 download URL for the completion certificate PDF (industry side).
+ */
+export async function getIndustryCertificateViewUrl(workflowId: string): Promise<{ success: boolean; data?: { viewUrl: string | null }; message?: string }> {
+    const response = await api.get(`/api/v1/industry/project-workflows/${workflowId}/certificate/view`);
+    return response.data;
+}
+
+/**
+ * Get a pre-signed S3 download URL for the completion certificate PDF (vendor side).
+ */
+export async function getVendorCertificateViewUrl(workflowId: string): Promise<{ success: boolean; data?: { viewUrl: string | null }; message?: string }> {
+    const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/certificate/view`);
+    return response.data;
 }

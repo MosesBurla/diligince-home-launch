@@ -25,6 +25,10 @@ import {
 } from 'lucide-react';
 
 import { workflowService } from '@/services/modules/workflows';
+import { downloadPaymentReceipt, getIndustryWorkflowDetails, getCloseoutChecklist, getIndustryCloseoutDocumentViewUrl, initiateMilestonePayment, openRazorpayCheckout, uploadPaymentReceipt, verifyMilestonePayment } from '@/services/modules/workflows/workflow.service';
+import { CloseoutChecklist } from '@/components/industry/workflow/CloseoutChecklist';
+import { CompletionCertificateCard } from '@/components/industry/workflow/CompletionCertificateCard';
+import { WorkflowClosureGate } from '@/components/industry/workflow/WorkflowClosureGate';
 
 // Helper functions that can be defined locally if needed
 const formatCurrency = (currency: string, amount: number) => `${currency} ${amount.toLocaleString()}`;
@@ -208,7 +212,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
                             </span>
                             <span className="flex items-center gap-1">
                                 <IndianRupee className="h-3.5 w-3.5" />
-                                {formatCurrency(milestone.amount, currency)}
+                                {formatCurrency(milestone.amount, parseInt(currency))}
                             </span>
                             <span className="text-muted-foreground/70">({milestone.percentage}%)</span>
                         </div>
@@ -306,6 +310,7 @@ const IndustryWorkflowDetails: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+    const [closeoutData, setCloseoutData] = useState<any>(null);
 
     // Load Razorpay script
     useEffect(() => {
@@ -346,9 +351,26 @@ const IndustryWorkflowDetails: React.FC = () => {
         }
     };
 
+    const fetchCloseoutData = async () => {
+        if (!id) return;
+        try {
+            const res = await getCloseoutChecklist(id);
+            if (res.success) setCloseoutData(res.data);
+        } catch (err) {
+            console.warn('[Closeout] Could not fetch closeout checklist:', err);
+        }
+    };
+
     useEffect(() => {
         fetchWorkflowDetails();
     }, [id]);
+
+    // Pull closeout checklist whenever workflow data is loaded or refreshed
+    useEffect(() => {
+        if (workflowData?.workflow) {
+            fetchCloseoutData();
+        }
+    }, [workflowData]);
 
     if (isLoading) {
         return (
@@ -412,7 +434,10 @@ const IndustryWorkflowDetails: React.FC = () => {
                             workflow.status === 'completed' && 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                             workflow.status === 'active' && 'bg-primary/10 text-primary',
                             workflow.status === 'paused' && 'bg-yellow-100 text-yellow-700',
-                            workflow.status === 'cancelled' && 'bg-red-100 text-red-700'
+                            workflow.status === 'cancelled' && 'bg-red-100 text-red-700',
+                            workflow.status === 'awaiting_closeout' && 'bg-purple-100 text-purple-700',
+                            workflow.status === 'closed' && 'bg-slate-100 text-slate-600',
+                            workflow.status === 'disputed' && 'bg-orange-100 text-orange-700'
                         )}>
                             {workflow.status.toUpperCase()}
                         </Badge>
@@ -538,7 +563,9 @@ const IndustryWorkflowDetails: React.FC = () => {
                                         "font-semibold",
                                         workflow.isOverdue ? 'text-destructive' : 'text-foreground'
                                     )}>
-                                        {workflow.isOverdue ? 'Overdue' : `${workflow.daysRemaining} days`}
+                                        {workflow.isOverdue
+                                            ? `${workflow.daysOverdue ?? Math.abs(Math.ceil((new Date(workflow.endDate).getTime() - Date.now()) / 86400000))} days overdue`
+                                            : `${workflow.daysRemaining} days`}
                                     </span>
                                 </div>
                             </CardContent>
@@ -560,6 +587,39 @@ const IndustryWorkflowDetails: React.FC = () => {
                                 )}
                             </CardContent>
                         </Card>
+
+                        {/* ===== PROJECT CLOSURE SECTION ===== */}
+                        {closeoutData && (
+                            <>
+                                <WorkflowClosureGate
+                                    workflowId={workflow.id}
+                                    workflowStatus={workflow.status}
+                                    gate={closeoutData.gate}
+                                    hasRetention={!!closeoutData.retentionPayment}
+                                    onStatusChange={() => { fetchWorkflowDetails(); fetchCloseoutData(); }}
+                                />
+
+                                {(workflow.status === 'awaiting_closeout') && (
+                                    <>
+                                        <CloseoutChecklist
+                                            workflowId={workflow.id}
+                                            items={closeoutData.checklist || []}
+                                            isIndustry
+                                            getViewUrlFn={getIndustryCloseoutDocumentViewUrl}
+                                            onRefresh={fetchCloseoutData}
+                                        />
+                                        <CompletionCertificateCard
+                                            workflowId={workflow.id}
+                                            certificate={closeoutData.certificate}
+                                            allItemsVerified={(closeoutData.checklist || []).every((i: any) => i.verified)}
+                                            onCertificateIssued={fetchCloseoutData}
+                                        />
+                                    </>
+                                )}
+                            </>
+                        )}
+
+                        {/* WorkflowClosureGate is only rendered once real gate data is available from the API */}
                     </div>
                 </div>
             </main>

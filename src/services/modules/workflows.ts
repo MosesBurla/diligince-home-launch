@@ -94,11 +94,11 @@ class WorkflowService {
     }
 
     /**
-     * Upload document to milestone
+     * Upload document to milestone (industry side)
      */
     async uploadMilestoneDocument(workflowId: string, milestoneId: string, formData: FormData) {
         const response = await api.post(
-            `/api/v1/industry/workflows/${workflowId}/milestones/${milestoneId}/documents`,
+            `/api/v1/industry/project-workflows/${workflowId}/milestones/${milestoneId}/documents`,
             formData,
             {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -108,11 +108,45 @@ class WorkflowService {
     }
 
     /**
-     * Delete milestone document
+     * Delete milestone document (industry side)
      */
     async deleteMilestoneDocument(workflowId: string, milestoneId: string, documentId: string) {
         const response = await api.delete(
-            `/api/v1/industry/workflows/${workflowId}/milestones/${milestoneId}/documents/${documentId}`
+            `/api/v1/industry/project-workflows/${workflowId}/milestones/${milestoneId}/documents/${documentId}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Upload document to milestone (vendor side)
+     */
+    async uploadVendorMilestoneDocument(workflowId: string, milestoneId: string, formData: FormData) {
+        const response = await api.post(
+            `/api/v1/vendors/workflows/${workflowId}/milestones/${milestoneId}/documents`,
+            formData,
+            {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }
+        );
+        return response.data;
+    }
+
+    /**
+     * Delete milestone document (vendor side)
+     */
+    async deleteVendorMilestoneDocument(workflowId: string, milestoneId: string, documentId: string) {
+        const response = await api.delete(
+            `/api/v1/vendors/workflows/${workflowId}/milestones/${milestoneId}/documents/${documentId}`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get a pre-signed S3 view URL for a vendor milestone document
+     */
+    async getVendorDocumentViewUrl(workflowId: string, milestoneId: string, documentId: string): Promise<{ success: boolean; data: { viewUrl: string } }> {
+        const response = await api.get(
+            `/api/v1/vendors/workflows/${workflowId}/milestones/${milestoneId}/documents/${documentId}/view`
         );
         return response.data;
     }
@@ -122,8 +156,38 @@ class WorkflowService {
      */
     async markMilestoneComplete(workflowId: string, milestoneId: string, notes?: string) {
         const response = await api.post(
-            `/api/v1/industry/workflows/${workflowId}/milestones/${milestoneId}/complete`,
+            `/api/v1/industry/project-workflows/${workflowId}/milestones/${milestoneId}/mark-complete`,
             { party: 'industry', notes }
+        );
+        return response.data;
+    }
+
+    /**
+     * Get a pre-signed S3 view URL for an industry milestone document
+     */
+    async getIndustryDocumentViewUrl(workflowId: string, milestoneId: string, documentId: string): Promise<{ success: boolean; data: { viewUrl: string } }> {
+        const response = await api.get(
+            `/api/v1/industry/project-workflows/${workflowId}/milestones/${milestoneId}/documents/${documentId}/view`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get pre-signed S3 URL for vendor milestone invoice PDF
+     */
+    async getVendorMilestoneInvoice(workflowId: string, milestoneId: string): Promise<{ success: boolean; data: { viewUrl: string; invoiceNumber: string; generatedAt: string } }> {
+        const response = await api.get(
+            `/api/v1/vendors/workflows/${workflowId}/milestones/${milestoneId}/invoice`
+        );
+        return response.data;
+    }
+
+    /**
+     * Get pre-signed S3 URL for industry milestone invoice PDF
+     */
+    async getIndustryMilestoneInvoice(workflowId: string, milestoneId: string): Promise<{ success: boolean; data: { viewUrl: string; invoiceNumber: string; generatedAt: string } }> {
+        const response = await api.get(
+            `/api/v1/industry/project-workflows/${workflowId}/milestones/${milestoneId}/invoice`
         );
         return response.data;
     }

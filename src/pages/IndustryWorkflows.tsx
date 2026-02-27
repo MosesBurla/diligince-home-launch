@@ -111,7 +111,9 @@ const IndustryWorkflows = () => {
       filterOptions: [
         { key: "active", value: "Active", color: "#dcfce7" },
         { key: "paused", value: "Paused", color: "#fef3c7" },
-        { key: "completed", value: "Completed", color: "#dbeafe" },
+        { key: "completed", value: "Milestones Complete", color: "#dbeafe" },
+        { key: "awaiting_closeout", value: "Closure In Progress", color: "#ede9fe" },
+        { key: "closed", value: "Closed", color: "#f1f5f9" },
         { key: "cancelled", value: "Cancelled", color: "#fee2e2" },
       ],
     },
@@ -172,11 +174,13 @@ const IndustryWorkflows = () => {
       width: "100px",
       render: (value, row) => {
         const data = row as WorkflowRow;
-        return (
-          <span className={data.isOverdue ? 'text-red-600 font-semibold' : ''}>
-            {data.isOverdue ? 'Overdue' : `${value} days`}
-          </span>
-        );
+        if (data.isOverdue) {
+          const daysOverdue = Math.abs(Math.ceil(
+            (new Date(data.deadline || '').getTime() - Date.now()) / 86400000
+          ));
+          return <span className="text-red-600 font-semibold">{daysOverdue} days overdue</span>;
+        }
+        return <span>{value} days</span>;
       },
     },
     {

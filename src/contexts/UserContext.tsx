@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { UserProfile, UserRole, UserPreferences, getDashboardRoute } from '@/types/shared';
 import { calculateProfileCompleteness, ProfileCompletion } from '@/utils/profileCompleteness';
 import { api } from '@/services/api.service';
@@ -64,6 +64,7 @@ const defaultProfileCompletion: ProfileCompletion = {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isVerifyingRef = useRef(false);
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [profileCompletion, setProfileCompletion] = useState<ProfileCompletion>(defaultProfileCompletion);
@@ -301,7 +302,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   }, []);
 
   const verify2FA = useCallback(async (twoFactorToken: string, code: string) => {
+    if (isVerifyingRef.current) return { success: false, error: 'Verification in progress...' };
+
     try {
+      isVerifyingRef.current = true;
       console.log('[Auth] Attempting 2FA verification...');
       const response: any = await api.post(apiRoutes.auth.verify2FA, { twoFactorToken, code });
 
@@ -360,11 +364,44 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           },
           preferences: defaultPreferences,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          subscriptionFeatures: apiUser.subscriptionFeatures || []  // Match login() behavior
         };
 
         setUser(userProfile);
         setIsFirstTimeUser(!apiUser.profile?.isProfileComplete);
+
+        // Set verification status from 2FA response (profileId.verificationStatus)
+        // This mirrors what the login flow does via a separate API call
+        const profileVerificationStatus =
+          apiUser.profileId?.verificationStatus as VerificationStatus | undefined;
+        if (profileVerificationStatus) {
+          setVerificationStatus(profileVerificationStatus);
+          localStorage.setItem('verificationStatus', profileVerificationStatus);
+          console.log('[Auth] 2FA: Set verification status from response:', profileVerificationStatus);
+        } else {
+          // Fallback: fetch from profile API if not in response
+          setTimeout(async () => {
+            try {
+              let apiStatus: string | undefined;
+              if (userProfile.role === 'industry') {
+                const profileResp = await api.get(companyProfileRoutes.get);
+                apiStatus = profileResp?.data?.data?.profile?.verificationStatus;
+              } else if (userProfile.role === 'vendor') {
+                const profileResp = await api.get(vendorProfileRoutes.get);
+                apiStatus = profileResp?.data?.data?.verificationStatus;
+              }
+              if (apiStatus) {
+                const mappedStatus = apiStatus as VerificationStatus;
+                setVerificationStatus(mappedStatus);
+                localStorage.setItem('verificationStatus', mappedStatus);
+                console.log('[Auth] 2FA: Fetched verification status from API:', mappedStatus);
+              }
+            } catch (err) {
+              console.error('[Auth] 2FA: Error fetching verification status:', err);
+            }
+          }, 100);
+        }
 
         return { success: true };
       }
@@ -375,6 +412,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         success: false,
         error: error.response?.data?.message || 'Two-factor authentication failed.'
       };
+    } finally {
+      isVerifyingRef.current = false;
     }
   }, []);
 

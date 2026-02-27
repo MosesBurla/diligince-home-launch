@@ -108,14 +108,26 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
                         <p className="text-muted-foreground mb-1">Progress</p>
                         <p className="font-semibold text-lg">{milestone.percentage}%</p>
                     </div>
-                    {milestone.dueDate && (
-                        <div>
-                            <p className="text-muted-foreground mb-1">Due Date</p>
-                            <p className="font-semibold">
-                                {new Date(milestone.dueDate).toLocaleDateString()}
-                            </p>
-                        </div>
-                    )}
+                    {milestone.dueDate && (() => {
+                        const due = new Date(milestone.dueDate);
+                        const now = new Date();
+                        const isNotDone = !['completed'].includes(milestone.status);
+                        const overdueDays = isNotDone ? Math.ceil((now.getTime() - due.getTime()) / 86400000) : 0;
+                        const isOverdue = overdueDays > 0;
+                        return (
+                            <div>
+                                <p className="text-muted-foreground mb-1">Due Date</p>
+                                <p className={`font-semibold ${isOverdue ? 'text-destructive' : ''}`}>
+                                    {due.toLocaleDateString()}
+                                </p>
+                                {isOverdue && (
+                                    <p className="text-xs text-destructive font-medium mt-0.5">
+                                        {overdueDays} day{overdueDays !== 1 ? 's' : ''} overdue
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* Completion Status */}

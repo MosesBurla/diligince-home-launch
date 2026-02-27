@@ -7,7 +7,7 @@ import type { AvailableAccount } from '@/services/modules/auth';
 
 interface TwoFactorStepProps {
   selectedAccount: AvailableAccount;
-  twoFactorMethod: 'app' | 'sms';
+  twoFactorMethod: 'app' | 'sms' | 'email';
   code: string;
   onCodeChange: (code: string) => void;
   onVerify: () => Promise<void>;
@@ -47,14 +47,13 @@ export const TwoFactorStep: React.FC<TwoFactorStepProps> = ({
     }
   }, [countdown]);
 
-  useEffect(() => {
-    if (code.length === 6) {
-      onVerify();
-    }
-  }, [code]);
+  // Removed auto-submit useEffect to prevent infinite API calls
+  // Verification is now only triggered by the Verify button click
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (firstName?: string, lastName?: string) => {
+    const f = firstName?.charAt(0) || '';
+    const l = lastName?.charAt(0) || '';
+    return (f + l).toUpperCase() || '??';
   };
 
   const handleResend = async () => {
@@ -91,7 +90,7 @@ export const TwoFactorStep: React.FC<TwoFactorStepProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Two-Factor Authentication</h2>
         <p className="text-muted-foreground">
-          Enter the 6-digit code from your {twoFactorMethod === 'app' ? 'authenticator app' : 'phone'}
+          Enter the 6-digit code from your {twoFactorMethod === 'app' ? 'authenticator app' : twoFactorMethod === 'sms' ? 'phone' : 'email'}
         </p>
       </div>
 

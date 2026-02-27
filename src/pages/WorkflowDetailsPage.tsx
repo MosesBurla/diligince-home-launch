@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet';
@@ -28,6 +28,10 @@ import MilestoneCard from '@/components/workflow/MilestoneCard';
 import MilestoneDetailsDialog from '@/components/workflow/MilestoneDetailsDialog';
 import { useRazorpay } from '@/hooks/useRazorpay';
 import { useToast } from '@/hooks/use-toast';
+import { getCloseoutChecklist, getIndustryCloseoutDocumentViewUrl } from '@/services/modules/workflows/workflow.service';
+import { WorkflowClosureGate } from '@/components/industry/workflow/WorkflowClosureGate';
+import { CloseoutChecklist } from '@/components/industry/workflow/CloseoutChecklist';
+import { CompletionCertificateCard } from '@/components/industry/workflow/CompletionCertificateCard';
 
 interface WorkflowDetailsPageProps { }
 
@@ -37,6 +41,7 @@ const WorkflowDetailsPage: React.FC<WorkflowDetailsPageProps> = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [selectedMilestone, setSelectedMilestone] = useState<any | null>(null);
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+    const [closeoutData, setCloseoutData] = useState<any>(null);
     const { toast } = useToast();
     const { isLoaded, loadScript } = useRazorpay();
 
@@ -60,6 +65,23 @@ const WorkflowDetailsPage: React.FC<WorkflowDetailsPageProps> = () => {
             loadScript();
         }
     }, [isLoaded, loadScript]);
+
+    // Fetch closeout gate / checklist whenever workflow data is available
+    const fetchCloseoutData = async () => {
+        if (!id) return;
+        try {
+            const res = await getCloseoutChecklist(id);
+            if (res.success) setCloseoutData(res.data);
+        } catch (err) {
+            console.warn('[Closeout] Could not fetch closeout checklist:', err);
+        }
+    };
+
+    useEffect(() => {
+        if (id) {
+            fetchCloseoutData();
+        }
+    }, [id]);
 
     if (isLoading) {
         return (
@@ -279,9 +301,13 @@ const WorkflowDetailsPage: React.FC<WorkflowDetailsPageProps> = () => {
                             <CardContent className="pt-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground mb-1">Days Left</p>
+                                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                                            {workflow.isOverdue ? 'Days Overdue' : 'Days Left'}
+                                        </p>
                                         <p className={`text-2xl font-bold ${workflow.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-                                            {workflow.isOverdue ? 'Overdue' : `${workflow.daysRemaining} days`}
+                                            {workflow.isOverdue
+                                                ? `${workflow.daysOverdue ?? Math.abs(Math.ceil((new Date(workflow.endDate).getTime() - Date.now()) / 86400000))} days`
+                                                : `${workflow.daysRemaining} days`}
                                         </p>
                                     </div>
                                     <Clock className={`h-8 w-8 ${workflow.isOverdue ? 'text-red-500' : 'text-orange-500'}`} />
@@ -489,6 +515,37 @@ const WorkflowDetailsPage: React.FC<WorkflowDetailsPageProps> = () => {
                                     </div>
                                 </CardContent>
                             </Card>
+                        )}
+
+                        {/* ===== PROJECT CLOSURE SECTION ===== */}
+                        {closeoutData && (
+                            <>
+                                <WorkflowClosureGate
+                                    workflowId={id!}
+                                    workflowStatus={workflow.status}
+                                    gate={closeoutData.gate}
+                                    hasRetention={!!closeoutData.retentionPayment}
+                                    onStatusChange={() => { refetch(); fetchCloseoutData(); }}
+                                />
+
+                                {workflow.status === 'awaiting_closeout' && (
+                                    <>
+                                        <CloseoutChecklist
+                                            workflowId={id!}
+                                            items={closeoutData.checklist || []}
+                                            isIndustry
+                                            getViewUrlFn={getIndustryCloseoutDocumentViewUrl}
+                                            onRefresh={fetchCloseoutData}
+                                        />
+                                        <CompletionCertificateCard
+                                            workflowId={id!}
+                                            certificate={closeoutData.certificate}
+                                            allItemsVerified={(closeoutData.checklist || []).every((i: any) => i.verified)}
+                                            onCertificateIssued={fetchCloseoutData}
+                                        />
+                                    </>
+                                )}
+                            </>
                         )}
                     </TabsContent>
 

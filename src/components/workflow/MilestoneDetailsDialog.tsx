@@ -1,12 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { X, Upload, Download, Trash2, FileText, CheckCircle2, Circle, Check, Eye, Loader2 } from 'lucide-react';
+import { Upload, Download, Trash2, FileText, CheckCircle2, Circle, Check, Eye, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import workflowService from '@/services/modules/workflows';
 
 interface MilestoneDocument {
@@ -41,6 +41,7 @@ interface Milestone {
 interface MilestoneDetailsDialogProps {
     open: boolean;
     onClose: () => void;
+    onUploadSuccess?: () => void;
     milestone: Milestone;
     workflowId: string;
     currency: string;
@@ -51,6 +52,7 @@ interface MilestoneDetailsDialogProps {
 export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
     open,
     onClose,
+    onUploadSuccess,
     milestone,
     workflowId,
     currency,
@@ -58,8 +60,9 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
     currentUserId
 }) => {
     const { toast } = useToast();
-    const queryClient = useQueryClient();
     const [uploadingType, setUploadingType] = useState<'industry' | 'vendor' | null>(null);
+    const [viewingDocId, setViewingDocId] = useState<string | null>(null);
+    const [isFetchingInvoice, setIsFetchingInvoice] = useState(false);
 
     // New state for pending uploads
     const [pendingUploads, setPendingUploads] = useState<{
@@ -75,10 +78,13 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
         mutationFn: async ({ file, type }: { file: File; type: 'industry' | 'vendor' }) => {
             const formData = new FormData();
             formData.append('file', file);
+            if (userType === 'vendor') {
+                return workflowService.uploadVendorMilestoneDocument(workflowId, milestone.id, formData);
+            }
             return workflowService.uploadMilestoneDocument(workflowId, milestone.id, formData);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['workflow', workflowId] });
+            onUploadSuccess?.();
             toast({
                 title: 'Success',
                 description: 'Document uploaded successfully',
@@ -98,10 +104,13 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
     // Delete document mutation
     const deleteMutation = useMutation({
         mutationFn: async (documentId: string) => {
+            if (userType === 'vendor') {
+                return workflowService.deleteVendorMilestoneDocument(workflowId, milestone.id, documentId);
+            }
             return workflowService.deleteMilestoneDocument(workflowId, milestone.id, documentId);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['workflow', workflowId] });
+            onUploadSuccess?.();
             toast({
                 title: 'Success',
                 description: 'Document deleted successfully',
@@ -192,7 +201,11 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
         try {
             const formData = new FormData();
             formData.append('file', file);
-            await workflowService.uploadMilestoneDocument(workflowId, milestone.id, formData);
+            if (userType === 'vendor') {
+                await workflowService.uploadVendorMilestoneDocument(workflowId, milestone.id, formData);
+            } else {
+                await workflowService.uploadMilestoneDocument(workflowId, milestone.id, formData);
+            }
 
             // Remove from pending
             setPendingUploads(prev => ({
@@ -201,7 +214,7 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
             }));
 
             // Refresh milestone data
-            queryClient.invalidateQueries({ queryKey: ['workflow', workflowId] });
+            onUploadSuccess?.();
 
             toast({
                 title: 'Success',
@@ -234,22 +247,62 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
         });
     };
 
-    const handleDelete = (documentId: string, uploadedByUserId: string) => {
-        if (uploadedByUserId !== currentUserId) {
+    const handleDelete = (documentId: string) => {
+        deleteMutation.mutate(documentId);
+    };
+
+    const handleViewDocument = async (doc: MilestoneDocument) => {
+        setViewingDocId(doc.documentId);
+        try {
+            let response;
+            if (userType === 'vendor') {
+                response = await workflowService.getVendorDocumentViewUrl(workflowId, milestone.id, doc.documentId);
+            } else {
+                response = await workflowService.getIndustryDocumentViewUrl(workflowId, milestone.id, doc.documentId);
+            }
+            if (response.success && response.data?.viewUrl) {
+                window.open(response.data.viewUrl, '_blank');
+            } else {
+                toast({
+                    title: 'Error',
+                    description: 'Could not generate view URL',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error: any) {
             toast({
-                title: 'Permission Denied',
-                description: 'You can only delete your own documents',
+                title: 'Error',
+                description: error?.response?.data?.error?.message || 'Failed to open document',
                 variant: 'destructive',
             });
-            return;
+        } finally {
+            setViewingDocId(null);
         }
-        deleteMutation.mutate(documentId);
     };
 
     const formatFileSize = (bytes: number) => {
         if (bytes < 1024) return bytes + ' B';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+
+    const handleViewInvoice = async () => {
+        if (isFetchingInvoice) return;
+        setIsFetchingInvoice(true);
+        try {
+            const result = userType === 'vendor'
+                ? await workflowService.getVendorMilestoneInvoice(workflowId, milestone.id)
+                : await workflowService.getIndustryMilestoneInvoice(workflowId, milestone.id);
+            if (result.success && result.data.viewUrl) {
+                window.open(result.data.viewUrl, '_blank');
+            } else {
+                toast({ title: 'Invoice not available', description: 'Invoice has not been generated yet.', variant: 'destructive' });
+            }
+        } catch (err: any) {
+            toast({ title: 'Error', description: err?.response?.data?.error?.message || 'Could not fetch invoice.', variant: 'destructive' });
+        } finally {
+            setIsFetchingInvoice(false);
+        }
     };
 
     // New DocumentList component showing both pending and uploaded files
@@ -343,26 +396,31 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {/* View/Eye Button */}
+                                    {/* View/Eye Button – fetches a pre-signed S3 URL then opens it */}
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon"
                                         className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10"
-                                        onClick={() => window.open(doc.fileUrl, '_blank')}
+                                        onClick={() => handleViewDocument(doc)}
+                                        disabled={viewingDocId === doc.documentId}
                                         title="View document"
                                     >
-                                        <Eye className="h-4 w-4" />
+                                        {viewingDocId === doc.documentId ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
                                     </Button>
 
-                                    {/* Delete Button - only for own documents */}
-                                    {doc.uploadedByUserId === currentUserId && (
+                                    {/* Delete Button – visible only on the uploader's side */}
+                                    {doc.uploadedBy === userType && (
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="icon"
                                             className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                            onClick={() => handleDelete(doc.documentId, doc.uploadedByUserId)}
+                                            onClick={() => handleDelete(doc.documentId)}
                                             disabled={deleteMutation.isPending}
                                             title="Delete document"
                                         >
@@ -387,17 +445,10 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
                 <DialogHeader>
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                            <DialogTitle className="text-xl">{milestone.name}</DialogTitle>
-                            {milestone.description && (
-                                <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
-                            )}
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={onClose}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <DialogTitle className="text-xl">{milestone.name}</DialogTitle>
+                    {milestone.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
+                    )}
                 </DialogHeader>
 
                 {/* Status Bar */}
@@ -414,14 +465,21 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
                             <span className="ml-2 font-semibold">{currency} {milestone.amount.toLocaleString()}</span>
                         </div>
                     </div>
-                    {milestone.invoiceUrl && (
+                    {/* View Invoice button – visible for paid/completed milestones */}
+                    {(milestone.status === 'paid' || milestone.status === 'completed') && (
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(milestone.invoiceUrl, '_blank')}
+                            onClick={handleViewInvoice}
+                            disabled={isFetchingInvoice}
+                            className="gap-2"
                         >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download Invoice
+                            {isFetchingInvoice ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="h-4 w-4" />
+                            )}
+                            View Invoice
                         </Button>
                     )}
                 </div>
@@ -508,22 +566,22 @@ export const MilestoneDetailsDialog: React.FC<MilestoneDetailsDialogProps> = ({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    {milestone.completionStatus.industryMarkedComplete.status ? (
+                                    {milestone.completionStatus.industryMarkedComplete?.status ? (
                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                                     ) : (
                                         <Circle className="h-5 w-5 text-gray-300" />
                                     )}
-                                    <span className={milestone.completionStatus.industryMarkedComplete.status ? 'text-green-700 font-medium' : 'text-muted-foreground'}>
+                                    <span className={milestone.completionStatus.industryMarkedComplete?.status ? 'text-green-700 font-medium' : 'text-muted-foreground'}>
                                         Industry Marked Complete
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {milestone.completionStatus.vendorMarkedComplete.status ? (
+                                    {milestone.completionStatus.vendorMarkedComplete?.status ? (
                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                                     ) : (
                                         <Circle className="h-5 w-5 text-gray-300" />
                                     )}
-                                    <span className={milestone.completionStatus.vendorMarkedComplete.status ? 'text-green-700 font-medium' : 'text-muted-foreground'}>
+                                    <span className={milestone.completionStatus.vendorMarkedComplete?.status ? 'text-green-700 font-medium' : 'text-muted-foreground'}>
                                         Vendor Marked Complete
                                     </span>
                                 </div>

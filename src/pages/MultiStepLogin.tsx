@@ -19,14 +19,14 @@ interface LoginState {
   selectedAccount: AvailableAccount | null;
   password: string;
   twoFactorToken: string | null;
-  twoFactorMethod: 'app' | 'sms' | null;
+  twoFactorMethod: 'app' | 'sms' | 'email' | null;
   twoFactorCode: string;
   expiresAt: string | null;
 }
 
 const MultiStepLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { login: contextLogin, verify2FA: contextVerify2FA, getDashboardUrl, verificationStatus } = useUser();
+  const { login: contextLogin, setUser, verify2FA: contextVerify2FA, getDashboardUrl, verificationStatus } = useUser();
 
   const [state, setState] = useState<LoginState>({
     step: 'email',
@@ -150,29 +150,34 @@ const MultiStepLogin: React.FC = () => {
         password: state.password,
       });
 
-      if (response.success) {
-        if (response.data.twoFactorRequired) {
-          // 2FA required
-          setState(prev => ({
-            ...prev,
-            twoFactorToken: response.data.twoFactorToken || null,
-            twoFactorMethod: response.data.twoFactorMethod || null,
-            expiresAt: response.data.expiresAt || null,
-            step: '2fa',
-          }));
-          toast.info('Please enter the verification code');
+      // Handle 2FA required — backend returns flat { status, requiresTwoFactor, sessionToken }
+      const requires2FA =
+        (response as any).requiresTwoFactor ||
+        (response as any).data?.twoFactorRequired;
+
+      if (requires2FA) {
+        const token =
+          (response as any).sessionToken ||
+          (response as any).data?.twoFactorToken ||
+          null;
+        setState(prev => ({
+          ...prev,
+          twoFactorToken: token,
+          twoFactorMethod: (response as any).data?.twoFactorMethod || 'email',
+          expiresAt: (response as any).data?.expiresAt || null,
+          step: '2fa',
+        }));
+        toast.info('Please enter the verification code sent to your email');
+      } else if (response.success || (response as any).status) {
+        // Normal login successful — use UserContext
+        const result = await contextLogin(state.email, state.password);
+        if (result.success) {
+          toast.success('Login successful');
+          const accountVerificationStatus = state.selectedAccount?.verificationStatus;
+          const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
+          navigate(redirectPath);
         } else {
-          // Login successful - use UserContext
-          const result = await contextLogin(state.email, state.password);
-          if (result.success) {
-            toast.success('Login successful');
-            // Use verification status from selected account or fetch from context
-            const accountVerificationStatus = state.selectedAccount?.verificationStatus;
-            const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
-            navigate(redirectPath);
-          } else {
-            setError(result.error || 'Login failed');
-          }
+          setError(result.error || 'Login failed');
         }
       }
     } catch (err: any) {
@@ -190,23 +195,17 @@ const MultiStepLogin: React.FC = () => {
     setError('');
 
     try {
-      const response = await authService.verify2FA({
-        twoFactorToken: state.twoFactorToken,
-        code: state.twoFactorCode,
-      });
+      const result = await contextVerify2FA(state.twoFactorToken, state.twoFactorCode);
 
-      if (response.success) {
-        // Use UserContext verify2FA method
-        const result = await contextVerify2FA(state.twoFactorToken, state.twoFactorCode);
-        if (result.success) {
-          toast.success('Authentication successful');
-          // Use verification status from selected account or fetch from context
-          const accountVerificationStatus = state.selectedAccount?.verificationStatus;
-          const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
-          navigate(redirectPath);
-        } else {
-          setError(result.error || 'Verification failed');
-        }
+      if (result.success) {
+        toast.success('Authentication successful');
+
+        // Finalize redirect
+        const accountVerificationStatus = state.selectedAccount?.verificationStatus;
+        const redirectPath = getRedirectPath(accountVerificationStatus, state.selectedAccount);
+        navigate(redirectPath);
+      } else {
+        setError(result.error || 'Verification failed');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid verification code');
@@ -349,10 +348,10 @@ const MultiStepLogin: React.FC = () => {
         />
       )}
 
-      {state.step === '2fa' && state.selectedAccount && state.twoFactorMethod && (
+      {state.step === '2fa' && state.selectedAccount && (
         <TwoFactorStep
           selectedAccount={state.selectedAccount}
-          twoFactorMethod={state.twoFactorMethod}
+          twoFactorMethod={state.twoFactorMethod || 'email'}
           code={state.twoFactorCode}
           onCodeChange={(code) => setState(prev => ({ ...prev, twoFactorCode: code }))}
           onVerify={handleVerify2FA}

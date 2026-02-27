@@ -40,10 +40,14 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   success: boolean;
+  // Flat response shape from backend when 2FA is required
+  requiresTwoFactor?: boolean;
+  sessionToken?: string;
+  status?: boolean;
   data: {
-    twoFactorRequired: boolean;
+    twoFactorRequired?: boolean;
     twoFactorToken?: string;
-    twoFactorMethod?: 'app' | 'sms';
+    twoFactorMethod?: 'app' | 'sms' | 'email';
     expiresAt?: string;
     user?: User;
     access_token?: string;
