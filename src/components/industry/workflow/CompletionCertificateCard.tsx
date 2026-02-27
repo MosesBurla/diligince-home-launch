@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Award, Download, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { issueCompletionCertificate } from '@/services/modules/workflows/workflow.service';
+import { issueCompletionCertificate, getIndustryCertificateViewUrl } from '@/services/modules/workflows/workflow.service';
 import { toast } from 'sonner';
 
 interface CertificateInfo {
@@ -27,6 +27,7 @@ export const CompletionCertificateCard: React.FC<CompletionCertificateCardProps>
     onCertificateIssued
 }) => {
     const [loading, setLoading] = useState(false);
+    const [viewLoading, setViewLoading] = useState(false);
 
     const handleIssueCertificate = async () => {
         setLoading(true);
@@ -42,6 +43,22 @@ export const CompletionCertificateCard: React.FC<CompletionCertificateCardProps>
             toast.error(err?.response?.data?.message || 'Failed to issue certificate');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleViewCertificate = async () => {
+        setViewLoading(true);
+        try {
+            const res = await getIndustryCertificateViewUrl(workflowId);
+            if (res.success && res.data?.viewUrl) {
+                window.open(res.data.viewUrl, '_blank');
+            } else {
+                toast.error('Certificate PDF is not available yet');
+            }
+        } catch (err: any) {
+            toast.error('Failed to fetch certificate download link');
+        } finally {
+            setViewLoading(false);
         }
     };
 
@@ -83,17 +100,20 @@ export const CompletionCertificateCard: React.FC<CompletionCertificateCardProps>
                             </div>
                         </div>
 
-                        {certificate?.fileUrl && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-green-300 text-green-700 hover:bg-green-100"
-                                onClick={() => window.open(certificate.fileUrl, '_blank')}
-                            >
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full border-green-300 text-green-700 hover:bg-green-100"
+                            onClick={handleViewCertificate}
+                            disabled={viewLoading}
+                        >
+                            {viewLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
                                 <Download className="h-4 w-4 mr-2" />
-                                Download Certificate PDF
-                            </Button>
-                        )}
+                            )}
+                            View / Download Certificate PDF
+                        </Button>
                     </>
                 ) : (
                     <>

@@ -491,3 +491,19 @@ export async function getIndustryCloseoutDocumentViewUrl(workflowId: string, ite
     const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/closeout/${itemId}/document/view`);
     return response.data;
 }
+
+/**
+ * Get a pre-signed S3 download URL for the completion certificate PDF (industry side).
+ */
+export async function getIndustryCertificateViewUrl(workflowId: string): Promise<{ success: boolean; data?: { viewUrl: string | null }; message?: string }> {
+    const response = await api.get(`/api/v1/industry/project-workflows/${workflowId}/certificate/view`);
+    return response.data;
+}
+
+/**
+ * Get a pre-signed S3 download URL for the completion certificate PDF (vendor side).
+ */
+export async function getVendorCertificateViewUrl(workflowId: string): Promise<{ success: boolean; data?: { viewUrl: string | null }; message?: string }> {
+    const response = await api.get(`/api/v1/vendors/workflows/${workflowId}/certificate/view`);
+    return response.data;
+}

@@ -20,13 +20,16 @@ import {
     CheckCircle2,
     TrendingUp,
     Info,
+    Award,
+    Download,
 } from 'lucide-react';
 
-import { getVendorWorkflowDetails as fetchVendorWorkflowDetails, markMilestoneComplete as vendorMarkMilestoneComplete, getVendorCloseoutChecklist, uploadVendorCloseoutDocument, getVendorCloseoutDocumentViewUrl } from '@/services/modules/workflows/workflow.service';
+import { getVendorWorkflowDetails as fetchVendorWorkflowDetails, markMilestoneComplete as vendorMarkMilestoneComplete, getVendorCloseoutChecklist, uploadVendorCloseoutDocument, getVendorCloseoutDocumentViewUrl, getVendorCertificateViewUrl } from '@/services/modules/workflows/workflow.service';
 import type { WorkflowDetail, WorkflowMilestone } from '@/services/modules/workflows/workflow.types';
 import { MilestoneCard } from '@/components/workflow/MilestoneCard';
 import { MilestoneDetailsDialog } from '@/components/workflow/MilestoneDetailsDialog';
 import { CloseoutChecklist } from '@/components/industry/workflow/CloseoutChecklist';
+
 
 // Helper functions
 const formatCurrency = (amount: number, currency: string) => `${currency} ${amount.toLocaleString()}`;
@@ -41,6 +44,7 @@ const VendorWorkflowDetails: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [processingMilestone, setProcessingMilestone] = useState<string | null>(null);
     const [closeoutData, setCloseoutData] = useState<any>(null);
+    const [viewCertLoading, setViewCertLoading] = useState(false);
 
     // Milestone details dialog state
     const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
@@ -106,6 +110,23 @@ const VendorWorkflowDetails: React.FC = () => {
 
     const handleDownloadInvoice = (invoiceUrl: string) => {
         window.open(invoiceUrl, '_blank');
+    };
+
+    const handleViewCertificate = async () => {
+        if (!id) return;
+        setViewCertLoading(true);
+        try {
+            const res = await getVendorCertificateViewUrl(id);
+            if (res.success && res.data?.viewUrl) {
+                window.open(res.data.viewUrl, '_blank');
+            } else {
+                toast.error('Certificate PDF is not available yet');
+            }
+        } catch {
+            toast.error('Failed to fetch certificate download link');
+        } finally {
+            setViewCertLoading(false);
+        }
     };
 
     // Payment initiate — vendor doesn't pay, noop
@@ -343,6 +364,50 @@ const VendorWorkflowDetails: React.FC = () => {
                                     <p className="text-xs text-slate-500 mt-0.5">This project has been formally closed by the client.</p>
                                 </div>
                             </div>
+                        )}
+                        {/* Completion Certificate card — vendor view after project is closed */}
+                        {workflow.status === 'closed' && closeoutData?.certificate?.issued && (
+                            <Card className="border-green-200 bg-green-50/50">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <Award className="h-4 w-4 text-green-600" />
+                                        Completion Certificate
+                                        <span className="ml-auto px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 border border-green-200 rounded-full">Issued</span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="flex items-start gap-3 p-3 rounded-lg bg-green-100 border border-green-200">
+                                        <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-medium text-green-800">Certificate Issued</p>
+                                            {closeoutData.certificate.certificateNo && (
+                                                <p className="text-xs text-green-700 mt-0.5">
+                                                    Certificate No: <span className="font-mono font-semibold">{closeoutData.certificate.certificateNo}</span>
+                                                </p>
+                                            )}
+                                            {closeoutData.certificate.issuedAt && (
+                                                <p className="text-xs text-green-600 mt-0.5">
+                                                    Issued on {new Date(closeoutData.certificate.issuedAt).toLocaleDateString('en-IN', {
+                                                        day: 'numeric', month: 'long', year: 'numeric'
+                                                    })}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleViewCertificate}
+                                        disabled={viewCertLoading}
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-700 border border-green-300 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {viewCertLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Download className="h-4 w-4" />
+                                        )}
+                                        View / Download Certificate PDF
+                                    </button>
+                                </CardContent>
+                            </Card>
                         )}
                         {/* Closeout checklist — vendor can only upload Vendor / Both items */}
                         {closeoutData?.checklist?.length > 0 && (
