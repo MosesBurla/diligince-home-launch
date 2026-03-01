@@ -28,6 +28,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
 # (Create nginx.conf in project root with try_files $uri /index.html;)
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -q --spider http://localhost || exit 1
+  
 # Expose port
 EXPOSE 80
 
