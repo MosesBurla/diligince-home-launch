@@ -218,7 +218,7 @@ export const menuConfig: MenuConfig = {
       icon: Target,
       label: "Diligince HUB",
       path: "/dashboard/industry-Diligince-hub",
-      requiresFeature: "DILIGENCE_HUB",  // NEW: Requires subscription to access
+      requiresFeature: "DILIGIENCE_HUB",  // Requires subscription to access
       submenu: [
         {
           icon: Building,

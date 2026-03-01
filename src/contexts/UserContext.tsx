@@ -34,6 +34,7 @@ interface UserContextType {
   updateVerificationStatus: (status: VerificationStatus) => void;
   hasFeatureAccess: (featureCode: string) => boolean;  // NEW: Check subscription feature access
   subscriptionFeatures: string[];  // NEW: Array of enabled feature codes
+  refreshSubscriptionFeatures: () => Promise<void>;  // Refresh features after add-on purchase
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -451,6 +452,35 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     return user.subscriptionFeatures.includes(featureCode);
   }, [user]);
 
+  const refreshSubscriptionFeatures = useCallback(async (): Promise<void> => {
+    if (!user || user.role !== 'industry') return;
+    try {
+      // Fetch active subscription from backend
+      const resp = await api.get('/api/v1/subscription/current');
+      const subscription = resp?.data?.data;
+
+      if (!subscription) return;
+
+      // Plan-level feature codes from UserSubscription (not available here, so just use addOns)
+      const addOnCodes: string[] = (subscription.addOns || []).map((a: any) => a.code as string);
+
+      // Merge with existing plan features (keep them), deduplication
+      const existing = user.subscriptionFeatures || [];
+      // Extract anything that's not an add-on (plan features) and combine with fresh add-on codes
+      const updated = [...new Set([...existing, ...addOnCodes])];
+
+      setUser(current => {
+        if (!current) return null;
+        const updated2 = { ...current, subscriptionFeatures: updated };
+        localStorage.setItem('user', JSON.stringify(updated2));
+        return updated2;
+      });
+    } catch (err) {
+      console.error('[UserContext] Error refreshing subscription features:', err);
+    }
+  }, [user]);
+
+
   const updateVerificationStatus = useCallback((status: VerificationStatus) => {
     console.log('[UserContext] updateVerificationStatus called with:', status);
     console.log('[UserContext] Current verificationStatus:', verificationStatus);
@@ -514,6 +544,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     updateVerificationStatus,
     hasFeatureAccess,  // NEW
     subscriptionFeatures: user?.subscriptionFeatures || [],  // NEW
+    refreshSubscriptionFeatures,  // Refresh features after add-on purchase
   };
 
   return (

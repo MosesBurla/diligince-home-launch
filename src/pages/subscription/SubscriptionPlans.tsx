@@ -31,7 +31,7 @@ import type { RazorpayOptions, RazorpayPaymentResponse } from '@/services/module
 
 const SubscriptionPlans = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, refreshSubscriptionFeatures } = useUser();
   const [activeTab, setActiveTab] = useState('current');
   const [isProcessing, setIsProcessing] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
@@ -58,6 +58,10 @@ const SubscriptionPlans = () => {
         const response = await subscriptionPurchaseService.getSubscription();
         if (response.success && response.data) {
           setSubscription(response.data);
+          // If subscription has add-ons, refresh frontend features so Hub menu appears
+          if (response.data?.addOns?.length > 0) {
+            refreshSubscriptionFeatures();
+          }
         }
       } catch (error) {
         console.error('Error fetching subscription:', error);

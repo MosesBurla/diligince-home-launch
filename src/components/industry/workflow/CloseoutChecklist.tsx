@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
-    CheckCircle2, Clock, Upload, Eye, ShieldCheck, FileText, AlertCircle, Loader2
+    CheckCircle2, Clock, Upload, Eye, ShieldCheck, FileText, AlertCircle, Loader2, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { uploadCloseoutDocument, verifyCloseoutItem } from '@/services/modules/workflows/workflow.service';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface ChecklistItem {
     itemId: string;
@@ -34,6 +35,9 @@ export const CloseoutChecklist: React.FC<CloseoutChecklistProps> = ({
 }) => {
     const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
     const [viewingItemId, setViewingItemId] = useState<string | null>(null);
+    // Accordion: track which item is open; default open = first unverified, or first item
+    const defaultOpen = items.find(i => !i.verified)?.itemId ?? items[0]?.itemId ?? null;
+    const [openItemId, setOpenItemId] = useState<string | null>(defaultOpen);
     const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
     const verifiedCount = items.filter(i => i.verified).length;
@@ -102,6 +106,12 @@ export const CloseoutChecklist: React.FC<CloseoutChecklistProps> = ({
         }
     };
 
+    const getStatusIcon = (item: ChecklistItem) => {
+        if (item.verified) return <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />;
+        if (item.document) return <Clock className="h-4 w-4 text-amber-500 shrink-0" />;
+        return <AlertCircle className="h-4 w-4 text-gray-400 shrink-0" />;
+    };
+
     return (
         <Card>
             <CardHeader className="pb-3">
@@ -114,126 +124,159 @@ export const CloseoutChecklist: React.FC<CloseoutChecklistProps> = ({
                 </div>
                 <Progress value={progress} className="h-1.5 mt-2" />
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 p-3">
                 {items.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">No checklist items yet.</p>
                 )}
                 {items.map((item) => {
+                    const isOpen = openItemId === item.itemId;
                     const isLoading = loadingItemId === item.itemId;
                     const isViewing = viewingItemId === item.itemId;
-                    // Upload allowed only to the responsible party
                     const canUpload = !item.verified && (
                         isIndustry
                             ? (item.requiredFrom === 'industry' || item.requiredFrom === 'both')
                             : (item.requiredFrom === 'vendor' || item.requiredFrom === 'both')
                     );
-                    // Only industry can verify; a document must be uploaded first
                     const canVerify = isIndustry && !item.verified && !!item.document;
 
                     return (
                         <div
                             key={item.itemId}
-                            className={`rounded-lg border p-3 transition-colors ${item.verified ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white'
-                                }`}
+                            className={cn(
+                                'rounded-lg border transition-colors overflow-hidden',
+                                item.verified
+                                    ? 'border-green-200 bg-green-50'
+                                    : 'border-gray-200 bg-white'
+                            )}
                         >
-                            <div className="flex items-start justify-between gap-2">
-                                {/* Left: icon + content */}
-                                <div className="flex items-start gap-2 flex-1 min-w-0">
-                                    {item.verified ? (
-                                        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-                                    ) : item.document ? (
-                                        <Clock className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-                                    ) : (
-                                        <AlertCircle className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-sm font-medium">{item.title}</span>
-                                            {getRequiredBadge(item.requiredFrom)}
-                                        </div>
-                                        {item.description && (
-                                            <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
-                                        )}
-                                        {/* Uploaded document — click to fetch pre-signed URL */}
-                                        {item.document && (
-                                            <div className="mt-1.5 flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleViewDocument(item.itemId)}
-                                                    disabled={isViewing}
-                                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1 disabled:opacity-50"
-                                                >
-                                                    {isViewing
-                                                        ? <Loader2 className="h-3 w-3 animate-spin" />
-                                                        : <Eye className="h-3 w-3" />
-                                                    }
-                                                    {item.document.fileName}
-                                                </button>
-                                                <span className="text-xs text-muted-foreground">
-                                                    by {item.document.uploadedBy}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {item.verified && item.verifiedAt && (
-                                            <p className="text-xs text-green-700 mt-0.5">
-                                                Verified {new Date(item.verifiedAt).toLocaleDateString()}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
+                            {/* ── Accordion Header ── */}
+                            <button
+                                type="button"
+                                onClick={() => setOpenItemId(isOpen ? null : item.itemId)}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-black/5 transition-colors"
+                            >
+                                {/* Status icon */}
+                                {getStatusIcon(item)}
 
-                                {/* Right: action buttons */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    {canUpload && (
-                                        <>
-                                            <input
-                                                ref={el => { fileInputRefs.current[item.itemId] = el; }}
-                                                type="file"
-                                                className="hidden"
-                                                onChange={e => {
-                                                    const f = e.target.files?.[0];
-                                                    if (f) handleUpload(item.itemId, f);
-                                                    e.target.value = '';
-                                                }}
-                                            />
+                                {/* Title + badge */}
+                                <span className="flex-1 min-w-0">
+                                    <span className="flex items-center gap-2 flex-wrap">
+                                        <span className={cn(
+                                            'text-sm font-medium',
+                                            item.verified ? 'text-green-800' : 'text-gray-800'
+                                        )}>
+                                            {item.title}
+                                        </span>
+                                        {getRequiredBadge(item.requiredFrom)}
+                                    </span>
+                                    {/* Summary line when collapsed */}
+                                    {!isOpen && (
+                                        <span className="text-xs text-muted-foreground mt-0.5 block truncate">
+                                            {item.verified
+                                                ? `Verified ${item.verifiedAt ? new Date(item.verifiedAt).toLocaleDateString() : ''}`
+                                                : item.document
+                                                    ? `Uploaded: ${item.document.fileName}`
+                                                    : 'Upload required'}
+                                        </span>
+                                    )}
+                                </span>
+
+                                {/* Chevron */}
+                                {isOpen
+                                    ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                                    : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                                }
+                            </button>
+
+                            {/* ── Accordion Body ── */}
+                            {isOpen && (
+                                <div className="px-3 pb-3 pt-1 border-t border-inherit space-y-2.5">
+                                    {/* Description */}
+                                    {item.description && (
+                                        <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                                    )}
+
+                                    {/* Uploaded document */}
+                                    {item.document && (
+                                        <div className="flex items-center gap-2 p-2 rounded-md bg-blue-50 border border-blue-100">
+                                            <FileText className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleViewDocument(item.itemId)}
+                                                disabled={isViewing}
+                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1 disabled:opacity-50 flex-1 min-w-0"
+                                            >
+                                                {isViewing
+                                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                                    : <Eye className="h-3 w-3" />
+                                                }
+                                                <span className="truncate">{item.document.fileName}</span>
+                                            </button>
+                                            <span className="text-xs text-muted-foreground shrink-0">by {item.document.uploadedBy}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Verified notice */}
+                                    {item.verified && item.verifiedAt && (
+                                        <p className="text-xs text-green-700 font-medium flex items-center gap-1">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Verified on {new Date(item.verifiedAt).toLocaleDateString()}
+                                        </p>
+                                    )}
+
+                                    {/* Action buttons */}
+                                    <div className="flex items-center gap-2">
+                                        {canUpload && (
+                                            <>
+                                                <input
+                                                    ref={el => { fileInputRefs.current[item.itemId] = el; }}
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={e => {
+                                                        const f = e.target.files?.[0];
+                                                        if (f) handleUpload(item.itemId, f);
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-7 px-3 text-xs"
+                                                    disabled={isLoading}
+                                                    onClick={() => fileInputRefs.current[item.itemId]?.click()}
+                                                >
+                                                    {isLoading ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="h-3 w-3 mr-1" />
+                                                            {item.document ? 'Re-upload' : 'Upload Document'}
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </>
+                                        )}
+                                        {canVerify && (
                                             <Button
                                                 size="sm"
-                                                variant="outline"
-                                                className="h-7 px-2 text-xs"
+                                                variant="default"
+                                                className="h-7 px-3 text-xs bg-green-600 hover:bg-green-700"
                                                 disabled={isLoading}
-                                                onClick={() => fileInputRefs.current[item.itemId]?.click()}
+                                                onClick={() => handleVerify(item.itemId)}
                                             >
                                                 {isLoading ? (
                                                     <Loader2 className="h-3 w-3 animate-spin" />
                                                 ) : (
                                                     <>
-                                                        <Upload className="h-3 w-3 mr-1" />
-                                                        {item.document ? 'Re-upload' : 'Upload'}
+                                                        <ShieldCheck className="h-3 w-3 mr-1" />
+                                                        Verify
                                                     </>
                                                 )}
                                             </Button>
-                                        </>
-                                    )}
-                                    {canVerify && (
-                                        <Button
-                                            size="sm"
-                                            variant="default"
-                                            className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700"
-                                            disabled={isLoading}
-                                            onClick={() => handleVerify(item.itemId)}
-                                        >
-                                            {isLoading ? (
-                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <ShieldCheck className="h-3 w-3 mr-1" />
-                                                    Verify
-                                                </>
-                                            )}
-                                        </Button>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     );
                 })}
