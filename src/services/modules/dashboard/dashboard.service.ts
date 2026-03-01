@@ -1,213 +1,163 @@
 /**
  * Industry Dashboard API Service
- * 
- * Handles all API calls for Industry Dashboard
- * Documentation: docs/api/industry/industry-dashboard-api.md
- * 
- * Endpoints:
- * - Dashboard Statistics (KPIs)
- * - Pending Approvals
- * - Procurement Analytics (Spend by Category, Monthly Trends)
- * - Budget Overview & Utilization
- * - Vendor Performance Rankings
- * - Active Requirements List
- * - Purchase Orders (Active, Pending, Completed)
+ *
+ * Uses Promise.allSettled so a single endpoint failure never crashes the whole dashboard.
+ * Each failed call logs a warning and falls back to a safe empty default.
  */
 
 import apiService from '../../core/api.service';
 import { dashboardRoutes } from './dashboard.routes';
 import {
   DashboardStats,
-  DashboardStatsEnhanced,
   ProcurementAnalytics,
   BudgetOverview,
   VendorPerformance,
   ActiveRequirement,
   ActivePurchaseOrder,
   PendingApproval,
+  DashboardResponse,
+  PaginatedResponse,
   ApiFilters,
   DateRange,
-  DashboardResponse,
-  PaginatedResponse
 } from '@/types/industry-dashboard';
-import { isEnhancedValue } from '@/types/api-common';
+
+// ─── Safe fallbacks ────────────────────────────────────────────────────────────
+
+const EMPTY_STATS: DashboardStats = {
+  totalProcurementSpend: 0,
+  activePurchaseOrders: 0,
+  budgetUtilization: 0,
+  costSavings: 0,
+  period: 'This Year',
+};
+
+const EMPTY_ANALYTICS: ProcurementAnalytics = {
+  totalSpend: 0,
+  categories: [],
+  monthlyTrend: [],
+};
+
+const EMPTY_BUDGET: BudgetOverview = {
+  totalAllocated: 0,
+  totalSpent: 0,
+  overallPercentage: 0,
+  categories: [],
+};
+
+const emptyPaginated = <T>(): PaginatedResponse<T> => ({
+  data: [],
+  total: 0,
+  page: 1,
+  pageSize: 10,
+  hasMore: false,
+});
+
+// ─── Helper: unwrap API envelope ───────────────────────────────────────────────
+
+const unwrap = <T>(response: any, fallback: T): T => {
+  if (response && response.success === true && response.data !== undefined) {
+    return response.data as T;
+  }
+  // Some endpoints return data directly (array or object)
+  if (response && typeof response === 'object' && !('success' in response)) {
+    return response as T;
+  }
+  return fallback;
+};
+
+const unwrapPaginated = <T>(response: any): PaginatedResponse<T> => {
+  if (response?.success === true) {
+    const d = response.data;
+    if (Array.isArray(d)) {
+      return { data: d, total: d.length, page: 1, pageSize: d.length, hasMore: false };
+    }
+    if (d && Array.isArray(d.data)) return d as PaginatedResponse<T>;
+  }
+  if (Array.isArray(response)) {
+    return { data: response, total: response.length, page: 1, pageSize: response.length, hasMore: false };
+  }
+  return emptyPaginated<T>();
+};
+
+// ─── Service ───────────────────────────────────────────────────────────────────
 
 class IndustryDashboardService {
-  /**
-   * Get Dashboard Statistics (KPIs)
-   * Endpoint: GET /api/industry/dashboard/stats
-   * 
-   * Handles both flat and enhanced API response formats
-   */
+
   async getDashboardStats(): Promise<DashboardStats> {
-    try {
-      const response = await apiService.get<any>(
-        dashboardRoutes.stats
-      );
-      
-      console.log('📊 Dashboard Stats API Response:', response);
-      
-      // Check if response has enhanced format (nested objects with value/trend)
-      if (response.totalProcurementSpend && isEnhancedValue(response.totalProcurementSpend)) {
-        console.log('✅ Detected enhanced API format with trends');
-        // Return as-is, components will extract values
-        return {
-          ...response,
-          period: response.period || 'N/A'
-        };
-      }
-      
-      // Already flat format
-      console.log('✅ Detected flat API format');
-      return response;
-      
-    } catch (error) {
-      console.error('❌ Failed to fetch dashboard stats:', error);
-      throw error;
-    }
+    const response = await apiService.get<any>(dashboardRoutes.stats);
+    return unwrap<DashboardStats>(response, EMPTY_STATS);
   }
 
-  /**
-   * Get Procurement Analytics
-   * Endpoint: GET /api/industry/dashboard/analytics
-   * 
-   * @param dateRange - Optional date range filter
-   */
   async getProcurementAnalytics(dateRange?: DateRange): Promise<ProcurementAnalytics> {
-    try {
-      const params = dateRange ? {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate
-      } : undefined;
-
-      const response = await apiService.get<ProcurementAnalytics>(
-        dashboardRoutes.analytics,
-        { params }
-      );
-      console.log('📊 Analytics API Response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Failed to fetch procurement analytics:', error);
-      throw error;
-    }
+    const params = dateRange
+      ? { startDate: dateRange.startDate, endDate: dateRange.endDate }
+      : undefined;
+    const response = await apiService.get<any>(dashboardRoutes.analytics, { params });
+    return unwrap<ProcurementAnalytics>(response, EMPTY_ANALYTICS);
   }
 
-  /**
-   * Get Budget Overview & Utilization
-   * Endpoint: GET /api/industry/dashboard/budget
-   */
   async getBudgetOverview(): Promise<BudgetOverview> {
-    try {
-      const response = await apiService.get<BudgetOverview>(
-        dashboardRoutes.budget
-      );
-      console.log('📊 Budget API Response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Failed to fetch budget overview:', error);
-      throw error;
-    }
+    const response = await apiService.get<any>(dashboardRoutes.budget);
+    return unwrap<BudgetOverview>(response, EMPTY_BUDGET);
   }
 
-  /**
-   * Get Vendor Performance Rankings
-   * Endpoint: GET /api/industry/dashboard/vendors/performance
-   * 
-   * @param limit - Number of top vendors to return (default: 5)
-   */
-  async getVendorPerformance(limit: number = 5): Promise<VendorPerformance[]> {
-    try {
-      const response = await apiService.get<VendorPerformance[]>(
-        dashboardRoutes.vendorPerformance,
-        { params: { limit } }
-      );
-      console.log('📊 Vendor Performance API Response:', response);
-      return response;
-    } catch (error) {
-      console.error('❌ Failed to fetch vendor performance:', error);
-      throw error;
-    }
+  async getVendorPerformance(limit = 5): Promise<VendorPerformance[]> {
+    const response = await apiService.get<any>(dashboardRoutes.vendorPerformance, { params: { limit } });
+    const data = unwrap<VendorPerformance[]>(response, []);
+    return Array.isArray(data) ? data : [];
   }
 
-  /**
-   * Get Active Requirements
-   * Endpoint: GET /api/industry/requirements?status=active
-   * 
-   * @param filters - Optional filters (category, date range, etc.)
-   */
   async getActiveRequirements(filters?: ApiFilters): Promise<PaginatedResponse<ActiveRequirement>> {
-    try {
-      return await apiService.get<PaginatedResponse<ActiveRequirement>>(
-        dashboardRoutes.activeRequirements,
-        { params: filters }
-      );
-    } catch (error) {
-      console.error('❌ Failed to fetch active requirements:', error);
-      throw error;
-    }
+    const response = await apiService.get<any>(dashboardRoutes.activeRequirements, { params: filters });
+    return unwrapPaginated<ActiveRequirement>(response);
   }
 
-  /**
-   * Get Active Purchase Orders
-   * Endpoint: GET /api/industry/purchase-orders?status=active,in_progress
-   * 
-   * @param filters - Optional filters (status, date range, etc.)
-   */
   async getActivePurchaseOrders(filters?: ApiFilters): Promise<PaginatedResponse<ActivePurchaseOrder>> {
-    try {
-      return await apiService.get<PaginatedResponse<ActivePurchaseOrder>>(
-        dashboardRoutes.activePurchaseOrders,
-        { params: filters }
-      );
-    } catch (error) {
-      console.error('❌ Failed to fetch active purchase orders:', error);
-      throw error;
-    }
+    const response = await apiService.get<any>(dashboardRoutes.activePurchaseOrders, { params: filters });
+    return unwrapPaginated<ActivePurchaseOrder>(response);
   }
 
-  /**
-   * Get Pending Approvals for Current User
-   * Endpoint: GET /api/industry/approvals/pending
-   * 
-   * @param filters - Optional filters (priority, category, etc.)
-   */
   async getPendingApprovals(filters?: ApiFilters): Promise<PaginatedResponse<PendingApproval>> {
-    try {
-      return await apiService.get<PaginatedResponse<PendingApproval>>(
-        dashboardRoutes.pendingApprovals,
-        { params: filters }
-      );
-    } catch (error) {
-      console.error('❌ Failed to fetch pending approvals:', error);
-      throw error;
-    }
+    const response = await apiService.get<any>(dashboardRoutes.pendingApprovals, { params: filters });
+    return unwrapPaginated<PendingApproval>(response);
   }
 
   /**
-   * Get All Dashboard Data in Single Request
-   * Fetches all dashboard sections
-   * 
-   * NOTE: This is a convenience method that makes multiple API calls
-   * Consider creating a dedicated backend endpoint for better performance
+   * Fetches all dashboard data with partial-failure resilience.
+   * If one endpoint fails the rest still load; failed sections use empty defaults.
    */
   async getAllDashboardData(): Promise<DashboardResponse> {
     const [
-      stats,
-      analytics,
-      budget,
-      vendors,
-      requirements,
-      purchaseOrders,
-      pendingApprovals
-    ] = await Promise.all([
+      statsResult,
+      analyticsResult,
+      budgetResult,
+      vendorsResult,
+      requirementsResult,
+      purchaseOrdersResult,
+      pendingApprovalsResult,
+    ] = await Promise.allSettled([
       this.getDashboardStats(),
       this.getProcurementAnalytics(),
       this.getBudgetOverview(),
       this.getVendorPerformance(5),
       this.getActiveRequirements({ limit: 10 }),
       this.getActivePurchaseOrders({ limit: 10 }),
-      this.getPendingApprovals({ limit: 10 })
+      this.getPendingApprovals({ limit: 10 }),
     ]);
+
+    const resolved = <T>(result: PromiseSettledResult<T>, fallback: T, label: string): T => {
+      if (result.status === 'fulfilled') return result.value;
+      console.warn(`⚠️ Dashboard [${label}] failed:`, (result as PromiseRejectedResult).reason?.message);
+      return fallback;
+    };
+
+    const stats = resolved(statsResult, EMPTY_STATS, 'stats');
+    const analytics = resolved(analyticsResult, EMPTY_ANALYTICS, 'analytics');
+    const budget = resolved(budgetResult, EMPTY_BUDGET, 'budget');
+    const vendors = resolved(vendorsResult, [], 'vendors');
+    const requirements = resolved(requirementsResult, emptyPaginated<ActiveRequirement>(), 'requirements');
+    const purchaseOrders = resolved(purchaseOrdersResult, emptyPaginated<ActivePurchaseOrder>(), 'purchaseOrders');
+    const pendingApprovals = resolved(pendingApprovalsResult, emptyPaginated<PendingApproval>(), 'pendingApprovals');
 
     return {
       stats,
@@ -216,7 +166,7 @@ class IndustryDashboardService {
       vendors,
       requirements: requirements.data,
       purchaseOrders: purchaseOrders.data,
-      pendingApprovals: pendingApprovals.data
+      pendingApprovals: pendingApprovals.data,
     };
   }
 }

@@ -1,8 +1,8 @@
-import { 
-  Factory, 
-  Wrench, 
-  Package, 
-  Truck, 
+import {
+  Factory,
+  Wrench,
+  Package,
+  Truck,
   UserCheck,
   Network,
   Sparkles,
@@ -136,8 +136,7 @@ export const industryPlans: Plan[] = [
     code: 'INDUSTRY_GROWTH',
     name: 'Growth',
     tier: 'pro',
-    priceRange: { min: 12000, max: 20000 },
-    price: null,
+    price: 12000,
     currency: 'INR',
     billingCycle: 'monthly',
     description: 'Scale your procurement operations with advanced AI capabilities, larger team support, and comprehensive analytics for growing businesses.',
@@ -152,8 +151,8 @@ export const industryPlans: Plan[] = [
       'Advanced analytics'
     ],
     isPopular: true,
-    ctaLabel: 'Contact Sales',
-    ctaAction: 'contact'
+    ctaLabel: 'Subscribe Now',
+    ctaAction: 'subscribe'
   },
   {
     code: 'INDUSTRY_ENTERPRISE',

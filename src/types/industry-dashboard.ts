@@ -77,6 +77,7 @@ export interface BudgetCategory {
 export interface BudgetOverview {
   totalAllocated: number;
   totalSpent: number;
+  available?: number;
   overallPercentage: number;
   categories: BudgetCategory[];
 }
@@ -98,9 +99,9 @@ export interface VendorPerformance {
 export interface ActiveRequirement {
   id: string;
   title: string;
-  category: 'Product' | 'Service' | 'Expert' | 'Logistics';
-  status: 'Active' | 'Completed' | 'Approved' | 'Pending';
-  date: string;
+  category: string;  // backend returns lowercase: 'product' | 'service' | 'expert' | 'logistics'
+  status: string;
+  date?: string;
   budget: number;
   applicants: number;
 }
@@ -108,13 +109,17 @@ export interface ActiveRequirement {
 // Active Purchase Orders
 export interface ActivePurchaseOrder {
   id: string;
+  poNumber?: string;
   title: string;
   vendor: string;
-  summary: string;
-  status: 'In Progress' | 'Delivered' | 'Pending' | 'Completed';
+  summary?: string;
+  status: string;
   progress: number;
   amount: number;
-  requirementId: string;
+  currency?: string;
+  requirementId?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 // Pending Approvals

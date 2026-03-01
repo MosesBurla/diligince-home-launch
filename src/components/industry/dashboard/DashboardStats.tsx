@@ -2,11 +2,20 @@ import React from "react";
 import { GenericDashboardStats } from "@/components/shared/dashboard/GenericDashboardStats";
 import { DashboardStats as DashboardStatsType } from "@/types/industry-dashboard";
 import { extractValue } from "@/types/api-common";
-import { DollarSign, ShoppingCart, TrendingUp, PiggyBank } from "lucide-react";
+import { IndianRupee, ShoppingCart, TrendingUp, PiggyBank } from "lucide-react";
 
 interface DashboardStatsProps {
   data: DashboardStatsType;
 }
+
+// Smart Indian rupee formatter: adapts units based on magnitude
+const fmtINR = (amount: number): string => {
+  if (amount === 0) return "₹0";
+  if (amount >= 10_000_000) return `₹${(amount / 10_000_000).toFixed(2)} Cr`;
+  if (amount >= 100_000) return `₹${(amount / 100_000).toFixed(2)} L`;
+  if (amount >= 1_000) return `₹${(amount / 1_000).toFixed(1)} K`;
+  return `₹${amount.toLocaleString("en-IN")}`;
+};
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
   // Helper to safely extract numeric values from both flat and enhanced formats
@@ -17,9 +26,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
   const stats = [
     {
       title: "Total Procurement Spend",
-      value: `$${(getValue(data?.totalProcurementSpend) / 1000000).toFixed(2)}M`,
+      value: fmtINR(getValue(data?.totalProcurementSpend)),
       subtitle: data?.period ?? "N/A",
-      icon: DollarSign,
+      icon: IndianRupee,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
@@ -41,7 +50,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ data }) => {
     },
     {
       title: "Cost Savings",
-      value: `$${(getValue(data?.costSavings) / 1000).toFixed(0)}K`,
+      value: fmtINR(getValue(data?.costSavings)),
       subtitle: "through competitive bidding",
       icon: PiggyBank,
       color: "text-orange-600",

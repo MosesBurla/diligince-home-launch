@@ -352,6 +352,12 @@ const VendorWorkflowDetails: React.FC = () => {
                                     <p className="text-xs text-primary-700 mt-0.5">
                                         The client has initiated the project closeout process. Please upload your required documents in the checklist below — only items assigned to <strong>Vendor</strong> or <strong>Both Parties</strong> require your upload. The client will verify each item and issue a completion certificate.
                                     </p>
+                                    {closeoutData?.certificate?.issued && (
+                                        <p className="text-xs text-green-700 font-medium mt-2 flex items-center gap-1">
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                            Your completion certificate has been issued — scroll down to download it.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -365,8 +371,8 @@ const VendorWorkflowDetails: React.FC = () => {
                                 </div>
                             </div>
                         )}
-                        {/* Completion Certificate card — vendor view after project is closed */}
-                        {workflow.status === 'closed' && closeoutData?.certificate?.issued && (
+                        {/* Completion Certificate card — vendor view after certificate is issued */}
+                        {(workflow.status === 'closed' || workflow.status === 'awaiting_closeout') && closeoutData?.certificate?.issued && (
                             <Card className="border-green-200 bg-green-50/50">
                                 <CardHeader className="pb-3">
                                     <CardTitle className="flex items-center gap-2 text-base">
@@ -394,18 +400,18 @@ const VendorWorkflowDetails: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <button
+                                    <Button
                                         onClick={handleViewCertificate}
                                         disabled={viewCertLoading}
-                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-green-700 border border-green-300 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 h-10"
                                     >
                                         {viewCertLoading ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <Download className="h-4 w-4" />
                                         )}
-                                        View / Download Certificate PDF
-                                    </button>
+                                        {viewCertLoading ? 'Fetching secure link…' : 'View & Download Certificate PDF'}
+                                    </Button>
                                 </CardContent>
                             </Card>
                         )}
