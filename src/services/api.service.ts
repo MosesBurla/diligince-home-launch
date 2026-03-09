@@ -1,7 +1,8 @@
 //API Service tsx
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 // import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../utils/cookieService';
-const BASE_URL = 'http://13.234.207.18:8020';
+//const BASE_URL = 'http://13.234.207.18:8020';
+const BASE_URL = 'https://api.diligince.ai';
 
 const api: AxiosInstance = axios.create({
   baseURL: BASE_URL,
